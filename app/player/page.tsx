@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { TEAM_NAME, TEAM_LP_NAME } from '../../lib/team';
 import { useEffect, useState } from 'react';
 
 const CACHE_DURATIONS = { riot: 60*60*1000, pro: 30*60*1000, lp: 6*60*60*1000 };
@@ -45,7 +46,7 @@ export default function PlayerDashboard() {
       if (isFresh(lpKey, CACHE_DURATIONS.lp)) { lpData = loadCache(lpKey); }
       else {
         try { const redisRes = await fetch(`/api/data?type=lp&player=${parsedUser.name}`); const redisData = await redisRes.json(); if (redisData.data?.cargoquery?.length > 0) { lpData = redisData.data; saveCache(lpKey, lpData); } else { throw new Error('empty'); } }
-        catch { try { const lpParams = new URLSearchParams({ action:'cargoquery', tables:'ScoreboardPlayers', fields:'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side', where:`Name='${parsedUser.name}' AND Team='Ozarox Esports'`, order_by:'DateTime_UTC DESC', limit:'50', format:'json', origin:'*' }); const res = await fetch(`https://lol.fandom.com/api.php?${lpParams}`); lpData = await res.json(); if (lpData.cargoquery?.length > 0) saveCache(lpKey, lpData); } catch { lpData = loadCache(lpKey); } }
+        catch { try { const lpParams = new URLSearchParams({ action:'cargoquery', tables:'ScoreboardPlayers', fields:'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side', where:`Name='${parsedUser.name}' AND Team='${TEAM_LP_NAME}'`, order_by:'DateTime_UTC DESC', limit:'50', format:'json', origin:'*' }); const res = await fetch(`https://lol.fandom.com/api.php?${lpParams}`); lpData = await res.json(); if (lpData.cargoquery?.length > 0) saveCache(lpKey, lpData); } catch { lpData = loadCache(lpKey); } }
       }
       if (lpData?.cargoquery?.length > 0) {
         const lpM = lpData.cargoquery.map((x: any) => x.title);
@@ -311,7 +312,7 @@ export default function PlayerDashboard() {
           {actualRole==='coach'&&<button className="BT go" onClick={()=>{sessionStorage.removeItem('viewingPlayer');router.push('/coach');}}>← Coach Panel</button>}
           <button className="BT ac" onClick={()=>router.push('/matches')}>⚔ Match History</button>
           <button className="BT pu" onClick={()=>router.push('/draft')}>📋 Draft</button>
-          <span className="S2G">Ozarox Esports</span>
+          <span className="S2G">{TEAM_NAME}</span>
           <button className="BT" onClick={handleLogout}>Logout</button>
         </div>
       </div>
@@ -458,7 +459,7 @@ export default function PlayerDashboard() {
                   <div key={m.id}>
                     <div className={`FMR ${isSel?'sl':''}`} onClick={()=>handleMatchClick(m)}>
                       <div className="FMD"><div className="FMDV">{m.date}</div><div className="FMDT">{m.time}</div></div>
-                      <div className="FMT"><span className="FMS">Ozarox</span><span className="FMV">VS</span><span className="FMO">{m.opponent}</span></div>
+                      <div className="FMT"><span className="FMS">{TEAM_NAME}</span><span className="FMV">VS</span><span className="FMO">{m.opponent}</span></div>
                       <div className="FMRt">
                         <span className="FHI">{isSel?'▲':'▼'}</span>
                         <button className="FDB" onClick={(e)=>{e.stopPropagation();router.push('/draft');}}>Draft</button>

@@ -1,6 +1,7 @@
 // /app/api/data/route.ts
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
+import { USERS } from '../../../lib/users';
 
 const redis = Redis.fromEnv();
 
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
     }
 
     // Tüm oyuncular (coach sayfası için)
-    const playerNames = ['MonkaS', 'Grave', 'Fade', 'Cape', 'StarScreen'];
+    const playerNames = USERS.filter(u => u.role === 'player' && u.riotId).map(u => u.name);
     const players: Record<string, any> = {};
     for (const name of playerNames) {
       const data = await redis.get(`player:${name}`);

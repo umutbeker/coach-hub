@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { TEAM_NAME, TEAM_LP_NAME } from '../../lib/team';
 
 const LP_CACHE_KEY = 'matches_lp_v4';
 const LP_CACHE_DURATION = 60 * 60 * 1000;
@@ -21,12 +22,12 @@ function parseCargoData(data: any) {
   const gameMap: Record<string, any> = {};
   data.cargoquery.forEach((item: any) => {
     const m = item.title; const rawDate = (m['DateTime UTC'] ?? m['DateTime_UTC'] ?? '').split(' ')[0];
-    const isS2G = m.Team === 'Ozarox Esports'; const opponent = isS2G ? m.TeamVs : m.Team;
+    const isS2G = m.Team === TEAM_LP_NAME; const opponent = isS2G ? m.TeamVs : m.Team;
     const gid = m.GameId || `${opponent}_${rawDate}`;
     if (!gameMap[gid]) {
       const bluePlayer = m.Side === '1' || m.Side?.toLowerCase() === 'blue';
       const s2gBlue = isS2G ? bluePlayer : !bluePlayer;
-      gameMap[gid] = { id:gid, date:rawDate, tournament:m.Tournament||'TCL', opponent, blueTeam:s2gBlue?'Ozarox Esports':opponent, redTeam:s2gBlue?opponent:'Ozarox Esports', s2gBlue, result:isS2G?(m.PlayerWin==='Yes'?'W':'L'):(m.PlayerWin==='Yes'?'L':'W'), blueBans:[m.Team1Ban1,m.Team1Ban2,m.Team1Ban3,m.Team1Ban4,m.Team1Ban5].filter(Boolean), redBans:[m.Team2Ban1,m.Team2Ban2,m.Team2Ban3,m.Team2Ban4,m.Team2Ban5].filter(Boolean), bluePicks:[m.Team1Pick1,m.Team1Pick2,m.Team1Pick3,m.Team1Pick4,m.Team1Pick5].filter(Boolean), redPicks:[m.Team2Pick1,m.Team2Pick2,m.Team2Pick3,m.Team2Pick4,m.Team2Pick5].filter(Boolean) };
+      gameMap[gid] = { id:gid, date:rawDate, tournament:m.Tournament||'TCL', opponent, blueTeam:s2gBlue?TEAM_NAME:opponent, redTeam:s2gBlue?opponent:TEAM_NAME, s2gBlue, result:isS2G?(m.PlayerWin==='Yes'?'W':'L'):(m.PlayerWin==='Yes'?'L':'W'), blueBans:[m.Team1Ban1,m.Team1Ban2,m.Team1Ban3,m.Team1Ban4,m.Team1Ban5].filter(Boolean), redBans:[m.Team2Ban1,m.Team2Ban2,m.Team2Ban3,m.Team2Ban4,m.Team2Ban5].filter(Boolean), bluePicks:[m.Team1Pick1,m.Team1Pick2,m.Team1Pick3,m.Team1Pick4,m.Team1Pick5].filter(Boolean), redPicks:[m.Team2Pick1,m.Team2Pick2,m.Team2Pick3,m.Team2Pick4,m.Team2Pick5].filter(Boolean) };
     }
   });
   const games = Object.values(gameMap).sort((a:any,b:any)=>b.date.localeCompare(a.date));
@@ -47,7 +48,7 @@ export default function MatchesPage() {
     const fetchData = async () => {
       if (isFresh(LP_CACHE_KEY, LP_CACHE_DURATION)) { const c = loadCache(LP_CACHE_KEY); if (c?.length > 0) { setSeries(c); setLoading(false); return; } }
       try { const rr = await fetch('/api/data?type=matches'); const rd = await rr.json(); if (rd.data?.cargoquery?.length > 0) { const p = parseCargoData(rd.data); saveCache(LP_CACHE_KEY, p); setSeries(p); setLoading(false); return; } } catch {}
-      try { const p = new URLSearchParams({ action:'cargoquery', tables:'ScoreboardPlayers=SP,PicksAndBansS7=PB', fields:['SP.PlayerWin','SP.DateTime_UTC','SP.Tournament','SP.Team','SP.TeamVs','SP.Side','SP.GameId','PB.Team1Ban1','PB.Team1Ban2','PB.Team1Ban3','PB.Team1Ban4','PB.Team1Ban5','PB.Team2Ban1','PB.Team2Ban2','PB.Team2Ban3','PB.Team2Ban4','PB.Team2Ban5','PB.Team1Pick1','PB.Team1Pick2','PB.Team1Pick3','PB.Team1Pick4','PB.Team1Pick5','PB.Team2Pick1','PB.Team2Pick2','PB.Team2Pick3','PB.Team2Pick4','PB.Team2Pick5'].join(','), join_on:'SP.GameId=PB.GameId', where:`SP.Team='Ozarox Esports' OR SP.TeamVs='Ozarox Esports'`, order_by:'SP.DateTime_UTC DESC', limit:'500', format:'json', origin:'*' }); const res = await fetch(`https://lol.fandom.com/api.php?${p}`); const data = await res.json(); if (!data.cargoquery?.length) throw new Error('empty'); const parsed = parseCargoData(data); saveCache(LP_CACHE_KEY, parsed); setSeries(parsed); } catch {}
+      try { const p = new URLSearchParams({ action:'cargoquery', tables:'ScoreboardPlayers=SP,PicksAndBansS7=PB', fields:['SP.PlayerWin','SP.DateTime_UTC','SP.Tournament','SP.Team','SP.TeamVs','SP.Side','SP.GameId','PB.Team1Ban1','PB.Team1Ban2','PB.Team1Ban3','PB.Team1Ban4','PB.Team1Ban5','PB.Team2Ban1','PB.Team2Ban2','PB.Team2Ban3','PB.Team2Ban4','PB.Team2Ban5','PB.Team1Pick1','PB.Team1Pick2','PB.Team1Pick3','PB.Team1Pick4','PB.Team1Pick5','PB.Team2Pick1','PB.Team2Pick2','PB.Team2Pick3','PB.Team2Pick4','PB.Team2Pick5'].join(','), join_on:'SP.GameId=PB.GameId', where:`SP.Team='${TEAM_LP_NAME}' OR SP.TeamVs='${TEAM_LP_NAME}'`, order_by:'SP.DateTime_UTC DESC', limit:'500', format:'json', origin:'*' }); const res = await fetch(`https://lol.fandom.com/api.php?${p}`); const data = await res.json(); if (!data.cargoquery?.length) throw new Error('empty'); const parsed = parseCargoData(data); saveCache(LP_CACHE_KEY, parsed); setSeries(parsed); } catch {}
       setLoading(false);
     };
     fetchData();
@@ -163,14 +164,14 @@ export default function MatchesPage() {
             const bo = gc>=4?'BO5':gc>=2?'BO3':'BO1';
             const gi = activeGame[s.id]??0;
             const g = s.games[gi]??s.games[0];
-            const blueIsS2G = g.blueTeam==='Ozarox Esports';
+            const blueIsS2G = g.blueTeam===TEAM_NAME;
             const blueWin = (blueIsS2G&&g.result==='W')||(!blueIsS2G&&g.result==='L');
             return (
               <div key={s.id} className={`SC ${isOpen?'op':''}`}>
                 <div className="SH" onClick={()=>toggle(s.id)}>
                   <div className="SHL">
                     <div className="SHM">{s.tournament} · {s.date}</div>
-                    <div className="SHT"><span className="s2g">Ozarox Esports</span><span className="sep">vs</span><span>{s.opponent}</span></div>
+                    <div className="SHT"><span className="s2g">{TEAM_NAME}</span><span className="sep">vs</span><span>{s.opponent}</span></div>
                   </div>
                   <div className="SHR">
                     <span className="BO">{bo}</span>

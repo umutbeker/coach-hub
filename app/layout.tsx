@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { TEAM_NAME } from "../lib/team";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ozarox Hub",
-  description: "Created by Waves for Ozarox Esports",
+  title: `${TEAM_NAME} Hub`,
+  description: `Created by Waves for ${TEAM_NAME}`,
 };
 
 export default function RootLayout({

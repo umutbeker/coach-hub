@@ -13,6 +13,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { TEAM_NAME } from '../../lib/team';
 import Pusher from 'pusher-js';
 import StrategyMap from './StrategyMap';
 import AIDraftAssistant from './AIDraftAssistant';  // ← YENİ IMPORT
@@ -96,7 +97,7 @@ export default function DraftPage() {
     return {
       picks: { blue: ['','','','',''], red: ['','','','',''] },
       bans: { blue: ['','','','',''], red: ['','','','',''] },
-      teamNames: { blue: 'Ozarox Esports', red: 'Rakip' },
+      teamNames: { blue: TEAM_NAME, red: 'Rakip' },
     };
   }
 
@@ -470,8 +471,8 @@ export default function DraftPage() {
         <div className="hdr">
           <div className="hdr-l">
             <button className="btn" onClick={() => router.back()}>← GERİ</button>
-            <div className="logo">Ozarox <em>DRAFT</em></div>
-            {opponent && <div className="vs-chip">Ozarox <span style={{color:'#3C3C41',margin:'0 4px'}}>VS</span> <span className="opp">{opponent}</span></div>}
+            <div className="logo">{TEAM_NAME} <em>DRAFT</em></div>
+            {opponent && <div className="vs-chip">{TEAM_NAME} <span style={{color:'#3C3C41',margin:'0 4px'}}>VS</span> <span className="opp">{opponent}</span></div>}
           </div>
           <div className="hdr-r">
             {lastUpdate && <span className="upd">{lastUpdate} güncelledi</span>}

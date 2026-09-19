@@ -1,16 +1,14 @@
 // /app/api/sync/route.ts
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
+import { USERS } from '../../../lib/users';
+import { TEAM_LP_NAME, TEAM_PANDASCORE_NAME, TEAM_ACRONYM } from '../../../lib/team';
 
 const redis = Redis.fromEnv();
 
-const PLAYERS = [
-  { name: 'MonkaS',     riotId: 'kd6dash3dot7#1111' },
-  { name: 'Grave',      riotId: 'GRAVE#x1905' },
-  { name: 'Fade',       riotId: 'SU ZYZZ#0311' },
-  { name: 'Cape',       riotId: 'eL KaDDaF1#DEAD' },
-  { name: 'StarScreen', riotId: 'ESREF TEK#1702' },
-];
+const PLAYERS = USERS
+  .filter(u => u.role === 'player' && u.riotId)
+  .map(u => ({ name: u.name, riotId: u.riotId as string }));
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -231,7 +229,7 @@ export async function GET(request: Request) {
       const lpParams = new URLSearchParams({
         action: 'cargoquery', tables: 'ScoreboardPlayers',
         fields: 'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side,Name',
-        where: `Name='${player.name}' AND Team='Ozarox Esports'`,
+        where: `Name='${player.name}' AND Team='${TEAM_LP_NAME}'`,
         order_by: 'DateTime_UTC DESC', limit: '50', format: 'json', origin: '*',
       });
       const lpRes = await fetch(`https://lol.fandom.com/api.php?${lpParams.toString()}`);
@@ -263,7 +261,7 @@ export async function GET(request: Request) {
           'PB.Team2Pick1','PB.Team2Pick2','PB.Team2Pick3','PB.Team2Pick4','PB.Team2Pick5',
         ].join(','),
         join_on: 'SP.GameId=PB.GameId',
-        where: `SP.Team='Ozarox Esports' OR SP.TeamVs='Ozarox Esports'`,
+        where: `SP.Team='${TEAM_LP_NAME}' OR SP.TeamVs='${TEAM_LP_NAME}'`,
         order_by: 'SP.DateTime_UTC DESC', limit: '200', format: 'json', origin: '*',
       });
       const matchesRes = await fetch(`https://lol.fandom.com/api.php?${matchesParams.toString()}`);
@@ -281,18 +279,16 @@ export async function GET(request: Request) {
             { headers: { Authorization: `Bearer ${pandaKey}` } }
           );
           const fixtureData = await fixtureRes.json();
-          const s2gMatch = Array.isArray(fixtureData) ? fixtureData.find((m: any) =>
-            m.opponents?.some((o: any) => 
-              o.opponent?.name?.toLowerCase().includes('ozarox') ||
-              o.opponent?.acronym?.toLowerCase() === 'ozarox'
-            )
-          ) : null;
+          const isUs = (o: any) =>
+            o.opponent?.name?.toLowerCase().includes(TEAM_PANDASCORE_NAME) ||
+            o.opponent?.acronym?.toLowerCase() === TEAM_ACRONYM;
 
-          if (s2gMatch) {
-            const oppTeam = s2gMatch.opponents?.find((o: any) =>
-              !o.opponent?.name?.toLowerCase().includes('ozarox') &&
-              o.opponent?.acronym?.toLowerCase() !== 'ozarox'
-            )?.opponent?.name;
+          const ourMatch = Array.isArray(fixtureData)
+            ? fixtureData.find((m: any) => m.opponents?.some(isUs))
+            : null;
+
+          if (ourMatch) {
+            const oppTeam = ourMatch.opponents?.find((o: any) => !isUs(o))?.opponent?.name;
 
             if (oppTeam) {
               const TEAM_NAME_MAP: Record<string,string> = {

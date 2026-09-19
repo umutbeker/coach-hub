@@ -1,11 +1,12 @@
-// src/lib/users.ts
+// lib/users.ts
+// name alanı hem Redis anahtarı (player:<name>) hem de Leaguepedia sorgusundaki
+// Name değeri olarak kullanılıyor — wiki'deki yazımla aynı tutulmalı.
 export const USERS = [
-  { username: 'monkas', password: '6902', role: 'player', riotId: 'kd6dash3dot7#1111', name: 'MonkaS', image: '/players/monkas.png' },
-  { username: 'grave', password: '916420', role: 'player', riotId: 'GRAVE#x1905', name: 'Grave', image: '/players/logo.png' },
-  { username: 'fade', password: 'fade123', role: 'player', riotId: 'SU ZYZZ#0311', name: 'Fade', image: '/logo.png' },
-  // Fotoğrafı olmayanlar için varsayılan s2g logosu gösterebiliriz
-  { username: 'cape', password: 't5r4e3w2q13452', role: 'player', riotId: 'eL KaDDaF1#DEAD', name: 'Cape', image: '/logo.png' },
-  { username: 'starscreen', password: 'starscreen123', role: 'player', riotId: 'ESREF TEK#1702', name: 'StarScreen', image: '/players/star.png' },
-  { username: 'zetsu', password: 'arsdf33', role: 'coach', riotId: null, name: 'Baş Koç', image: '/logo.png' },
-  { username: 'waves', password: 'k7xx6w9s5p6', role: 'coach', riotId: null, name: 'Baş Koç', image: '/logo.png' }
+  { username: 'akashi',     password: 'akashi123',     role: 'player', lane: 'mid',     riotId: 'makaynch#0404',      name: 'Akashi',     image: '/logo.png' },
+  { username: 'starscreen', password: 'starscreen123', role: 'player', lane: 'top',     riotId: 'THE MENTALIST#1702', name: 'StarScreen', image: '/players/star.png' },
+  { username: 'moe',        password: 'moe123',        role: 'player', lane: 'jungle',  riotId: 'tommy vercetti#252', name: 'Moe',        image: '/logo.png' },
+  { username: 'jalleba',    password: 'jalleba123',    role: 'player', lane: 'adc',     riotId: 'Thomas Jalbi#XD3',   name: 'Jalleba',    image: '/logo.png' },
+  { username: 'mahonix',    password: 'mahonix123',    role: 'player', lane: 'support', riotId: 'RVL Mahonix#BROCK',  name: 'Mahonix',    image: '/logo.png' },
+  { username: 'zetsu',      password: 'arsdf33',       role: 'coach',  lane: null,      riotId: null,                 name: 'Baş Koç',    image: '/logo.png' },
+  { username: 'waves',      password: 'k7xx6w9s5p6',   role: 'coach',  lane: null,      riotId: null,                 name: 'Baş Koç',    image: '/logo.png' },
 ];

@@ -26,7 +26,7 @@ Required env: `KV_REST_API_URL` / `KV_REST_API_TOKEN` (read by `Redis.fromEnv()`
 
 ## What this is
 
-"Ozarox HUB" — a player and coach dashboard for the Ozarox Esports League of Legends team. Next.js 16 App Router, React 19, TypeScript, Tailwind 4. Four screens behind a login: coach panel, player panel, match history, and a live draft room.
+"Pyramid4 HUB" — a player and coach dashboard for the Pyramid IV Esports League of Legends team. Next.js 16 App Router, React 19, TypeScript, Tailwind 4. Four screens behind a login: coach panel, player panel, match history, and a live draft room.
 
 ## Architecture
 
@@ -51,12 +51,22 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 
 `/api/sync` is the only thing that talks to Riot and fetches heavily; it is slow (rate-limited, ~120ms between Riot calls) and never called from the UI. `vercel.json` runs `/api/sync-all` daily at 06:00 UTC, which loops the five players sequentially by calling `/api/sync?player=<Name>` over HTTP against `VERCEL_URL`. All UI reads go to `/api/data`, which only does Redis gets. When adding a stat, compute and store it in `/api/sync`; do not add Riot calls to a read path.
 
-The roster is hardcoded in three places that must stay in sync: `PLAYERS` in [app/api/sync/route.ts](app/api/sync/route.ts), the player list in [app/api/sync-all/route.ts](app/api/sync-all/route.ts), and `USERS` in [lib/users.ts](lib/users.ts).
+### Team identity and roster are single-source
+
+[lib/team.ts](lib/team.ts) holds the team's names and [lib/users.ts](lib/users.ts) holds the roster; everything else derives from them. Nothing should hardcode a team name or a player list again — the two were previously duplicated across ~15 call sites, which is how a rename silently emptied every Leaguepedia query.
+
+The three name constants are not interchangeable:
+
+- `TEAM_NAME` — display only (`Pyramid4`).
+- `TEAM_LP_NAME` — the exact `Team` value on Leaguepedia (`Pyramid IV Esports`), interpolated verbatim into cargoquery where-clauses. A mismatch returns zero rows rather than an error, so a wrong value looks like "no data" instead of a bug.
+- `TEAM_PANDASCORE_NAME` / `TEAM_ACRONYM` — lowercase substring and exact-match acronym used to spot our own side in PandaScore fixtures.
+
+`USERS[].name` is likewise load-bearing in two directions: it is the Redis key (`player:<name>`) *and* the `Name` value in Leaguepedia queries, so it must match the wiki's spelling exactly. `USERS[].riotId` drives the Riot sync; entries without one (coaches) are skipped.
 
 ### External data sources
 
 - **Riot API** (`europe`/`euw1` regions) — soloq rank, last 20 ranked matches, timelines for the first 5 (used for gold/CS diff at 15 against the lane opponent). Wrapped in `rFetch`, which sleeps 120ms before every call and retries on 429 honoring `Retry-After`.
-- **Leaguepedia** (`lol.fandom.com/api.php`, `action=cargoquery`) — all pro/competitive data: scoreboards, picks and bans. Queried with `origin=*`, so both API routes *and* client components call it directly. Team names differ between providers; `TEAM_NAME_MAP` in `/api/sync` patches known mismatches.
+- **Leaguepedia** (`lol.fandom.com/api.php`, `action=cargoquery`) — all pro/competitive data: scoreboards, picks and bans. Queried with `origin=*`, so both API routes *and* client components call it directly. Team names differ between providers; `TEAM_NAME_MAP` in `/api/sync` patches known opponent mismatches. **Its rate limit is strict, per-IP, and slow to clear** — a handful of consecutive queries from one machine locks it out for many minutes, returning `{"error":{"code":"ratelimited"}}`. The architecture exists to avoid this: queries run from the browser (spreading load across users) and results are cached in Redis by the daily cron and in localStorage per client, so any given query runs about once a day. Do not loop over this API from a script or shell.
 - **PandaScore** — upcoming fixtures and pro player stats.
 - **Gemini** (`/api/draft-ai`) — the draft coach. Its Turkish system prompt encodes the team's actual drafting doctrine (pick count and presence outrank win rate); treat it as product logic, not boilerplate. Note `@anthropic-ai/sdk` is a dependency but is unused.
 

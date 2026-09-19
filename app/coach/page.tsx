@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { TEAM_NAME } from '../../lib/team';
 import { useEffect, useState } from 'react';
 import { USERS } from '@/lib/users';
 
@@ -298,7 +299,7 @@ export default function CoachDashboard() {
 
     <div className="R">
       <div className="H">
-        <div className="HL"><div className="LG">Ozarox <em>Command Center</em></div><span className="HS">Koç Paneli</span></div>
+        <div className="HL"><div className="LG">{TEAM_NAME} <em>Command Center</em></div><span className="HS">Koç Paneli</span></div>
         <div className="HR">
           {loadingPlayerName&&<span className="HSt">{loadingPlayerName}</span>}
           <button className="HB" onClick={()=>router.push('/matches')}>⚔ Maçlar</button>
@@ -437,7 +438,7 @@ export default function CoachDashboard() {
                 <div key={m.id}>
                   <div className={`MR ${isSel?'sl':''}`} onClick={()=>handleMatchClick(m)}>
                     <div className="MD"><div className="MDV">{m.date}</div><div className="MDT">{m.time}</div></div>
-                    <div className="MT"><span className="MS">Ozarox</span><span className="MV">VS</span><span className="MO">{m.opponent}</span></div>
+                    <div className="MT"><span className="MS">{TEAM_NAME}</span><span className="MV">VS</span><span className="MO">{m.opponent}</span></div>
                     <div className="MRt">
                       <button className="MDB" onClick={(e)=>{e.stopPropagation();router.push('/draft');}}>Draft</button>
                       <span className="MBO">{m.matchType}</span>

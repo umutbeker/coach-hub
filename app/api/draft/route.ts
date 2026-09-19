@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import Pusher from 'pusher';
 import { Redis } from '@upstash/redis';
+import { TEAM_NAME } from '../../../lib/team';
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -84,7 +85,7 @@ function getEmptyDraft() {
     picks: { blue: ['', '', '', '', ''], red: ['', '', '', '', ''] },
     bans:  { blue: ['', '', '', '', ''], red: ['', '', '', '', ''] },
     notes: { blue: '', red: '' },
-    teamNames: { blue: 'Ozarox Esports', red: 'Rakip' },
+    teamNames: { blue: TEAM_NAME, red: 'Rakip' },
     soloq: {},
     strategy: null,
     aiResult: null,

@@ -1,6 +1,8 @@
 // /app/api/fixture/route.ts
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
+import { USERS } from '../../../lib/users';
+import { TEAM_NAME, TEAM_PANDASCORE_NAME, TEAM_ACRONYM } from '../../../lib/team';
 
 const redis = Redis.fromEnv();
 const CACHE_KEY = 'fixture:cache';
@@ -21,9 +23,9 @@ export async function GET() {
     };
 
     // Find team ID — try players in order until one resolves a team
-    const LOOKUP_PLAYERS = ['MonkaS', 'Grave', 'Cape', 'StarScreen'];
+    const LOOKUP_PLAYERS = USERS.filter(u => u.role === 'player' && u.riotId).map(u => u.name);
     let teamId: number | undefined;
-    let teamName = 'Ozarox Esports';
+    let teamName = TEAM_NAME;
 
     for (const playerName of LOOKUP_PLAYERS) {
       const playerRes = await fetch(
@@ -32,13 +34,14 @@ export async function GET() {
       );
       const players = await playerRes.json();
       const team = players?.[0]?.current_team;
-      if (team?.id && team?.name?.toLowerCase().includes('ozarox')) {
+      if (team?.id && (team?.name?.toLowerCase().includes(TEAM_PANDASCORE_NAME) ||
+                       team?.acronym?.toLowerCase() === TEAM_ACRONYM)) {
         teamId = team.id;
         teamName = team.name;
         break;
       }
     }
-    if (!teamId) return NextResponse.json({ teamName: 'Ozarox Esports', teamId: null, tournaments: [] });
+    if (!teamId) return NextResponse.json({ teamName: TEAM_NAME, teamId: null, tournaments: [] });
 
     // Fetch upcoming matches
     const upcomingRes = await fetch(

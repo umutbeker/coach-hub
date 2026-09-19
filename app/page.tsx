@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { USERS } from '../lib/users';
+import { TEAM_NAME } from '../lib/team';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,12 +43,12 @@ export default function LoginPage() {
         <div className="flex flex-col items-center text-center mb-8">
           <img
             src="/logo.png"
-            alt="Ozarox Esports Logo"
+            alt={`${TEAM_NAME} Logo`}
             className="w-32 h-auto mb-6 drop-shadow-[0_0_20px_rgba(232,72,138,0.4)]"
           />
           <h1 className="text-4xl font-black tracking-wider mb-2 uppercase flex flex-col gap-1">
             <span className="text-[#F0B92D] text-sm tracking-[0.3em] font-bold">BETA VERSION</span>
-            <span className="text-white">Ozarox<span className="text-[#E8488A]">HUB</span></span>
+            <span className="text-white">{TEAM_NAME}<span className="text-[#E8488A]">HUB</span></span>
           </h1>
         </div>
 

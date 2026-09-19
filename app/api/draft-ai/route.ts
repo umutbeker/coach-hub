@@ -2,12 +2,13 @@
 // Canlı Draft Koçu — Gemini 2.5 Flash
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
+import { TEAM_NAME } from '../../../lib/team';
 
 const redis = Redis.fromEnv();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const META_KEY = 'draft:meta';
 
-const SYSTEM_PROMPT = `Sen Ozarox Esports'un profesyonel LoL draft koçusun.
+const SYSTEM_PROMPT = `Sen ${TEAM_NAME}'un profesyonel LoL draft koçusun.
 
 META ŞAMPİYON = ÇOK OYNANAN ŞAMPİYON. Bu en önemli kural:
 - Bir şampiyon meta ise PRO SAHNESDE ÇOK PICK'LENİR (yüksek pick sayısı + yüksek presence)

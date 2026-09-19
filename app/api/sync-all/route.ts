@@ -3,13 +3,14 @@
 // Her oyuncuyu paralel değil sırayla ama hızlıca sync eder
 
 import { NextResponse } from 'next/server';
+import { USERS } from '../../../lib/users';
 
 export async function GET(request: Request) {
   const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
     : 'http://localhost:3000';
 
-  const players = ['MonkaS', 'Grave', 'Fade', 'Cape', 'StarScreen'];
+  const players = USERS.filter(u => u.role === 'player' && u.riotId).map(u => u.name);
   const results: any[] = [];
 
   // Her oyuncuyu sırayla sync et
