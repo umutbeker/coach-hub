@@ -52,3 +52,28 @@ export function champSplash(name: string | null | undefined): string {
   const key = CHAMP_MAP[name] ?? name.replace(/[\s'".]/g, '');
   return `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${key}_0.jpg`;
 }
+
+/** "16.18" from "16.18.1" — the patch a scrim is played on, for filtering. */
+export const CURRENT_PATCH = DDRAGON_VERSION.split('.').slice(0, 2).join('.');
+
+export type ChampionEntry = { id: string; name: string };
+
+/**
+ * Every champion, from Data Dragon. Names are the human ones Leaguepedia also
+ * uses ("Kai'Sa"), so scrim picks and official picks join on the same string.
+ * Browser-only; cached in localStorage per Data Dragon version.
+ */
+export async function loadChampionList(): Promise<ChampionEntry[]> {
+  const cacheKey = `champions_${DDRAGON_VERSION}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch { /* storage unavailable — fetch instead */ }
+  const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VERSION}/data/en_US/champion.json`);
+  const json = await res.json();
+  const list: ChampionEntry[] = Object.values(json.data as Record<string, { id: string; name: string }>)
+    .map(c => ({ id: c.id, name: c.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  try { localStorage.setItem(cacheKey, JSON.stringify(list)); } catch { /* ignore */ }
+  return list;
+}
