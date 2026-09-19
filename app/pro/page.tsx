@@ -4,7 +4,7 @@
 // Veri Redis'ten geliyor (/api/pro-vods), ziyaretçi Leaguepedia'ya istek atmıyor:
 // anonim trafik Leaguepedia'nın IP bazlı limitini anında patlatır.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { champImg } from '../../lib/champions';
 
@@ -83,6 +83,17 @@ function GameRow({ g }: { g: Game }) {
   );
 }
 
+// localStorage erişimi gizli sekmede/engellenmiş site verisinde hata atabiliyor.
+function getStoredUser(): string | null {
+  try { return localStorage.getItem('currentUser'); } catch { return null; }
+}
+
+// Başka sekmede çıkış yapılırsa geri butonu da güncellensin.
+function subscribeToUser(onChange: () => void) {
+  window.addEventListener('storage', onChange);
+  return () => window.removeEventListener('storage', onChange);
+}
+
 export default function ProPage() {
   const router = useRouter();
   const [leagues, setLeagues] = useState<League[]>([]);
@@ -90,6 +101,24 @@ export default function ProPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  // Sayfa herkese açık; giriş yapmış ziyaretçiye kendi paneline dönüş sunuyoruz.
+  // Girişsiz ziyaretçide geri butonu yok — onu login'e atmanın anlamı olmaz.
+  //
+  // localStorage'ı effect içinde okuyup setState etmek cascading render
+  // uyarısı veriyor; sunucuda okunamadığı için de doğrudan render'da
+  // okunamıyor (hydration uyuşmazlığı). useSyncExternalStore ikisini de çözüyor:
+  // sunucu anlık görüntüsü null, istemci gerçek değeri veriyor.
+  const storedUser = useSyncExternalStore(subscribeToUser, getStoredUser, () => null);
+
+  const home = useMemo(() => {
+    if (!storedUser) return null;
+    try {
+      const u = JSON.parse(storedUser);
+      return u?.role === 'coach'
+        ? { href: '/coach', label: '← Koç Paneli' }
+        : { href: '/player', label: '← Panelim' };
+    } catch { return null; }
+  }, [storedUser]);
 
   useEffect(() => {
     fetch('/api/pro-vods')
@@ -163,10 +192,11 @@ export default function ProPage() {
     `}</style>
 
     <div className="W"><div className="In">
-      <div className="Nv">
-        <button className="Nb" onClick={() => router.push('/')}>Giriş</button>
-        <button className="Nb on">Pro Drafts</button>
-      </div>
+      {home ? (
+        <div className="Nv">
+          <button className="Nb" onClick={() => router.push(home.href)}>{home.label}</button>
+        </div>
+      ) : null}
 
       <div className="Hd">
         <div className="Lg">Pro <em>Drafts</em></div>
