@@ -43,7 +43,7 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `draft:current` | `/api/draft` | `/api/draft`, draft page |
 | `draft:meta` | `/api/draft-meta` (12h TTL) | `/api/draft-ai` |
 | `fixture:cache` | `/api/fixture` (30m TTL) | `/api/fixture` |
-| `vods:lec` / `vods:lck` | `/api/pro-vods` (12h TTL) | `/api/pro-vods`, `/pro` |
+| `vods:v2:lec` / `vods:v2:lck` | `/api/pro-vods` (12h TTL) | `/api/pro-vods`, `/pro` |
 | `sync:updatedAt` | `/api/sync` | `/api/data` |
 
 `/api/sync` reports `{"success":false,"error":"No matches found"}` whenever `cargoquery` is absent from the Leaguepedia response — which includes a rate-limited response, not just a genuinely empty result. Treat that message as "no usable reply", and retry before concluding the query is wrong.
@@ -91,9 +91,13 @@ Three things were duplicated across call sites and are now single-source; adding
 
 ### The public page
 
-`/pro` lists recent LEC and LCK games with their draft and a video of it, and is the one route with **no login check** — it deliberately omits the `currentUser` guard every other page runs. That makes its data path different in kind: anonymous traffic cannot be allowed to reach Leaguepedia, whose rate limit is per-IP, so the page only ever reads `vods:*` from Redis and the daily cron is what fills it.
+`/pro` lists recent LEC and LCK **series** — a BO3/BO5 is one collapsed row that expands into its games — each with its draft and a video of it, and is the one route with **no login check** — it deliberately omits the `currentUser` guard every other page runs. That makes its data path different in kind: anonymous traffic cannot be allowed to reach Leaguepedia, whose rate limit is per-IP, so the page only ever reads `vods:*` from Redis and the daily cron is what fills it.
 
 The video and the draft are not separate sources. Three Leaguepedia tables join on `GameId`: `MatchScheduleGame` (the VOD fields), `PicksAndBansS7` (picks and bans) and `ScoreboardGames` (teams, winner, date). Of the VOD fields, `Vod` is empty for both leagues in practice while `VodPB` is consistently filled and carries a `?t=` offset pointing at the draft, so `VodPB` is the primary video and `Vod` only a fallback. `VodHighlights` exists for LEC and not LCK.
+
+Series are not inferred from dates or team names: `MatchScheduleGame.MatchId` is already shared by every game of a series. Sides swap between games of a series, so the series score counts wins by team name — counting by blue/red would be wrong. `gamesPlayed` is how many games were played, not the format: a BO5 ending 3-1 has four.
+
+The Redis keys carry a `v2` segment because the response shape changed from a flat game list to series; bump it again rather than letting a differently-shaped cached payload reach the page.
 
 ### Auth
 

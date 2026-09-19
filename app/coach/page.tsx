@@ -330,6 +330,7 @@ export default function CoachDashboard() {
           {loadingPlayerName&&<span className="HSt">{loadingPlayerName}</span>}
           <button className="HB" onClick={()=>router.push('/matches')}>⚔ Maçlar</button>
           <button className="HB ac" onClick={()=>router.push('/draft')}>📋 Draft</button>
+          <button className="HB" onClick={()=>router.push('/pro')}>🎬 Pro Drafts</button>
           <button className="HB" onClick={()=>{localStorage.removeItem('currentUser');router.push('/');}}>Çıkış</button>
         </div>
       </div>

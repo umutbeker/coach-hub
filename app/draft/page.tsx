@@ -460,6 +460,7 @@ export default function DraftPage() {
         <div className="hdr">
           <div className="hdr-l">
             <button className="btn" onClick={() => router.back()}>← GERİ</button>
+            <button className="btn" onClick={() => router.push('/pro')}>🎬 PRO DRAFTS</button>
             <div className="logo">{TEAM_NAME} <em>DRAFT</em></div>
             {opponent && <div className="vs-chip">{TEAM_NAME} <span style={{color:'#3C3C41',margin:'0 4px'}}>VS</span> <span className="opp">{opponent}</span></div>}
           </div>

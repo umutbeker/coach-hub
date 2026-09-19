@@ -138,6 +138,7 @@ export default function MatchesPage() {
       <div className="H">
         <div><div className="HT">Match <em>History</em></div><div className="HS">Series History · Draft Analysis · Leaguepedia</div></div>
         <button className="BB" onClick={()=>router.back()}>← Back</button>
+        <button className="BB" onClick={()=>router.push('/pro')}>🎬 Pro Drafts</button>
       </div>
 
       {!loading && series.length>0 && (

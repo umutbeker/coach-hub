@@ -116,6 +116,17 @@ export default function LoginPage() {
             </button>
           </form>
         )}
+
+        {/* /pro herkese açık — giriş yapmadan da görülebilsin diye burada. */}
+        <div className="mt-6 pt-5 border-t border-[#2A164A] text-center">
+          <button
+            type="button"
+            onClick={() => router.push('/pro')}
+            className="text-[#6A5A8A] hover:text-[#E8488A] text-sm font-medium transition-colors"
+          >
+            🎬 LEC &amp; LCK draftlarını izle — giriş gerekmez
+          </button>
+        </div>
       </div>
     </div>
   );

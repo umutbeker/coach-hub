@@ -314,6 +314,7 @@ export default function PlayerDashboard() {
           {actualRole==='coach'&&<button className="BT go" onClick={()=>{sessionStorage.removeItem('viewingPlayer');router.push('/coach');}}>← Coach Panel</button>}
           <button className="BT ac" onClick={()=>router.push('/matches')}>⚔ Match History</button>
           <button className="BT pu" onClick={()=>router.push('/draft')}>📋 Draft</button>
+          <button className="BT" onClick={()=>router.push('/pro')}>🎬 Pro Drafts</button>
           <span className="S2G">{TEAM_NAME}</span>
           <button className="BT" onClick={handleLogout}>Logout</button>
         </div>
