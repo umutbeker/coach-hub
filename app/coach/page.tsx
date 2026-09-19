@@ -28,6 +28,8 @@ export default function CoachDashboard() {
   const [fixture, setFixture] = useState<any>(null);
   const [fixtureLoading, setFixtureLoading] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
+  const [manualOpp, setManualOpp] = useState('');
+  const [savedOpp, setSavedOpp] = useState<string|null>(null);
   const [scoutData, setScoutData] = useState<any>(null);
   const [scoutLoading, setScoutLoading] = useState(false);
   const [activeScoutGame, setActiveScoutGame] = useState<Record<string,number>>({});
@@ -76,14 +78,33 @@ export default function CoachDashboard() {
   useEffect(() => {
     const u = localStorage.getItem('currentUser'); if (!u) { router.push('/'); return; } const p = JSON.parse(u); if (p.role !== 'coach') { router.push('/player'); return; }
     setCoach(p); fetchTeamData(); fetchFixture();
+    fetch('/api/draft').then(r=>r.json()).then(d=>{ if(d?.opponent) setSavedOpp(d.opponent); }).catch(()=>{});
     Object.keys(localStorage).filter(k=>k.startsWith('scout_')).forEach(key=>{try{const d=JSON.parse(localStorage.getItem(key)||'{}');if(d.fetchedAt&&Date.now()-d.fetchedAt>8*24*60*60*1000)localStorage.removeItem(key);}catch{localStorage.removeItem(key);}});
   }, [router]);
+  // Fikstürde olmayan rakip (ör. PandaScore'a girmemiş eleme maçı) elle girilir.
+  // Draft odası da bu değeri kullansın diye Redis'e yazılıp Pusher ile yayılıyor.
+  const saveOpponent = async (name: string|null) => {
+    setSavedOpp(name);
+    try { await fetch('/api/draft', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'SET_OPPONENT', payload:{ opponent: name ?? '' }, userName: coach?.name }) }); } catch {}
+  };
+  const submitManualOpp = async () => {
+    const name = manualOpp.trim(); if (!name) return;
+    await saveOpponent(name); setManualOpp('');
+    const m = { id:`manual_${name}`, opponent:name };
+    setSelectedMatch(m); setScoutData(null); fetchScout(name, m.id);
+  };
+  const clearManualOpp = async () => {
+    if (selectedMatch?.id===`manual_${savedOpp}`) { setSelectedMatch(null); setScoutData(null); }
+    await saveOpponent(null);
+  };
   const handleMatchClick = (match: any) => { if (selectedMatch?.id===match.id){setSelectedMatch(null);setScoutData(null);return;} setSelectedMatch(match);setScoutData(null);fetchScout(match.opponent,match.id); };
 
   // ── HELPERS ──
   const getDisciplineFlags = (stats: any) => { if (!stats||stats.error) return [{type:'err',msg:'Veri bekleniyor'}]; const f=[],w=stats.weeklyGames||0; if(w<7)f.push({type:'bad',msg:`${w} oyun · yetersiz`});else if(w<14)f.push({type:'mid',msg:`${w} oyun · normal`});else f.push({type:'ok',msg:`${w} oyun · iyi`}); if(stats.recentWinRate&&parseFloat(stats.recentWinRate)<50)f.push({type:'bad',msg:`Son WR %${parseFloat(stats.recentWinRate)}`});else if(stats.recentWinRate&&parseFloat(stats.recentWinRate)>=60)f.push({type:'ok',msg:`Son WR %${parseFloat(stats.recentWinRate)}`}); return f; };
   const getRecentChampions = (rm: any[]) => { if(!rm?.length)return[]; const m:Record<string,{g:number,w:number}>={}; rm.forEach(r=>{if(!m[r.champion])m[r.champion]={g:0,w:0};m[r.champion].g++;if(r.result==='Galibiyet')m[r.champion].w++;}); return Object.entries(m).map(([n,d])=>({name:n,games:d.g,winRate:Math.round((d.w/d.g)*100)})).sort((a,b)=>b.games-a.games); };
-  const getDaysLeftBadge = (d: number|null) => { if(d===null)return{color:'#5B5A56',label:'TBD'}; if(d===0)return{color:'#E84057',label:'BUGÜN'}; if(d===1)return{color:'#C89B3C',label:'YARIN'}; if(d<=3)return{color:'#C89B3C',label:`${d} GÜN`}; return{color:'#5B5A56',label:`${d} GÜN`}; };
+  // d<0 = maç oynanmış. Negatif gün sayısını olduğu gibi basmak ("-20 GÜN")
+  // geçmiş maçı yaklaşan maç gibi gösteriyordu.
+  const getDaysLeftBadge = (d: number|null) => { if(d===null)return{color:'#5B5A56',label:'TBD'}; if(d<0)return{color:'#4A4A4A',label:`${-d} GÜN ÖNCE · OYNANDI`}; if(d===0)return{color:'#E84057',label:'BUGÜN'}; if(d===1)return{color:'#C89B3C',label:'YARIN'}; if(d<=3)return{color:'#C89B3C',label:`${d} GÜN`}; return{color:'#5B5A56',label:`${d} GÜN`}; };
 
   // ── TEAM OVERVIEW DATA ──
   const getTeamChampPool = () => {
@@ -295,6 +316,14 @@ export default function CoachDashboard() {
       .SDVc{display:flex;justify-content:center;padding-top:8px;}
       .SLd{text-align:center;padding:30px;color:#C89B3C;font-family:'Barlow Condensed';font-size:15px;font-weight:700;}
       .SEr{text-align:center;padding:30px;color:#5B5A56;font-size:12px;}.Em{text-align:center;padding:40px;color:#3C3C41;font-size:13px;}
+      .MOB{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+      .MOI{flex:1;min-width:200px;background:#0A1428;border:1px solid #1E2328;color:#CDBE91;padding:9px 12px;font-size:12px;border-radius:2px;outline:none;font-family:inherit;}
+      .MOI:focus{border-color:#C89B3C;}
+      .MOI::placeholder{color:#3C3C41;}
+      .MOS{background:#C89B3C;color:#010A13;border:none;padding:9px 16px;font-size:11px;font-weight:700;letter-spacing:0.05em;cursor:pointer;border-radius:2px;font-family:inherit;text-transform:uppercase;}
+      .MOS:hover{background:#D9AE4E;}
+      .MOC{background:transparent;color:#5B5A56;border:1px solid #1E2328;padding:9px 12px;font-size:11px;cursor:pointer;border-radius:2px;font-family:inherit;}
+      .MOC:hover{color:#E84057;border-color:#E84057;}
     `}</style>
 
     <div className="R">
@@ -428,10 +457,24 @@ export default function CoachDashboard() {
         </>)}
       </>)}
 
-      {activeTab==='fixture'&&(
+      {activeTab==='fixture'&&(()=>{
+        // Manuel rakip, mevcut scout arayüzünü olduğu gibi kullanabilmek için
+        // sentetik bir turnuva olarak listenin başına ekleniyor.
+        const manualBlock = savedOpp ? [{ id:'manual', name:'Manuel Rakip', serie:'', league:'',
+          matches:[{ id:`manual_${savedOpp}`, opponent:savedOpp, date:'Tarih girilmedi', time:'—',
+                     daysLeft:null, matchType:'—', isPast:false, isLive:false }] }] : [];
+        const tournaments = [...manualBlock, ...((fixture&&!fixture.error&&fixture.tournaments)||[])];
+        return (
         <div className="FW">
-          {fixtureLoading?<div className="SLd">Yükleniyor...</div>:!fixture||fixture.error?<div className="Em">Takvim verisi yok</div>:fixture.tournaments.length===0?<div className="Em">Maç yok</div>
-          :fixture.tournaments.map((t:any)=>(
+          <div className="MOB">
+            <input className="MOI" value={manualOpp} onChange={e=>setManualOpp(e.target.value)}
+              onKeyDown={e=>{if(e.key==='Enter')submitManualOpp();}}
+              placeholder="Fikstürde olmayan rakip — Leaguepedia takım adı" />
+            <button className="MOS" onClick={submitManualOpp}>Analiz Et</button>
+            {savedOpp&&<button className="MOC" onClick={clearManualOpp}>Temizle ({savedOpp})</button>}
+          </div>
+          {fixtureLoading?<div className="SLd">Yükleniyor...</div>:tournaments.length===0?<div className="Em">Yaklaşan maç yok — rakibi elle girebilirsin</div>
+          :tournaments.map((t:any)=>(
             <div key={t.id} className="TBk">
               <div className="TH"><div className="TDt"/><div className="TNm">{t.name}{t.serie&&<span className="TSr">· {t.serie}</span>}</div><div className="TCn">{t.matches.length} maç</div></div>
               {t.matches.map((m:any)=>{const db=getDaysLeftBadge(m.daysLeft),isSel=selectedMatch?.id===m.id;return(
@@ -486,7 +529,8 @@ export default function CoachDashboard() {
             </div>
           ))}
         </div>
-      )}
+        );
+      })()}
     </div>
   </>);
   function handlePlayerClick(playerObj: any) { sessionStorage.setItem('viewingPlayer', JSON.stringify(playerObj)); router.push('/player'); }

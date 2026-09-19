@@ -62,6 +62,11 @@ export async function POST(request: Request) {
       case 'SET_STRATEGY':
         draft.strategy = payload;
         break;
+      // Sıradaki rakip. Normalde fixture'dan (PandaScore) geliyor, ama maç
+      // oraya girmemişse koç elle giriyor ve scout zinciri buradan besleniyor.
+      case 'SET_OPPONENT':
+        draft.opponent = payload.opponent?.trim() || null;
+        break;
     }
 
     draft.lastUpdatedBy = userName || 'Bilinmiyor';
@@ -86,6 +91,7 @@ function getEmptyDraft() {
     bans:  { blue: ['', '', '', '', ''], red: ['', '', '', '', ''] },
     notes: { blue: '', red: '' },
     teamNames: { blue: TEAM_NAME, red: 'Rakip' },
+    opponent: null,
     soloq: {},
     strategy: null,
     aiResult: null,

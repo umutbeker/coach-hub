@@ -57,17 +57,21 @@ export async function GET() {
     );
     const running = await runningRes.json();
 
-    // Sadece canlı ve gelecek maçlar — geçmiş maçlar fikstürde gösterilmiyor.
+    // Oynanmış maçlar (geçmiş de gösteriliyor, ama 'oynandı' olarak işaretli —
+    // arayüz bunları yaklaşan maç gibi göstermemeli)
+    const pastRes = await fetch(
+      `https://api.pandascore.co/lol/matches/past?filter[opponent_id]=${teamId}&per_page=5&sort=-scheduled_at`,
+      { headers }
+    );
+    const past = await pastRes.json();
+
     const allMatches: any[] = [
       ...(Array.isArray(running) ? running : []),
       ...(Array.isArray(upcoming) ? upcoming : []),
-    ].filter((m: any) => {
-      if (m.status === 'finished' || m.status === 'canceled') return false;
-      if (!m.scheduled_at) return true; // tarihi belirsiz ama henüz oynanmamış
-      return new Date(m.scheduled_at).getTime() >= Date.now();
-    });
+      ...(Array.isArray(past) ? past : []),
+    ];
 
-    // Yaklaşan maç yoksa bu bir hata değil — boş fikstür dönüyoruz ki
+    // Hiç maç yoksa bu bir hata değil — boş fikstür dönüyoruz ki
     // arayüz 500 yerine "maç yok" gösterebilsin.
     if (allMatches.length === 0) {
       const empty = { teamName, teamId, tournaments: [] };
@@ -140,10 +144,14 @@ export async function GET() {
     const result = {
       teamName,
       teamId,
+      // Yaklaşan maçı olan turnuvalar önce; oynanmışlar en sonda.
       tournaments: Object.values(tournamentMap).sort((a: any, b: any) => {
+        const aUp = a.matches.some((m: { isPast: boolean }) => !m.isPast);
+        const bUp = b.matches.some((m: { isPast: boolean }) => !m.isPast);
+        if (aUp !== bUp) return aUp ? -1 : 1;
         const aDate = a.matches[0]?.scheduledAt || '';
         const bDate = b.matches[0]?.scheduledAt || '';
-        return aDate.localeCompare(bDate);
+        return aUp ? aDate.localeCompare(bDate) : bDate.localeCompare(aDate);
       }),
     };
 

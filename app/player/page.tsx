@@ -95,7 +95,9 @@ export default function PlayerDashboard() {
   const streak = stats?.streak;
   const streakColor = streak?.type === 'W' ? '#0ACF83' : '#E84057';
   const streakLabel = streak?.count ? (streak.type==='W' ? `${streak.count} Win Streak` : `${streak.count} Loss Streak`) : '';
-  const getDaysLeft = (d:number|null) => { if(d===null)return{color:'#5B5A56',label:'TBD'};if(d===0)return{color:'#E84057',label:'TODAY'};if(d===1)return{color:'#C89B3C',label:'TOMORROW'};if(d<=3)return{color:'#C89B3C',label:`${d} DAYS`};return{color:'#5B5A56',label:`${d} DAYS`}; };
+  // d<0 = match already played. Printing the raw negative ("-20 DAYS") made
+  // finished games read as if they were scheduled.
+  const getDaysLeft = (d:number|null) => { if(d===null)return{color:'#5B5A56',label:'TBD'};if(d<0)return{color:'#4A4A4A',label:`${-d} DAYS AGO · PLAYED`};if(d===0)return{color:'#E84057',label:'TODAY'};if(d===1)return{color:'#C89B3C',label:'TOMORROW'};if(d<=3)return{color:'#C89B3C',label:`${d} DAYS`};return{color:'#5B5A56',label:`${d} DAYS`}; };
   const totalUp = fixture?.tournaments?.reduce((a:number,t:any)=>a+t.matches.length,0)||0;
 
   if (!user) return <div style={{minHeight:'100vh',background:'#010A13',display:'flex',alignItems:'center',justifyContent:'center',color:'#C89B3C',fontWeight:700,fontFamily:'Barlow Condensed',fontSize:18}}>Loading...</div>;

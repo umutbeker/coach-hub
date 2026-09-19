@@ -182,6 +182,13 @@ export default function DraftPage() {
   };
 
   const fetchNextOpponent = async () => {
+    // Koçun elle girdiği rakip fikstürü ezer — fikstürde olmayan eleme
+    // maçlarında sıradaki rakip yalnızca buradan gelebiliyor.
+    try {
+      const res = await fetch('/api/draft');
+      const d = await res.json();
+      if (d?.opponent) { setOpponent(d.opponent); return d.opponent; }
+    } catch {}
     try {
       const cached = localStorage.getItem('fixture_cache');
       const cacheTime = localStorage.getItem('fixture_cache_time');
