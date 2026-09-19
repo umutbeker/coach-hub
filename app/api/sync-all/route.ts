@@ -49,6 +49,17 @@ export async function GET(request: Request) {
     results.push({ player: 'draft-meta', success: false, error: e.message });
   }
 
+  // Pro VOD'lar (LEC/LCK) — herkese açık /pro sayfası Redis'ten okuyor.
+  try {
+    const res = await fetch(`${baseUrl}/api/pro-vods?refresh=true`, {
+      signal: AbortSignal.timeout(55000),
+    });
+    const data = await res.json();
+    results.push({ player: 'pro-vods', success: data.success, error: data.error });
+  } catch (e: any) {
+    results.push({ player: 'pro-vods', success: false, error: e.message });
+  }
+
   return NextResponse.json({
     success: true,
     updatedAt: new Date().toISOString(),

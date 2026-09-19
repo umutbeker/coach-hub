@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { TEAM_NAME } from '../../lib/team';
+import { champImg } from '../../lib/champions';
 import { useEffect, useState } from 'react';
 import { USERS } from '@/lib/users';
 
@@ -12,10 +13,6 @@ const TIER_COLORS: Record<string, string> = {
 };
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const SMART_CACHE_LIMIT = 60 * 60 * 1000;
-const CHAMP_MAP: Record<string, string> = {
-  'Wukong':'MonkeyKing','Renata Glasc':'Renata',"K'Sante":'KSante','Nunu & Willump':'Nunu','Jarvan IV':'JarvanIV','Lee Sin':'LeeSin','Master Yi':'MasterYi','Miss Fortune':'MissFortune','Twisted Fate':'TwistedFate','Dr. Mundo':'DrMundo','Aurelion Sol':'AurelionSol',"Bel'Veth":'Belveth',"Cho'Gath":'Chogath',"Kai'Sa":'Kaisa',"Kha'Zix":'Khazix',"Kog'Maw":'KogMaw',"Vel'Koz":'Velkoz',"Rek'Sai":'RekSai','Xin Zhao':'XinZhao','Tahm Kench':'TahmKench','LeBlanc':'Leblanc',
-};
-function champImg(name: string) { if (!name) return '/logo.png'; const key = CHAMP_MAP[name] ?? name.replace(/[\s'".]/g,''); return `https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${key}.png`; }
 
 export default function CoachDashboard() {
   const router = useRouter();
@@ -369,7 +366,7 @@ export default function CoachDashboard() {
                   <div className="PS"><div className="PSL">Son WR</div><div className="PSV">{s?.recentWinRate||'—'}</div></div>
                 </div>
                 <div className="PF">{fl.map((f:any,idx:number)=><span key={idx} className={`FF ${f.type}`}>{f.msg}</span>)}</div>
-                {rc.length>0&&<div className="CL">{rc.slice(0,5).map((c,idx)=>{const col=c.winRate>=60?'#0ACF83':c.winRate>=50?'#C89B3C':'#E84057';return(<div key={idx} className="CI"><img src={`https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${c.name.replace(/\s+/g,'')}.png`} alt={c.name} onError={(e:any)=>{e.target.style.display='none';}}/><span className="CI-name">{c.name}</span><span className="CW" style={{color:col}}>{c.winRate}%</span><span className="CGm">{c.games}G</span></div>);})}</div>}
+                {rc.length>0&&<div className="CL">{rc.slice(0,5).map((c,idx)=>{const col=c.winRate>=60?'#0ACF83':c.winRate>=50?'#C89B3C':'#E84057';return(<div key={idx} className="CI"><img src={champImg(c.name.replace(/\s+/g,''))} alt={c.name} onError={(e:any)=>{e.target.style.display='none';}}/><span className="CI-name">{c.name}</span><span className="CW" style={{color:col}}>{c.winRate}%</span><span className="CGm">{c.games}G</span></div>);})}</div>}
                 {s?.recentMatches?.length>0&&<div className="FM">{s.recentMatches.slice(0,15).map((m:any,idx:number)=><div key={idx} className="FD" style={{background:m.result==='Galibiyet'?'#0ACF83':'#E84057'}}/>)}</div>}
               </div>
             );

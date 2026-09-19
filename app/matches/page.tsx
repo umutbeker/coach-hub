@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TEAM_NAME, TEAM_LP_NAME } from '../../lib/team';
+import { champImg } from '../../lib/champions';
 
 const LP_CACHE_KEY = 'matches_lp_v4';
 const LP_CACHE_DURATION = 60 * 60 * 1000;
@@ -12,11 +13,7 @@ function saveCache(key: string, data: any) { localStorage.setItem(key, JSON.stri
 function loadCache(key: string) { const d = localStorage.getItem(key); return d ? JSON.parse(d) : null; }
 function dayDiff(a: string, b: string) { return Math.abs(new Date(a).getTime() - new Date(b).getTime()) / (1000*60*60*24); }
 
-const CHAMP_MAP: Record<string, string> = {
-  'Wukong':'MonkeyKing','Renata Glasc':'Renata',"K'Sante":'KSante','Nunu & Willump':'Nunu','Jarvan IV':'JarvanIV','Lee Sin':'LeeSin','Master Yi':'MasterYi','Miss Fortune':'MissFortune','Twisted Fate':'TwistedFate','Dr. Mundo':'DrMundo','Aurelion Sol':'AurelionSol',"Bel'Veth":'Belveth',"Cho'Gath":'Chogath',"Kai'Sa":'Kaisa',"Kha'Zix":'Khazix',"Kog'Maw":'KogMaw',"Vel'Koz":'Velkoz',"Rek'Sai":'RekSai','Xin Zhao':'XinZhao','Tahm Kench':'TahmKench','LeBlanc':'Leblanc','Ambessa':'Ambessa','Yunara':'Yunara','Smolder':'Smolder','Briar':'Briar','Hwei':'Hwei',
-};
 
-function champImg(name: string) { if (!name || name === 'None') return '/logo.png'; const key = CHAMP_MAP[name] ?? name.replace(/[\s'".]/g, ''); return `https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${key}.png`; }
 
 function parseCargoData(data: any) {
   const gameMap: Record<string, any> = {};

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { TEAM_NAME, TEAM_LP_NAME } from '../../lib/team';
+import { champImg } from '../../lib/champions';
 import { useEffect, useState } from 'react';
 
 const CACHE_DURATIONS = { riot: 60*60*1000, pro: 30*60*1000, lp: 6*60*60*1000 };
@@ -58,8 +59,7 @@ export default function PlayerDashboard() {
     } catch(e){console.error(e);} finally{setLoading(false);}
   };
 
-  const CHAMP_MAP_LOCAL: Record<string,string> = {'Wukong':'MonkeyKing','Renata Glasc':'Renata',"K'Sante":'KSante','Nunu & Willump':'Nunu','Jarvan IV':'JarvanIV','Lee Sin':'LeeSin','Master Yi':'MasterYi','Miss Fortune':'MissFortune','Twisted Fate':'TwistedFate','Dr. Mundo':'DrMundo','Aurelion Sol':'AurelionSol',"Bel'Veth":'Belveth',"Cho'Gath":'Chogath',"Kai'Sa":'Kaisa',"Kha'Zix":'Khazix',"Kog'Maw":'KogMaw',"Vel'Koz":'Velkoz',"Rek'Sai":'RekSai','Xin Zhao':'XinZhao','Tahm Kench':'TahmKench','LeBlanc':'Leblanc'};
-  const ci = (name: string) => { if (!name) return '/logo.png'; const key = CHAMP_MAP_LOCAL[name] ?? name.replace(/[\s'".]/g,''); return `https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${key}.png`; };
+  const ci = champImg;
 
   const fetchScout = async (opponent: string, matchId: string, forceRefresh = false) => {
     const cacheKey = `scout_${matchId}`; if (!forceRefresh) { const cached = localStorage.getItem(cacheKey); if (cached) { setScoutData(JSON.parse(cached)); return; } }
@@ -369,7 +369,7 @@ export default function PlayerDashboard() {
                 <div className="PH"><div className="PT"><div className="PB" style={{background:'#C89B3C'}}/><span>Champion Pool</span></div><span className="PBD" style={{background:'rgba(200,155,60,0.06)',color:'#C89B3C',border:'1px solid rgba(200,155,60,0.12)'}}>Last 20 Games</span></div>
                 <div className="PY">{loading?[1,2,3,4,5].map(i=><div key={i} className="SK" style={{height:40,marginBottom:8}}/>):
                   stats?.championStats?.length>0?stats.championStats.map((ch:any,i:number)=>{const wr=parseInt(ch.winRate),bc=wrColor(wr);return(
-                    <div className="CR" key={i}><div className="CM"><img src={`https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${ch.name}.png`} alt="" onError={(e:any)=>{e.target.src='/logo.png';}}/></div><div className="CI"><div className="CName">{ch.name}</div><div className="CBR"><div className="CBF" style={{width:`${wr}%`,background:bc}}/></div>{ch.history&&<div className="WD">{ch.history.map((r:string,j:number)=><div key={j} className="WDT" style={{background:r==='W'?'rgba(10,207,131,0.6)':'rgba(232,64,87,0.5)'}}/>)}</div>}</div><div className="CS"><span className="CWR" style={{color:bc}}>{ch.winRate}</span><span className="CKD">{ch.kda} KDA</span><span className="CG">{ch.games}G</span></div></div>
+                    <div className="CR" key={i}><div className="CM"><img src={champImg(ch.name)} alt="" onError={(e:any)=>{e.target.src='/logo.png';}}/></div><div className="CI"><div className="CName">{ch.name}</div><div className="CBR"><div className="CBF" style={{width:`${wr}%`,background:bc}}/></div>{ch.history&&<div className="WD">{ch.history.map((r:string,j:number)=><div key={j} className="WDT" style={{background:r==='W'?'rgba(10,207,131,0.6)':'rgba(232,64,87,0.5)'}}/>)}</div>}</div><div className="CS"><span className="CWR" style={{color:bc}}>{ch.winRate}</span><span className="CKD">{ch.kda} KDA</span><span className="CG">{ch.games}G</span></div></div>
                   );}):(<div className="EM">No data</div>)}</div>
               </div>
               {/* Recent Games */}
@@ -377,7 +377,7 @@ export default function PlayerDashboard() {
                 <div className="PH"><div className="PT"><div className="PB" style={{background:'#E84057'}}/><span>Recent Games</span></div><span className="PBD" style={{background:'rgba(232,64,87,0.06)',color:'#E84057',border:'1px solid rgba(232,64,87,0.12)'}}>SoloQ Ranked</span></div>
                 <div className="PY SC">{loading?[1,2,3,4,5].map(i=><div key={i} className="SK" style={{height:48,marginBottom:8}}/>):
                   stats?.recentMatches?.length>0?stats.recentMatches.map((m:any,i:number)=>(
-                    <div className="MR" key={i}><div className="MLB" style={{background:m.result==='Galibiyet'?'#0ACF83':'#E84057'}}/><div className="CM"><img src={`https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${m.champion}.png`} alt="" onError={(e:any)=>{e.target.src='/logo.png';}}/></div><div className="MI"><div className="MTP"><span className="MCN">{m.champion}</span><span className={`MBG ${m.result==='Galibiyet'?'w':'l'}`}>{m.result==='Galibiyet'?'WIN':'LOSS'}</span></div><div className="MSC">{m.kills}/{m.deaths}/{m.assists}</div><div className="MSB">{m.kda} KDA · {m.csPerMin} CS/min · {m.duration}</div></div><span className="MTM">{m.time}</span></div>
+                    <div className="MR" key={i}><div className="MLB" style={{background:m.result==='Galibiyet'?'#0ACF83':'#E84057'}}/><div className="CM"><img src={champImg(m.champion)} alt="" onError={(e:any)=>{e.target.src='/logo.png';}}/></div><div className="MI"><div className="MTP"><span className="MCN">{m.champion}</span><span className={`MBG ${m.result==='Galibiyet'?'w':'l'}`}>{m.result==='Galibiyet'?'WIN':'LOSS'}</span></div><div className="MSC">{m.kills}/{m.deaths}/{m.assists}</div><div className="MSB">{m.kda} KDA · {m.csPerMin} CS/min · {m.duration}</div></div><span className="MTM">{m.time}</span></div>
                   )):(<div className="EM">No match data</div>)}</div>
               </div>
             </div>
@@ -400,7 +400,7 @@ export default function PlayerDashboard() {
                   <div className="PH"><div className="PT"><div className="PB" style={{background:'#C89B3C'}}/><span>Pro Champion Pool</span></div></div>
                   <div className="PY">{loading?[1,2,3,4].map(i=><div key={i} className="SK" style={{height:38,marginBottom:8}}/>):
                     proStats?.proChampionStats?.length>0?proStats.proChampionStats.slice(0,6).map((ch:any,i:number)=>{const bc=wrColor(ch.winRate);return(
-                      <div className="CR" key={i}><div className="CM"><img src={`https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${ch.name.replace(/\s+/g,'')}.png`} alt="" onError={(e:any)=>{e.target.src='/logo.png';}}/></div><div className="CI"><div className="CName">{ch.name}</div><div className="CBR"><div className="CBF" style={{width:`${ch.winRate}%`,background:bc}}/></div></div><div className="CS"><span className="CWR" style={{color:bc}}>{ch.winRate}%</span><span className="CKD">{ch.kda} KDA</span><span className="CG">{ch.games}G</span></div></div>
+                      <div className="CR" key={i}><div className="CM"><img src={champImg(ch.name.replace(/\s+/g,''))} alt="" onError={(e:any)=>{e.target.src='/logo.png';}}/></div><div className="CI"><div className="CName">{ch.name}</div><div className="CBR"><div className="CBF" style={{width:`${ch.winRate}%`,background:bc}}/></div></div><div className="CS"><span className="CWR" style={{color:bc}}>{ch.winRate}%</span><span className="CKD">{ch.kda} KDA</span><span className="CG">{ch.games}G</span></div></div>
                     );}):(<div className="EM">No data</div>)}</div>
                 </div>
                 {/* Side Stats */}
@@ -442,7 +442,7 @@ export default function PlayerDashboard() {
                   <div className="PH"><div className="PT"><div className="PB" style={{background:'#E84057'}}/><span>Recent Official Games</span></div><span className="PBD" style={{background:'rgba(232,64,87,0.06)',color:'#E84057',border:'1px solid rgba(232,64,87,0.12)'}}>{proStats?.lastMatches?.length||0} Games</span></div>
                   <div className="PY SC">{loading?[1,2,3,4].map(i=><div key={i} className="SK" style={{height:48,marginBottom:8}}/>):
                     proStats?.lastMatches?.length>0?proStats.lastMatches.map((m:any,i:number)=>(
-                      <div className="MR" key={i}><div className="MLB" style={{background:m.result==='GALİBİYET'?'#0ACF83':'#E84057'}}/><div className="CM"><img src={`https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${(m.champion||'').replace(/\s+/g,'')}.png`} alt="" onError={(e:any)=>{e.target.src='/logo.png';}}/></div><div className="MI"><div className="MTP"><span className="MCN">{m.opponent}</span><span className={`MBG ${m.result==='GALİBİYET'?'w':'l'}`}>{m.result==='GALİBİYET'?'WIN':'LOSS'}</span></div><div style={{fontSize:10,color:'#5B5A56',marginTop:1}}>{m.champion!=='—'&&m.champion}{m.kda!=='—'&&` · KDA: ${m.kda}`}</div><div className="MSB">{m.tournament}</div></div><span className="MTM">{m.date}</span></div>
+                      <div className="MR" key={i}><div className="MLB" style={{background:m.result==='GALİBİYET'?'#0ACF83':'#E84057'}}/><div className="CM"><img src={champImg((m.champion||'').replace(/\s+/g,''))} alt="" onError={(e:any)=>{e.target.src='/logo.png';}}/></div><div className="MI"><div className="MTP"><span className="MCN">{m.opponent}</span><span className={`MBG ${m.result==='GALİBİYET'?'w':'l'}`}>{m.result==='GALİBİYET'?'WIN':'LOSS'}</span></div><div style={{fontSize:10,color:'#5B5A56',marginTop:1}}>{m.champion!=='—'&&m.champion}{m.kda!=='—'&&` · KDA: ${m.kda}`}</div><div className="MSB">{m.tournament}</div></div><span className="MTM">{m.date}</span></div>
                     )):(<div className="EM">No match data</div>)}</div>
                 </div>
               </div>

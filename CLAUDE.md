@@ -26,7 +26,7 @@ Required env: `KV_REST_API_URL` / `KV_REST_API_TOKEN` (read by `Redis.fromEnv()`
 
 ## What this is
 
-"Pyramid4 HUB" — a player and coach dashboard for the Pyramid IV Esports League of Legends team. Next.js 16 App Router, React 19, TypeScript, Tailwind 4. Four screens behind a login: coach panel, player panel, match history, and a live draft room.
+"Pyramid4 HUB" — a player and coach dashboard for the Pyramid IV Esports League of Legends team. Next.js 16 App Router, React 19, TypeScript, Tailwind 4. Four screens behind a login — coach panel, player panel, match history, and a live draft room — plus one public page.
 
 ## Architecture
 
@@ -43,6 +43,7 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `draft:current` | `/api/draft` | `/api/draft`, draft page |
 | `draft:meta` | `/api/draft-meta` (12h TTL) | `/api/draft-ai` |
 | `fixture:cache` | `/api/fixture` (30m TTL) | `/api/fixture` |
+| `vods:lec` / `vods:lck` | `/api/pro-vods` (12h TTL) | `/api/pro-vods`, `/pro` |
 | `sync:updatedAt` | `/api/sync` | `/api/data` |
 
 `/api/sync` reports `{"success":false,"error":"No matches found"}` whenever `cargoquery` is absent from the Leaguepedia response — which includes a rate-limited response, not just a genuinely empty result. Treat that message as "no usable reply", and retry before concluding the query is wrong.
@@ -69,6 +70,14 @@ Each roster entry carries three identities that genuinely differ and must not be
 - `lpName` — the `Name` value on Leaguepedia. It diverges from `name` in practice (`Akashii` has a doubled i, `moe` is lowercase), and a wrong value returns zero rows rather than an error.
 - `riotId` — drives the Riot sync. Entries without one (coaches) are skipped everywhere a player list is derived.
 
+### Shared modules
+
+Three things were duplicated across call sites and are now single-source; adding a sixth copy of any of them is the mistake to avoid.
+
+- [lib/team.ts](lib/team.ts) and [lib/users.ts](lib/users.ts) — team identity and roster, described above.
+- [lib/leaguepedia.ts](lib/leaguepedia.ts) — `lpQuery` (rate-limit-aware, deadline-bounded) and `seasonCandidates`. Its return type distinguishes `null` (could not fetch) from `[]` (genuinely empty); conflating those is what made several failures look like missing data.
+- [lib/champions.ts](lib/champions.ts) — `champImg`/`champSplash` and `DDRAGON_VERSION`. Leaguepedia writes champion names for humans (`Kai'Sa`, `Nunu & Willump`) while Data Dragon wants filenames (`Kaisa`, `Nunu`); the map covers the names that do not reduce mechanically. Data Dragon is cumulative, so keeping the version current is safe and a stale one 403s on new champions.
+
 ### External data sources
 
 - **Riot API** (`europe`/`euw1` regions) — soloq rank, last 20 ranked matches, timelines for the first 5 (used for gold/CS diff at 15 against the lane opponent). Wrapped in `rFetch`, which sleeps 120ms before every call and retries on 429 honoring `Retry-After`.
@@ -79,6 +88,12 @@ Each roster entry carries three identities that genuinely differ and must not be
 ### Live draft room
 
 [app/draft/page.tsx](app/draft/page.tsx) is a shared, multi-user board. Clients never mutate state locally as the source of truth: every change POSTs an action to `/api/draft` (`SET_PICK`, `SET_BAN`, `SET_NOTE`, `SET_TEAM_NAME`, `SET_AI_RESULT`, `SET_SOLOQ`, `SET_STRATEGY`, `RESET`), which applies it to `draft:current` in Redis and then broadcasts the whole new draft over Pusher on `draft-channel` / `draft-updated`. Every client, including the sender, re-renders from that broadcast. New draft state must go through a new action case, or it will not propagate.
+
+### The public page
+
+`/pro` lists recent LEC and LCK games with their draft and a video of it, and is the one route with **no login check** — it deliberately omits the `currentUser` guard every other page runs. That makes its data path different in kind: anonymous traffic cannot be allowed to reach Leaguepedia, whose rate limit is per-IP, so the page only ever reads `vods:*` from Redis and the daily cron is what fills it.
+
+The video and the draft are not separate sources. Three Leaguepedia tables join on `GameId`: `MatchScheduleGame` (the VOD fields), `PicksAndBansS7` (picks and bans) and `ScoreboardGames` (teams, winner, date). Of the VOD fields, `Vod` is empty for both leagues in practice while `VodPB` is consistently filled and carries a `?t=` offset pointing at the draft, so `VodPB` is the primary video and `Vod` only a fallback. `VodHighlights` exists for LEC and not LCK.
 
 ### Auth
 

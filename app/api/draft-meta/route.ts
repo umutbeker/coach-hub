@@ -2,6 +2,7 @@
 // Pro draft meta: LEC + EMEA, son 30 maç, şampiyon rolleri + pick order + matchup
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
+import { lpQuery, seasonCandidates, type LpRow } from '../../../lib/leaguepedia';
 
 const redis = Redis.fromEnv();
 const META_KEY = 'draft:meta';
@@ -11,49 +12,9 @@ const META_TTL = 60 * 60 * 12; // 12 saat
 // 'LEC 2025' gibi sabit bir string yeni yıla girince sessizce 0 satır döner.
 const LEAGUES = ['LEC', 'EMEA Masters'];
 
-// Önce içinde bulunduğumuz sezon, veri yoksa bir önceki. Sezon başlarında
-// yeni yılın henüz maçı olmaz, o yüzden geri düşüş şart.
-function seasonCandidates(): number[] {
-  const y = new Date().getFullYear();
-  return [y, y - 1];
-}
-
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-
 // Serverless fonksiyonun ölmeden önce yanıt dönebilmesi için toplam bütçe.
-// Leaguepedia limiti dakikalarca sürebiliyor; onu burada beklemek fonksiyonu
-// zaman aşımına sokar. Bütçe dolunca elimizdekiyle dönüyoruz — asıl doldurma
-// işi günlük cron'da (/api/sync-all) yapılıyor, kullanıcı cache'den okuyor.
+// Asıl doldurma işi günlük cron'da (/api/sync-all), kullanıcı cache'den okuyor.
 const BUDGET_MS = 45_000;
-
-// Leaguepedia rate limit'i IP bazlı ve dar. Sorgular SIRAYLA atılmalı —
-// Promise.all ile paralel atmak limiti tek seferde tetikliyor.
-// Limit yanıtı HTTP 200 + gövdede error.code='ratelimited' olarak geliyor,
-// yani !res.ok kontrolü bunu yakalamaz.
-// cargoquery her satırı { title: {...} } olarak sarmalıyor; alanlar düz string.
-type LpRow = Record<string, string>;
-
-async function lpQuery(params: URLSearchParams, label: string, deadline: number): Promise<LpRow[] | null> {
-  for (let attempt = 0; ; attempt++) {
-    try {
-      const res = await fetch(`https://lol.fandom.com/api.php?${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.error?.code !== 'ratelimited') {
-          return data.cargoquery?.map((item: { title: LpRow }) => item.title) || [];
-        }
-      }
-    } catch (e) {
-      console.error(`[draft-meta] ${label} fetch hatası:`, e);
-    }
-    const wait = 3000 * (attempt + 1);
-    if (Date.now() + wait > deadline) {
-      console.error(`[draft-meta] ${label}: bütçe doldu (rate limit)`);
-      return null; // "limit/hata" — "veri yok" değil
-    }
-    await sleep(wait);
-  }
-}
 
 // 1) Pick/Ban + pick order verisi
 async function fetchDraftData(tournamentQuery: string, deadline: number) {

@@ -3,22 +3,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { champImg } from '../../lib/champions';
 
-const CHAMP_MAP: Record<string, string> = {
-  'Wukong': 'MonkeyKing', 'Renata Glasc': 'Renata', "K'Sante": 'KSante',
-  'Nunu & Willump': 'Nunu', 'Jarvan IV': 'JarvanIV', 'Lee Sin': 'LeeSin',
-  'Master Yi': 'MasterYi', 'Miss Fortune': 'MissFortune', 'Twisted Fate': 'TwistedFate',
-  'Dr. Mundo': 'DrMundo', 'Aurelion Sol': 'AurelionSol', "Bel'Veth": 'Belveth',
-  "Cho'Gath": 'Chogath', "Kai'Sa": 'Kaisa', "Kha'Zix": 'Khazix',
-  "Kog'Maw": 'KogMaw', "Vel'Koz": 'Velkoz', "Rek'Sai": 'RekSai',
-  'Xin Zhao': 'XinZhao', 'Tahm Kench': 'TahmKench',
-};
 
-function champImg(name: string) {
-  if (!name) return '/logo.png';
-  const key = CHAMP_MAP[name] ?? name.replace(/[\s'".]/g, '');
-  return `https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${key}.png`;
-}
 
 interface AIMessage {
   analysis: string;

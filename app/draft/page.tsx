@@ -14,30 +14,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { TEAM_NAME } from '../../lib/team';
+import { champImg, champSplash } from '../../lib/champions';
 import Pusher from 'pusher-js';
 import StrategyMap from './StrategyMap';
 import AIDraftAssistant from './AIDraftAssistant';  // ← YENİ IMPORT
 
-const CHAMP_MAP: Record<string, string> = {
-  'Wukong': 'MonkeyKing', 'Renata Glasc': 'Renata', "K'Sante": 'KSante',
-  'Nunu & Willump': 'Nunu', 'Jarvan IV': 'JarvanIV', 'Lee Sin': 'LeeSin',
-  'Master Yi': 'MasterYi', 'Miss Fortune': 'MissFortune', 'Twisted Fate': 'TwistedFate',
-  'Dr. Mundo': 'DrMundo', 'Aurelion Sol': 'AurelionSol', "Bel'Veth": 'Belveth',
-  "Cho'Gath": 'Chogath', "Kai'Sa": 'Kaisa', "Kha'Zix": 'Khazix',
-  "Kog'Maw": 'KogMaw', "Vel'Koz": 'Velkoz', "Rek'Sai": 'RekSai',
-  'Xin Zhao': 'XinZhao', 'Tahm Kench': 'TahmKench',
-};
 
-function champImg(name: string) {
-  if (!name) return '/logo.png';
-  const key = CHAMP_MAP[name] ?? name.replace(/[\s'".]/g, '');
-  return `https://ddragon.leagueoflegends.com/cdn/16.5.1/img/champion/${key}.png`;
-}
-function champSplash(name: string) {
-  if (!name) return '';
-  const key = CHAMP_MAP[name] ?? name.replace(/[\s'".]/g, '');
-  return `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${key}_0.jpg`;
-}
 
 const ALL_CHAMPIONS = [
   'Aatrox','Ahri','Akali','Akshan','Alistar','Ambessa','Amumu','Anivia','Annie','Aphelios',
