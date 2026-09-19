@@ -1,0 +1,17 @@
+{
+  "artboards": [
+    { "file": "System.dc.html",        "title": "Design system",              "x": 0,    "y": 0,    "w": 1440, "h": 1100 },
+    { "file": "Login.dc.html",         "title": "Sign in",                    "x": 0,    "y": 1260, "w": 1440, "h": 900  },
+    { "file": "Main.dc.html",          "title": "Coach panel · Roster",       "x": 1560, "y": 1260, "w": 1440, "h": 1500 },
+    { "file": "CoachSchedule.dc.html", "title": "Coach panel · Scouting",     "x": 0,    "y": 2920, "w": 1440, "h": 1360 },
+    { "file": "Player.dc.html",        "title": "Player",                     "x": 1560, "y": 2920, "w": 1440, "h": 1640 },
+    { "file": "Matches.dc.html",       "title": "Match history",              "x": 0,    "y": 4720, "w": 1440, "h": 1180 },
+    { "file": "ProDrafts.dc.html",     "title": "Pro drafts (public)",        "x": 1560, "y": 4720, "w": 1440, "h": 1240 }
+  ],
+  "annotations": [
+    { "id": "scope", "x": 1560, "y": 0, "w": 520, "text": "Redesign scope: sign-in, coach panel, player, match history, pro drafts.\n\nThe draft room is deliberately NOT here — it stays exactly as it is.\n\nAll copy is English. Colors are team-neutral; the logo slot is a placeholder mark until the Pyramid IV logo arrives." },
+    { "id": "accent", "x": 1560, "y": 260, "w": 520, "text": "Accent color is a lever: use the color chip above any board to try the four options. The default is the violet. Win/loss and blue/red side colors never change — they carry meaning." },
+    { "id": "data", "x": 1560, "y": 460, "w": 520, "text": "Numbers are real where the app has them today (ranks, LP, win rates, series scores, champion pools). Bans, weekly game counts and game timings are sample values." }
+  ],
+  "launch": { "view": "canvas" }
+}

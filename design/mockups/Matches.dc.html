@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+  <style>
+    body { margin: 0; background: #0F1115; color: #E6E8EC; font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; } a:hover { color: #FFFFFF; }
+    .app { --accent: #8B7CF6; width: 1440px; min-height: 1180px; box-sizing: border-box; background: #0F1115; }
+    .h { font-family: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif; font-weight: 600; line-height: 1.1; letter-spacing: -0.01em; }
+    .mono { font-family: 'IBM Plex Mono', 'Consolas', monospace; font-variant-numeric: tabular-nums; }
+    .t2 { color: #9AA3B2; } .t3 { color: #5C6577; }
+    .card { background: #161920; border: 1px solid #262B36; border-radius: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 6px; font: 500 14px 'IBM Plex Sans', sans-serif; border: 1px solid #333A48; background: #1C2028; color: #E6E8EC; }
+    .btn.ghost { background: transparent; border-color: transparent; color: #9AA3B2; }
+    .tag { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 6px; font: 500 12px 'IBM Plex Sans', sans-serif; letter-spacing: 0.02em; }
+    .chip { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #9AA3B2; border: 1px solid #262B36; background: #161920; }
+    .chip.on { color: #E6E8EC; border-color: var(--accent); }
+    .ic { display: inline-flex; width: 18px; height: 18px; flex: none; } .ic svg { width: 100%; height: 100%; }
+    .champ { width: 36px; height: 36px; border-radius: 6px; border: 1px solid #262B36; display: block; }
+    .champ.ban { filter: grayscale(1); opacity: 0.45; }
+    .sec { font: 600 13px 'IBM Plex Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: #5C6577; }
+    .nav { height: 64px; display: flex; align-items: center; gap: 32px; padding: 0 40px; border-bottom: 1px solid #262B36; }
+    .nl { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 6px; color: #9AA3B2; font-weight: 500; }
+    .nl.on { color: #E6E8EC; background: #1C2028; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #1C2028; border: 1px solid #333A48; display: inline-flex; align-items: center; justify-content: center; font: 600 13px 'Barlow Semi Condensed', sans-serif; flex: none; }
+    .stat { padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+    .srow { display: grid; grid-template-columns: 110px 1fr 120px 1fr 200px 40px; gap: 16px; align-items: center; padding: 16px 20px; }
+    .side { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #262B36; }
+  </style>
+</helmet>
+<div class="app" style="--accent: {{accent}};">
+
+  <div class="nav">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="ic" style="width: 24px; height: 24px; color: var(--accent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3 21 20H3L12 3Z"></path><path d="M12 9l4.5 9h-9L12 9Z"></path></svg></span>
+      <span class="h" style="font-size: 17px; letter-spacing: 0.06em;">PYRAMID IV</span>
+      <span class="t3" style="font-size: 12px; letter-spacing: 0.14em; font-weight: 500;">HUB</span>
+    </div>
+    <div style="display: flex; gap: 4px;">
+      <a class="nl" href="#">Coach</a><a class="nl on" href="#">Matches</a><a class="nl" href="#">Draft</a><a class="nl" href="#">Pro Drafts</a>
+    </div>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;"><span class="avatar">W</span><span style="font-weight: 500;">Waves</span><a class="btn ghost" href="#" style="height: 36px;">Sign out</a></div>
+  </div>
+
+  <div style="padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 24px;">
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
+      <div><div class="h" style="font-size: 32px;">Match history</div><div class="t2" style="margin-top: 4px;">Pyramid IV Esports · official games · Summer 2026</div></div>
+      <div style="display: flex; gap: 8px;"><span class="chip on">All</span><span class="chip">Playoffs</span><span class="chip">Summer Split</span><span class="chip">Play-ins</span></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+      <div class="card stat"><div class="sec" style="font-size: 12px;">Series</div><div class="mono" style="font-size: 32px; font-weight: 600;">12<span class="t3">–</span>8</div><div class="t3" style="font-size: 13px;">60% series win rate</div></div>
+      <div class="card stat"><div class="sec" style="font-size: 12px;">Games</div><div class="mono" style="font-size: 32px; font-weight: 600;">27<span class="t3">–</span>19</div><div class="t3" style="font-size: 13px;">59% game win rate</div></div>
+      <div class="card stat"><div class="sec" style="font-size: 12px;">Blue side</div><div class="mono" style="font-size: 32px; font-weight: 600; color: #60A5FA;">61%</div><div class="t3" style="font-size: 13px;">14–9</div></div>
+      <div class="card stat"><div class="sec" style="font-size: 12px;">Red side</div><div class="mono" style="font-size: 32px; font-weight: 600; color: #F87171;">57%</div><div class="t3" style="font-size: 13px;">13–10</div></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+
+      <div class="card" style="border-color: #333A48;">
+        <div class="srow">
+          <span class="t3" style="font-size: 13px;">Sep 16</span>
+          <div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;"><span class="h" style="font-size: 20px;">Pyramid IV</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div>
+          <div class="mono h" style="font-size: 28px; text-align: center;">3<span class="t3"> – </span>1</div>
+          <div class="h t2" style="font-size: 20px;">JSK Esports</div>
+          <span class="t3" style="font-size: 13px;">Playoffs · Round 2 · BO5</span>
+          <span class="ic t2" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg></span>
+        </div>
+
+        <div style="border-top: 1px solid #262B36; background: #121519;">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px;"><span class="tag" style="background: #1C2028; color: #9AA3B2;">Game 1</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span><span class="t3" style="font-size: 13px;">31:04 · Pyramid IV on blue</span></div>
+          <div class="side">
+            <span class="tag" style="background: rgba(96,165,250,0.14); color: #60A5FA; width: 44px; justify-content: center;">Blue</span><span style="font-weight: 500; width: 140px;">Pyramid IV</span>
+            <span class="t3" style="font-size: 12px;">Bans</span><div style="display: flex; gap: 6px;"><img src="Rumble.png" class="champ ban" alt="Rumble"><img src="Orianna.png" class="champ ban" alt="Orianna"><img src="Leona.png" class="champ ban" alt="Leona"></div>
+            <span class="t3" style="font-size: 12px; margin-left: 8px;">Picks</span><div style="display: flex; gap: 6px;"><img src="Gnar.png" class="champ" alt="Gnar"><img src="Nocturne.png" class="champ" alt="Nocturne"><img src="Ahri.png" class="champ" alt="Ahri"><img src="Kaisa.png" class="champ" alt="Kai'Sa"><img src="Rell.png" class="champ" alt="Rell"></div>
+          </div>
+          <div class="side">
+            <span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171; width: 44px; justify-content: center;">Red</span><span style="font-weight: 500; width: 140px;">JSK Esports</span>
+            <span class="t3" style="font-size: 12px;">Bans</span><div style="display: flex; gap: 6px;"><img src="Yunara.png" class="champ ban" alt="Yunara"><img src="Galio.png" class="champ ban" alt="Galio"><img src="Olaf.png" class="champ ban" alt="Olaf"></div>
+            <span class="t3" style="font-size: 12px; margin-left: 8px;">Picks</span><div style="display: flex; gap: 6px;"><img src="Aatrox.png" class="champ" alt="Aatrox"><img src="MonkeyKing.png" class="champ" alt="Wukong"><img src="Viktor.png" class="champ" alt="Viktor"><img src="Sivir.png" class="champ" alt="Sivir"><img src="Alistar.png" class="champ" alt="Alistar"></div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #262B36;"><span class="tag" style="background: #1C2028; color: #9AA3B2;">Game 2</span><span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171;">Loss</span><span class="t3" style="font-size: 13px;">38:52 · Pyramid IV on red</span></div>
+          <div class="side">
+            <span class="tag" style="background: rgba(96,165,250,0.14); color: #60A5FA; width: 44px; justify-content: center;">Blue</span><span style="font-weight: 500; width: 140px;">JSK Esports</span>
+            <span class="t3" style="font-size: 12px;">Bans</span><div style="display: flex; gap: 6px;"><img src="Ahri.png" class="champ ban" alt="Ahri"><img src="Gnar.png" class="champ ban" alt="Gnar"><img src="Rell.png" class="champ ban" alt="Rell"></div>
+            <span class="t3" style="font-size: 12px; margin-left: 8px;">Picks</span><div style="display: flex; gap: 6px;"><img src="Rumble.png" class="champ" alt="Rumble"><img src="Zed.png" class="champ" alt="Zed"><img src="Orianna.png" class="champ" alt="Orianna"><img src="Ashe.png" class="champ" alt="Ashe"><img src="Leona.png" class="champ" alt="Leona"></div>
+          </div>
+          <div class="side">
+            <span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171; width: 44px; justify-content: center;">Red</span><span style="font-weight: 500; width: 140px;">Pyramid IV</span>
+            <span class="t3" style="font-size: 12px;">Bans</span><div style="display: flex; gap: 6px;"><img src="Aatrox.png" class="champ ban" alt="Aatrox"><img src="Viktor.png" class="champ ban" alt="Viktor"><img src="Sivir.png" class="champ ban" alt="Sivir"></div>
+            <span class="t3" style="font-size: 12px; margin-left: 8px;">Picks</span><div style="display: flex; gap: 6px;"><img src="Ambessa.png" class="champ" alt="Ambessa"><img src="MonkeyKing.png" class="champ" alt="Wukong"><img src="Galio.png" class="champ" alt="Galio"><img src="Yunara.png" class="champ" alt="Yunara"><img src="Karma.png" class="champ" alt="Karma"></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #262B36;"><span class="tag" style="background: #1C2028; color: #9AA3B2;">Game 3</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span><span class="t3" style="font-size: 13px;">29:40 · Pyramid IV on blue</span><span class="t3" style="font-size: 13px; margin-left: auto;">Game 4 · Win · 33:18</span></div>
+        </div>
+      </div>
+
+      <div class="card"><div class="srow"><span class="t3" style="font-size: 13px;">Sep 14</span><div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;"><span class="h" style="font-size: 20px;">Pyramid IV</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><div class="mono h" style="font-size: 28px; text-align: center;">3<span class="t3"> – </span>2</div><div class="h t2" style="font-size: 20px;">Baam Esports</div><span class="t3" style="font-size: 13px;">Playoffs · Round 1 · BO5</span><span class="ic t3" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div></div>
+      <div class="card"><div class="srow"><span class="t3" style="font-size: 13px;">Sep 13</span><div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;"><span class="h" style="font-size: 20px;">Pyramid IV</span><span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171;">Loss</span></div><div class="mono h" style="font-size: 28px; text-align: center;">1<span class="t3"> – </span>3</div><div class="h t2" style="font-size: 20px;">Anubis Gaming</div><span class="t3" style="font-size: 13px;">Playoffs · Round 1 · BO5</span><span class="ic t3" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div></div>
+      <div class="card"><div class="srow"><span class="t3" style="font-size: 13px;">Aug 26</span><div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;"><span class="h" style="font-size: 20px;">Pyramid IV</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><div class="mono h" style="font-size: 28px; text-align: center;">3<span class="t3"> – </span>0</div><div class="h t2" style="font-size: 20px;">GnG Amazigh</div><span class="t3" style="font-size: 13px;">Play-ins · BO5</span><span class="ic t3" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div></div>
+      <div class="card"><div class="srow"><span class="t3" style="font-size: 13px;">Aug 20</span><div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;"><span class="h" style="font-size: 20px;">Pyramid IV</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><div class="mono h" style="font-size: 28px; text-align: center;">3<span class="t3"> – </span>1</div><div class="h t2" style="font-size: 20px;">Disruptors</div><span class="t3" style="font-size: 13px;">Play-ins · BO5</span><span class="ic t3" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div></div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#8B7CF6","options":["#8B7CF6","#F59E0B","#2DD4BF","#FB7185"],"section":"Theme"}}'>
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#8B7CF6' }; }
+}
+</script>
+</body>
+</html>

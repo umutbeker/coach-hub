@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+  <style>
+    body { margin: 0; background: #0F1115; color: #E6E8EC; font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; } a:hover { color: #FFFFFF; }
+    .app { --accent: #8B7CF6; width: 1440px; min-height: 1640px; box-sizing: border-box; background: #0F1115; }
+    .h { font-family: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif; font-weight: 600; line-height: 1.1; letter-spacing: -0.01em; }
+    .mono { font-family: 'IBM Plex Mono', 'Consolas', monospace; font-variant-numeric: tabular-nums; }
+    .t2 { color: #9AA3B2; } .t3 { color: #5C6577; }
+    .card { background: #161920; border: 1px solid #262B36; border-radius: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 6px; font: 500 14px 'IBM Plex Sans', sans-serif; border: 1px solid #333A48; background: #1C2028; color: #E6E8EC; }
+    .btn.ghost { background: transparent; border-color: transparent; color: #9AA3B2; }
+    .tag { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 6px; font: 500 12px 'IBM Plex Sans', sans-serif; letter-spacing: 0.02em; }
+    .ic { display: inline-flex; width: 18px; height: 18px; flex: none; } .ic svg { width: 100%; height: 100%; }
+    .champ { width: 36px; height: 36px; border-radius: 6px; border: 1px solid #262B36; display: block; }
+    .sec { font: 600 13px 'IBM Plex Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: #5C6577; }
+    .nav { height: 64px; display: flex; align-items: center; gap: 32px; padding: 0 40px; border-bottom: 1px solid #262B36; }
+    .nl { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 6px; color: #9AA3B2; font-weight: 500; }
+    .nl.on { color: #E6E8EC; background: #1C2028; }
+    .avatar { border-radius: 50%; background: #1C2028; border: 1px solid #333A48; display: inline-flex; align-items: center; justify-content: center; font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 600; flex: none; }
+    .bar { height: 6px; border-radius: 3px; background: #262B36; overflow: hidden; }
+    .stat { padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+    .wl { width: 14px; height: 28px; border-radius: 3px; }
+    .grow { display: grid; grid-template-columns: 44px 1fr 70px 70px 70px 90px; gap: 12px; align-items: center; padding: 10px 16px; border-top: 1px solid #262B36; }
+  </style>
+</helmet>
+<div class="app" style="--accent: {{accent}};">
+
+  <div class="nav">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="ic" style="width: 24px; height: 24px; color: var(--accent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3 21 20H3L12 3Z"></path><path d="M12 9l4.5 9h-9L12 9Z"></path></svg></span>
+      <span class="h" style="font-size: 17px; letter-spacing: 0.06em;">PYRAMID IV</span>
+      <span class="t3" style="font-size: 12px; letter-spacing: 0.14em; font-weight: 500;">HUB</span>
+    </div>
+    <div style="display: flex; gap: 4px;">
+      <a class="nl on" href="#">My stats</a><a class="nl" href="#">Matches</a><a class="nl" href="#">Draft</a><a class="nl" href="#">Pro Drafts</a>
+    </div>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;"><span class="avatar" style="width: 36px; height: 36px; font-size: 13px;">AK</span><span style="font-weight: 500;">Akashi</span><a class="btn ghost" href="#" style="height: 36px;">Sign out</a></div>
+  </div>
+
+  <div style="padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 24px;">
+
+    <div class="card" style="padding: 28px 32px; display: flex; align-items: center; gap: 28px;">
+      <span class="avatar" style="width: 88px; height: 88px; font-size: 30px;">AK</span>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 12px;"><div class="h" style="font-size: 40px;">Akashi</div><span class="tag" style="background: #1C2028; color: #9AA3B2; height: 26px; font-size: 13px;">Mid</span></div>
+        <div class="t2 mono" style="font-size: 14px;">makaynch#0404 · EUW</div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;"><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">2 win streak</span><span class="tag" style="background: #1C2028; color: #9AA3B2;">Synced today 14:45</span></div>
+      </div>
+      <div style="margin-left: auto; display: flex; gap: 40px;">
+        <div style="display: flex; flex-direction: column; gap: 2px;"><div class="sec" style="font-size: 12px;">Solo queue</div><div class="h" style="font-size: 28px; color: #F5C542;">Challenger I</div><div class="mono" style="font-size: 32px; font-weight: 600;">2371 <span class="t3" style="font-size: 15px; font-weight: 500;">LP</span></div></div>
+        <div style="display: flex; flex-direction: column; gap: 2px;"><div class="sec" style="font-size: 12px;">Season</div><div class="mono" style="font-size: 28px; font-weight: 600;">162<span class="t3">–</span>132</div><div class="t2" style="font-size: 14px;">56% win rate</div></div>
+        <div style="display: flex; flex-direction: column; gap: 2px;"><div class="sec" style="font-size: 12px;">This week</div><div class="mono" style="font-size: 28px; font-weight: 600;">14 <span class="t3" style="font-size: 15px; font-weight: 500;">games</span></div><div class="t2" style="font-size: 14px;">9–5 · 64%</div></div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 3fr; gap: 16px;">
+      <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;"><div class="h" style="font-size: 24px;">Form</div><div class="t3" style="font-size: 13px;">last 20 ranked · newest right</div></div>
+        <div style="display: flex; gap: 5px; align-items: flex-end;">
+          <div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #F87171;"></div><div class="wl" style="background: #34D399;"></div><div class="wl" style="background: #34D399;"></div>
+        </div>
+        <div style="display: flex; gap: 24px;">
+          <div><div class="mono" style="font-size: 24px; font-weight: 600;">50%</div><div class="t3" style="font-size: 13px;">10 W · 10 L</div></div>
+          <div><div class="mono" style="font-size: 24px; font-weight: 600;">3.4</div><div class="t3" style="font-size: 13px;">KDA</div></div>
+          <div><div class="mono" style="font-size: 24px; font-weight: 600;">8.9</div><div class="t3" style="font-size: 13px;">CS / min</div></div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+        <div class="card stat"><div class="sec" style="font-size: 12px;">Gold @15</div><div class="mono" style="font-size: 28px; font-weight: 600; color: #34D399;">+312</div><div class="t3" style="font-size: 13px;">vs lane opponent</div></div>
+        <div class="card stat"><div class="sec" style="font-size: 12px;">CS @15</div><div class="mono" style="font-size: 28px; font-weight: 600; color: #F87171;">−4.2</div><div class="t3" style="font-size: 13px;">vs lane opponent</div></div>
+        <div class="card stat"><div class="sec" style="font-size: 12px;">Wards / game</div><div class="mono" style="font-size: 28px; font-weight: 600;">14.6</div><div class="t3" style="font-size: 13px;">2.1 control · 4.3 cleared</div></div>
+        <div class="card stat"><div class="sec" style="font-size: 12px;">Dragons / game</div><div class="mono" style="font-size: 28px; font-weight: 600;">2.4</div><div class="t3" style="font-size: 13px;">team objective</div></div>
+        <div class="card stat"><div class="sec" style="font-size: 12px;">Barons / game</div><div class="mono" style="font-size: 28px; font-weight: 600;">0.7</div><div class="t3" style="font-size: 13px;">team objective</div></div>
+        <div class="card stat"><div class="sec" style="font-size: 12px;">Multi kills</div><div class="mono" style="font-size: 28px; font-weight: 600;">11 <span class="t3" style="font-size: 14px; font-weight: 500;">· 3 · 1 · 0</span></div><div class="t3" style="font-size: 13px;">double · triple · quadra · penta</div></div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 3fr; gap: 16px;">
+      <div class="card">
+        <div style="padding: 20px 24px 12px; display: flex; align-items: baseline; justify-content: space-between;"><div class="h" style="font-size: 24px;">Champion pool</div><div class="t3" style="font-size: 13px;">last 20</div></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 60px 60px 110px; gap: 12px; padding: 0 24px 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5C6577;"><span></span><span>Champion</span><span>Games</span><span>KDA</span><span>Win rate</span></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 60px 60px 110px; gap: 12px; align-items: center; padding: 10px 24px; border-top: 1px solid #262B36;"><img src="Ahri.png" class="champ" alt="Ahri"><span style="font-weight: 500;">Ahri</span><span class="mono">6</span><span class="mono">4.1</span><div style="display: flex; align-items: center; gap: 8px;"><div class="bar" style="flex: 1;"><div style="width: 67%; height: 100%; background: #34D399;"></div></div><span class="mono" style="width: 36px; text-align: right; font-size: 13px;">67%</span></div></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 60px 60px 110px; gap: 12px; align-items: center; padding: 10px 24px; border-top: 1px solid #262B36;"><img src="Galio.png" class="champ" alt="Galio"><span style="font-weight: 500;">Galio</span><span class="mono">5</span><span class="mono">3.6</span><div style="display: flex; align-items: center; gap: 8px;"><div class="bar" style="flex: 1;"><div style="width: 60%; height: 100%; background: #34D399;"></div></div><span class="mono" style="width: 36px; text-align: right; font-size: 13px;">60%</span></div></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 60px 60px 110px; gap: 12px; align-items: center; padding: 10px 24px; border-top: 1px solid #262B36;"><img src="Cassiopeia.png" class="champ" alt="Cassiopeia"><span style="font-weight: 500;">Cassiopeia</span><span class="mono">4</span><span class="mono">2.8</span><div style="display: flex; align-items: center; gap: 8px;"><div class="bar" style="flex: 1;"><div style="width: 25%; height: 100%; background: #F87171;"></div></div><span class="mono" style="width: 36px; text-align: right; font-size: 13px;">25%</span></div></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 60px 60px 110px; gap: 12px; align-items: center; padding: 10px 24px; border-top: 1px solid #262B36;"><img src="Orianna.png" class="champ" alt="Orianna"><span style="font-weight: 500;">Orianna</span><span class="mono">3</span><span class="mono">3.9</span><div style="display: flex; align-items: center; gap: 8px;"><div class="bar" style="flex: 1;"><div style="width: 67%; height: 100%; background: #34D399;"></div></div><span class="mono" style="width: 36px; text-align: right; font-size: 13px;">67%</span></div></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 60px 60px 110px; gap: 12px; align-items: center; padding: 10px 24px 16px; border-top: 1px solid #262B36;"><img src="Viktor.png" class="champ" alt="Viktor"><span style="font-weight: 500;">Viktor</span><span class="mono">2</span><span class="mono">5.0</span><div style="display: flex; align-items: center; gap: 8px;"><div class="bar" style="flex: 1;"><div style="width: 50%; height: 100%; background: #9AA3B2;"></div></div><span class="mono" style="width: 36px; text-align: right; font-size: 13px;">50%</span></div></div>
+      </div>
+
+      <div class="card">
+        <div style="padding: 20px 24px 12px; display: flex; align-items: baseline; justify-content: space-between;"><div class="h" style="font-size: 24px;">Recent games</div><div class="t3" style="font-size: 13px;">ranked solo · EUW</div></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 70px 70px 70px 90px; gap: 12px; padding: 0 16px 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5C6577;"><span></span><span>Champion</span><span>KDA</span><span>CS/min</span><span>Length</span><span>When</span></div>
+        <div class="grow"><img src="Ahri.png" class="champ" alt="Ahri"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Ahri</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><span class="mono">8/2/11</span><span class="mono">9.2</span><span class="mono t2">31m</span><span class="t3" style="font-size: 13px;">Today</span></div>
+        <div class="grow"><img src="Galio.png" class="champ" alt="Galio"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Galio</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><span class="mono">3/1/14</span><span class="mono">8.1</span><span class="mono t2">27m</span><span class="t3" style="font-size: 13px;">Today</span></div>
+        <div class="grow"><img src="Cassiopeia.png" class="champ" alt="Cassiopeia"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Cassiopeia</span><span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171;">Loss</span></div><span class="mono">2/6/4</span><span class="mono">8.8</span><span class="mono t2">34m</span><span class="t3" style="font-size: 13px;">Yesterday</span></div>
+        <div class="grow"><img src="Ahri.png" class="champ" alt="Ahri"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Ahri</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><span class="mono">11/3/6</span><span class="mono">9.6</span><span class="mono t2">29m</span><span class="t3" style="font-size: 13px;">Yesterday</span></div>
+        <div class="grow"><img src="Orianna.png" class="champ" alt="Orianna"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Orianna</span><span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171;">Loss</span></div><span class="mono">4/4/9</span><span class="mono">8.4</span><span class="mono t2">38m</span><span class="t3" style="font-size: 13px;">Yesterday</span></div>
+        <div class="grow"><img src="Viktor.png" class="champ" alt="Viktor"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Viktor</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><span class="mono">6/1/9</span><span class="mono">9.9</span><span class="mono t2">26m</span><span class="t3" style="font-size: 13px;">Sep 17</span></div>
+        <div class="grow" style="padding-bottom: 16px;"><img src="Galio.png" class="champ" alt="Galio"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Galio</span><span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171;">Loss</span></div><span class="mono">1/5/8</span><span class="mono">7.7</span><span class="mono t2">41m</span><span class="t3" style="font-size: 13px;">Sep 17</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between;">
+        <div><div class="h" style="font-size: 24px;">Pro stage</div><div class="t2" style="font-size: 13px;">Official games for Pyramid IV Esports · Arabian League · from Leaguepedia</div></div>
+        <div class="t3" style="font-size: 13px;">32 games on record</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; gap: 16px; align-items: stretch;">
+        <div style="padding: 16px 18px; border-radius: 6px; background: #0F1115; border: 1px solid #262B36; display: flex; flex-direction: column; gap: 4px;"><div class="sec" style="font-size: 12px;">Win rate</div><div class="mono" style="font-size: 28px; font-weight: 600;">59%</div><div class="t3" style="font-size: 13px;">19–13</div></div>
+        <div style="padding: 16px 18px; border-radius: 6px; background: #0F1115; border: 1px solid #262B36; display: flex; flex-direction: column; gap: 4px;"><div class="sec" style="font-size: 12px;">KDA</div><div class="mono" style="font-size: 28px; font-weight: 600;">3.8</div><div class="t3" style="font-size: 13px;">4.1 / 2.3 / 4.7</div></div>
+        <div style="padding: 16px 18px; border-radius: 6px; background: #0F1115; border: 1px solid #262B36; display: flex; flex-direction: column; gap: 4px;"><div class="sec" style="font-size: 12px;">CS / game</div><div class="mono" style="font-size: 28px; font-weight: 600;">287</div><div class="t3" style="font-size: 13px;">9.1 per minute</div></div>
+        <div style="padding: 16px 18px; border-radius: 6px; background: #0F1115; border: 1px solid #262B36; display: flex; flex-direction: column; gap: 10px;"><div class="sec" style="font-size: 12px;">Most played on stage</div><div style="display: flex; gap: 8px;"><img src="Ahri.png" class="champ" alt="Ahri"><img src="Galio.png" class="champ" alt="Galio"><img src="Cassiopeia.png" class="champ" alt="Cassiopeia"><img src="Orianna.png" class="champ" alt="Orianna"><img src="Viktor.png" class="champ" alt="Viktor"></div></div>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: grid; grid-template-columns: 44px 1fr 1fr 90px 120px; gap: 12px; padding: 0 16px 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5C6577;"><span></span><span>Champion</span><span>Opponent</span><span>KDA</span><span>Date</span></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 1fr 90px 120px; gap: 12px; align-items: center; padding: 10px 16px; border-top: 1px solid #262B36;"><img src="Ahri.png" class="champ" alt="Ahri"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Ahri</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><span class="t2">JSK Esports · Playoffs</span><span class="mono">7/1/9</span><span class="t3" style="font-size: 13px;">Sep 16</span></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 1fr 90px 120px; gap: 12px; align-items: center; padding: 10px 16px; border-top: 1px solid #262B36;"><img src="Galio.png" class="champ" alt="Galio"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Galio</span><span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span></div><span class="t2">JSK Esports · Playoffs</span><span class="mono">2/2/15</span><span class="t3" style="font-size: 13px;">Sep 16</span></div>
+        <div style="display: grid; grid-template-columns: 44px 1fr 1fr 90px 120px; gap: 12px; align-items: center; padding: 10px 16px; border-top: 1px solid #262B36;"><img src="Cassiopeia.png" class="champ" alt="Cassiopeia"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-weight: 500;">Cassiopeia</span><span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171;">Loss</span></div><span class="t2">Anubis Gaming · Playoffs</span><span class="mono">3/5/4</span><span class="t3" style="font-size: 13px;">Sep 13</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#8B7CF6","options":["#8B7CF6","#F59E0B","#2DD4BF","#FB7185"],"section":"Theme"}}'>
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#8B7CF6' }; }
+}
+</script>
+</body>
+</html>

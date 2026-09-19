@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+  <style>
+    body { margin: 0; background: #0F1115; color: #E6E8EC; font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; } a:hover { color: #FFFFFF; }
+    .app { --accent: #8B7CF6; width: 1440px; min-height: 1240px; box-sizing: border-box; background: #0F1115; }
+    .h { font-family: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif; font-weight: 600; line-height: 1.1; letter-spacing: -0.01em; }
+    .mono { font-family: 'IBM Plex Mono', 'Consolas', monospace; font-variant-numeric: tabular-nums; }
+    .t2 { color: #9AA3B2; } .t3 { color: #5C6577; }
+    .card { background: #161920; border: 1px solid #262B36; border-radius: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 6px; font: 500 14px 'IBM Plex Sans', sans-serif; border: 1px solid #333A48; background: #1C2028; color: #E6E8EC; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #0F1115; font-weight: 600; }
+    .btn.ghost { background: transparent; border-color: transparent; color: #9AA3B2; }
+    .tag { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 6px; font: 500 12px 'IBM Plex Sans', sans-serif; letter-spacing: 0.02em; }
+    .ic { display: inline-flex; width: 18px; height: 18px; flex: none; } .ic svg { width: 100%; height: 100%; }
+    .champ { width: 36px; height: 36px; border-radius: 6px; border: 1px solid #262B36; display: block; }
+    .champ.ban { filter: grayscale(1); opacity: 0.45; }
+    .sec { font: 600 13px 'IBM Plex Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: #5C6577; }
+    .nav { height: 64px; display: flex; align-items: center; gap: 24px; padding: 0 40px; border-bottom: 1px solid #262B36; }
+    .tab { padding: 12px 18px; font-weight: 500; color: #9AA3B2; margin-bottom: -1px; font-size: 16px; }
+    .tab.on { color: #E6E8EC; border-bottom: 2px solid var(--accent); }
+    .srow { display: grid; grid-template-columns: 110px 1fr 120px 1fr 120px 40px; gap: 16px; align-items: center; padding: 16px 20px; }
+    .side { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #262B36; }
+  </style>
+</helmet>
+<div class="app" style="--accent: {{accent}};">
+
+  <div class="nav">
+    <a class="btn ghost" href="#" style="padding-left: 8px;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"></path></svg></span>Coach panel</a>
+    <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
+      <span class="ic" style="width: 24px; height: 24px; color: var(--accent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3 21 20H3L12 3Z"></path><path d="M12 9l4.5 9h-9L12 9Z"></path></svg></span>
+      <span class="h" style="font-size: 17px; letter-spacing: 0.06em;">PYRAMID IV</span>
+      <span class="t3" style="font-size: 12px; letter-spacing: 0.14em; font-weight: 500;">HUB</span>
+    </div>
+  </div>
+
+  <div style="padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 24px;">
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
+      <div><div class="h" style="font-size: 32px;">Pro drafts</div><div class="t2" style="margin-top: 4px;">Recent LEC and LCK series with every draft and the moment it happened on the broadcast</div></div>
+      <div class="t3" style="font-size: 13px;">Updated daily · from Leaguepedia</div>
+    </div>
+
+    <div style="display: flex; border-bottom: 1px solid #262B36;">
+      <div class="tab on">LEC <span class="t3" style="font-weight: 400; margin-left: 6px;">16 series</span></div>
+      <div class="tab">LCK <span class="t3" style="font-weight: 400; margin-left: 6px;">12 series</span></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+
+      <div class="card" style="border-color: #333A48;">
+        <div class="srow">
+          <span class="t3" style="font-size: 13px;">Sep 18</span>
+          <div class="h" style="font-size: 20px; text-align: right;">Movistar KOI</div>
+          <div class="mono h" style="font-size: 28px; text-align: center;">3<span class="t3"> – </span>1</div>
+          <div class="h t2" style="font-size: 20px;">Natus Vincere</div>
+          <span class="t3" style="font-size: 13px;">Playoffs · 4 games</span>
+          <span class="ic t2" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg></span>
+        </div>
+
+        <div style="border-top: 1px solid #262B36; background: #121519;">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px;">
+            <span class="tag" style="background: #1C2028; color: #9AA3B2;">Game 1</span>
+            <span style="font-weight: 500;">Natus Vincere</span><span class="t3" style="font-size: 13px;">won · KOI on blue</span>
+            <button class="btn" style="margin-left: auto;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg></span>Hide draft video</button>
+            <a class="btn ghost" href="#" style="height: 36px;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></span>Highlights</a>
+          </div>
+
+          <div style="margin: 0 20px 4px; border-radius: 6px; background: #000000; border: 1px solid #262B36; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; position: relative;">
+            <span class="ic" style="width: 64px; height: 64px; color: #E6E8EC;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5L7 4.5Z"></path></svg></span>
+            <span class="tag" style="position: absolute; left: 16px; bottom: 16px; background: rgba(28,32,40,0.9); color: #E6E8EC; height: 28px; font-size: 13px;">YouTube · jumps to the draft at 4:35:25</span>
+          </div>
+
+          <div class="side">
+            <span class="tag" style="background: rgba(96,165,250,0.14); color: #60A5FA; width: 44px; justify-content: center;">Blue</span><span style="font-weight: 500; width: 150px;">Movistar KOI</span>
+            <span class="t3" style="font-size: 12px;">Bans</span><div style="display: flex; gap: 6px;"><img src="Rumble.png" class="champ ban" alt="Rumble"><img src="Orianna.png" class="champ ban" alt="Orianna"><img src="Viktor.png" class="champ ban" alt="Viktor"></div>
+            <span class="t3" style="font-size: 12px; margin-left: 8px;">Picks</span><div style="display: flex; gap: 6px;"><img src="Anivia.png" class="champ" alt="Anivia"><img src="Sivir.png" class="champ" alt="Sivir"><img src="Alistar.png" class="champ" alt="Alistar"><img src="Aatrox.png" class="champ" alt="Aatrox"><img src="Zaahen.png" class="champ" alt="Zaahen"></div>
+          </div>
+          <div class="side">
+            <span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171; width: 44px; justify-content: center;">Red</span><span style="font-weight: 500; width: 150px;">Natus Vincere</span>
+            <span class="t3" style="font-size: 12px;">Bans</span><div style="display: flex; gap: 6px;"><img src="Ashe.png" class="champ ban" alt="Ashe"><img src="Leona.png" class="champ ban" alt="Leona"><img src="Karma.png" class="champ ban" alt="Karma"></div>
+            <span class="t3" style="font-size: 12px; margin-left: 8px;">Picks</span><div style="display: flex; gap: 6px;"><img src="Varus.png" class="champ" alt="Varus"><img src="Maokai.png" class="champ" alt="Maokai"><img src="Yone.png" class="champ" alt="Yone"><img src="Rell.png" class="champ" alt="Rell"><img src="Zeri.png" class="champ" alt="Zeri"></div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #262B36;">
+            <span class="tag" style="background: #1C2028; color: #9AA3B2;">Game 2</span>
+            <span style="font-weight: 500;">Movistar KOI</span><span class="t3" style="font-size: 13px;">won · KOI on blue</span>
+            <button class="btn" style="margin-left: auto;"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5L7 4.5Z"></path></svg></span>Watch draft</button>
+            <a class="btn ghost" href="#" style="height: 36px;">Highlights</a>
+          </div>
+          <div class="side">
+            <span class="tag" style="background: rgba(96,165,250,0.14); color: #60A5FA; width: 44px; justify-content: center;">Blue</span><span style="font-weight: 500; width: 150px;">Movistar KOI</span>
+            <span class="t3" style="font-size: 12px;">Bans</span><div style="display: flex; gap: 6px;"><img src="Yone.png" class="champ ban" alt="Yone"><img src="Zeri.png" class="champ ban" alt="Zeri"><img src="Maokai.png" class="champ ban" alt="Maokai"></div>
+            <span class="t3" style="font-size: 12px; margin-left: 8px;">Picks</span><div style="display: flex; gap: 6px;"><img src="Orianna.png" class="champ" alt="Orianna"><img src="Ashe.png" class="champ" alt="Ashe"><img src="Rell.png" class="champ" alt="Rell"><img src="Ambessa.png" class="champ" alt="Ambessa"><img src="MonkeyKing.png" class="champ" alt="Wukong"></div>
+          </div>
+          <div class="side">
+            <span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171; width: 44px; justify-content: center;">Red</span><span style="font-weight: 500; width: 150px;">Natus Vincere</span>
+            <span class="t3" style="font-size: 12px;">Bans</span><div style="display: flex; gap: 6px;"><img src="Anivia.png" class="champ ban" alt="Anivia"><img src="Aatrox.png" class="champ ban" alt="Aatrox"><img src="Sivir.png" class="champ ban" alt="Sivir"></div>
+            <span class="t3" style="font-size: 12px; margin-left: 8px;">Picks</span><div style="display: flex; gap: 6px;"><img src="Rumble.png" class="champ" alt="Rumble"><img src="Nocturne.png" class="champ" alt="Nocturne"><img src="Viktor.png" class="champ" alt="Viktor"><img src="Kaisa.png" class="champ" alt="Kai'Sa"><img src="Leona.png" class="champ" alt="Leona"></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #262B36;"><span class="tag" style="background: #1C2028; color: #9AA3B2;">Game 3</span><span class="t3" style="font-size: 13px;">Movistar KOI won</span><span class="t3" style="font-size: 13px; margin-left: auto;">Game 4 · Movistar KOI won</span></div>
+        </div>
+      </div>
+
+      <div class="card"><div class="srow"><span class="t3" style="font-size: 13px;">Sep 12</span><div class="h t2" style="font-size: 20px; text-align: right;">Team Vitality</div><div class="mono h" style="font-size: 28px; text-align: center;">2<span class="t3"> – </span>3</div><div class="h" style="font-size: 20px;">Movistar KOI</div><span class="t3" style="font-size: 13px;">Playoffs · 5 games</span><span class="ic t3" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div></div>
+      <div class="card"><div class="srow"><span class="t3" style="font-size: 13px;">Sep 11</span><div class="h t2" style="font-size: 20px; text-align: right;">GIANTX</div><div class="mono h" style="font-size: 28px; text-align: center;">2<span class="t3"> – </span>3</div><div class="h" style="font-size: 20px;">Natus Vincere</div><span class="t3" style="font-size: 13px;">Playoffs · 5 games</span><span class="ic t3" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div></div>
+      <div class="card"><div class="srow"><span class="t3" style="font-size: 13px;">Sep 6</span><div class="h t2" style="font-size: 20px; text-align: right;">Karmine Corp</div><div class="mono h" style="font-size: 28px; text-align: center;">1<span class="t3"> – </span>3</div><div class="h" style="font-size: 20px;">G2 Esports</div><span class="t3" style="font-size: 13px;">Playoffs · 4 games</span><span class="ic t3" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div></div>
+      <div class="card"><div class="srow"><span class="t3" style="font-size: 13px;">Sep 5</span><div class="h" style="font-size: 20px; text-align: right;">Karmine Corp</div><div class="mono h" style="font-size: 28px; text-align: center;">3<span class="t3"> – </span>1</div><div class="h t2" style="font-size: 20px;">GIANTX</div><span class="t3" style="font-size: 13px;">Playoffs · 4 games</span><span class="ic t3" style="justify-self: end;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div></div>
+    </div>
+
+    <div class="t3" style="font-size: 13px; text-align: center;">Data from Leaguepedia · Videos open on YouTube inside the page</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#8B7CF6","options":["#8B7CF6","#F59E0B","#2DD4BF","#FB7185"],"section":"Theme"}}'>
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#8B7CF6' }; }
+}
+</script>
+</body>
+</html>

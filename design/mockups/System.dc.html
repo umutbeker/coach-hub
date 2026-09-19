@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+  <style>
+    body { margin: 0; background: #0F1115; color: #E6E8EC; font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; } a:hover { color: #FFFFFF; }
+    .app { --accent: #8B7CF6; width: 1440px; min-height: 1100px; box-sizing: border-box; background: #0F1115; }
+    .h { font-family: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif; font-weight: 600; line-height: 1.1; letter-spacing: -0.01em; }
+    .mono { font-family: 'IBM Plex Mono', 'Consolas', monospace; font-variant-numeric: tabular-nums; }
+    .t2 { color: #9AA3B2; } .t3 { color: #5C6577; }
+    .card { background: #161920; border: 1px solid #262B36; border-radius: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 6px; font: 500 15px 'IBM Plex Sans', sans-serif; border: 1px solid #333A48; background: #1C2028; color: #E6E8EC; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #0F1115; font-weight: 600; }
+    .btn.ghost { background: transparent; border-color: transparent; color: #9AA3B2; }
+    .btn.sm { height: 36px; padding: 0 14px; font-size: 14px; }
+    .tag { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 6px; font: 500 13px 'IBM Plex Sans', sans-serif; letter-spacing: 0.02em; }
+    .ic { display: inline-flex; width: 18px; height: 18px; flex: none; }
+    .ic svg { width: 100%; height: 100%; }
+    .champ { width: 40px; height: 40px; border-radius: 6px; border: 1px solid #262B36; display: block; }
+    .champ.ban { filter: grayscale(1); opacity: 0.45; }
+    .sec { font: 600 13px 'IBM Plex Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: #5C6577; }
+  </style>
+</helmet>
+<div class="app" style="--accent: {{accent}}; padding: 48px 56px; display: flex; flex-direction: column; gap: 40px;">
+
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
+    <div>
+      <div class="sec" style="margin-bottom: 8px;">Design system</div>
+      <div class="h" style="font-size: 44px;">Pyramid IV Hub</div>
+      <div class="t2" style="margin-top: 8px; max-width: 720px;">Dark, mature, one accent. Body copy never below 13px; captions never below 12px. Numbers are monospaced so columns of stats line up. The accent is a lever: change the chip above this board and every screen follows.</div>
+    </div>
+    <div class="tag" style="background: #1C2028; color: #9AA3B2;">v1 · mockups for review</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px;">
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="sec">Color</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;"><div style="height: 44px; border-radius: 6px; background: #0F1115; border: 1px solid #262B36;"></div><div style="font-size: 13px;">Background</div><div class="mono t3" style="font-size: 12px;">#0F1115</div></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;"><div style="height: 44px; border-radius: 6px; background: #161920; border: 1px solid #262B36;"></div><div style="font-size: 13px;">Surface</div><div class="mono t3" style="font-size: 12px;">#161920</div></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;"><div style="height: 44px; border-radius: 6px; background: #1C2028; border: 1px solid #262B36;"></div><div style="font-size: 13px;">Surface 2</div><div class="mono t3" style="font-size: 12px;">#1C2028</div></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;"><div style="height: 44px; border-radius: 6px; background: #262B36;"></div><div style="font-size: 13px;">Border</div><div class="mono t3" style="font-size: 12px;">#262B36</div></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;"><div style="height: 44px; border-radius: 6px; background: var(--accent);"></div><div style="font-size: 13px;">Accent</div><div class="mono t3" style="font-size: 12px;">tweak</div></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;"><div style="height: 44px; border-radius: 6px; background: #34D399;"></div><div style="font-size: 13px;">Win</div><div class="mono t3" style="font-size: 12px;">#34D399</div></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;"><div style="height: 44px; border-radius: 6px; background: #F87171;"></div><div style="font-size: 13px;">Loss / Red side</div><div class="mono t3" style="font-size: 12px;">#F87171</div></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;"><div style="height: 44px; border-radius: 6px; background: #60A5FA;"></div><div style="font-size: 13px;">Blue side</div><div class="mono t3" style="font-size: 12px;">#60A5FA</div></div>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><span style="width: 12px; height: 12px; border-radius: 50%; background: #E6E8EC; display: inline-block;"></span>Text #E6E8EC</div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><span style="width: 12px; height: 12px; border-radius: 50%; background: #9AA3B2; display: inline-block;"></span>Secondary #9AA3B2</div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><span style="width: 12px; height: 12px; border-radius: 50%; background: #5C6577; display: inline-block;"></span>Muted #5C6577</div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><span style="width: 12px; height: 12px; border-radius: 50%; background: #FBBF24; display: inline-block;"></span>Warning #FBBF24</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="sec">Type</div>
+      <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div class="h" style="font-size: 44px;">Display 44</div><div class="t3 mono" style="font-size: 12px;">Barlow Semi Condensed 600 · hero stat, page title</div></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div class="h" style="font-size: 32px;">Heading 32</div><div class="t3 mono" style="font-size: 12px;">section title</div></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div class="h" style="font-size: 24px;">Heading 24</div><div class="t3 mono" style="font-size: 12px;">card title, team name</div></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div class="h" style="font-size: 20px;">Heading 20</div><div class="t3 mono" style="font-size: 12px;">player name</div></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div style="font-size: 17px; font-weight: 500;">Lead 17</div><div class="t3 mono" style="font-size: 12px;">Plex Sans 500</div></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div style="font-size: 15px;">Body 15 — the default. Everything you read at length sits here.</div><div class="t3 mono" style="font-size: 12px;">Plex Sans 400</div></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div class="t2" style="font-size: 13px;">Meta 13 — riot IDs, dates, secondary labels</div><div class="t3 mono" style="font-size: 12px;">minimum for copy</div></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div class="sec">Section label 13</div><div class="t3 mono" style="font-size: 12px;">uppercase, tracked</div></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><div class="mono" style="font-size: 32px; font-weight: 600;">2371 <span style="font-size: 17px; color: #9AA3B2;">LP</span> · 56%</div><div class="t3 mono" style="font-size: 12px;">Plex Mono 600 · stats, tabular</div></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="sec">Controls</div>
+      <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <button class="btn primary">Analyze opponent</button>
+          <button class="btn">Refresh</button>
+          <button class="btn ghost">Sign out</button>
+          <button class="btn sm">Watch draft</button>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <span class="tag" style="background: rgba(52,211,153,0.14); color: #34D399;">Win</span>
+          <span class="tag" style="background: rgba(248,113,113,0.14); color: #F87171;">Loss</span>
+          <span class="tag" style="background: rgba(251,191,36,0.14); color: #FBBF24;">Low activity</span>
+          <span class="tag" style="background: #1C2028; color: #9AA3B2;">Game 3</span>
+          <span class="tag" style="background: rgba(139,124,246,0.16); color: var(--accent);">Live</span>
+        </div>
+        <div style="display: flex; gap: 0; border-bottom: 1px solid #262B36;">
+          <div style="padding: 12px 18px; font-weight: 500; color: #E6E8EC; border-bottom: 2px solid var(--accent); margin-bottom: -1px;">Roster</div>
+          <div style="padding: 12px 18px; font-weight: 500; color: #9AA3B2;">Schedule</div>
+          <div style="padding: 12px 18px; font-weight: 500; color: #9AA3B2;">Team</div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="flex: 1; height: 44px; border-radius: 6px; border: 1px solid #333A48; background: #0F1115; display: flex; align-items: center; padding: 0 14px; color: #5C6577;">Opponent team name on Leaguepedia</div>
+          <button class="btn primary">Analyze</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="sec">Patterns</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+        <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+          <div class="sec" style="font-size: 12px;">Gold @15</div>
+          <div class="mono" style="font-size: 28px; font-weight: 600; color: #34D399;">+312</div>
+          <div class="t3" style="font-size: 13px;">avg vs lane opponent</div>
+        </div>
+        <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+          <div class="sec" style="font-size: 12px;">CS @15</div>
+          <div class="mono" style="font-size: 28px; font-weight: 600; color: #F87171;">−4.2</div>
+          <div class="t3" style="font-size: 13px;">avg vs lane opponent</div>
+        </div>
+        <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+          <div class="sec" style="font-size: 12px;">Wards / game</div>
+          <div class="mono" style="font-size: 28px; font-weight: 600;">14.6</div>
+          <div class="t3" style="font-size: 13px;">2.1 control wards</div>
+        </div>
+      </div>
+      <div class="card" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span class="tag" style="background: rgba(96,165,250,0.14); color: #60A5FA;">Blue</span>
+          <div style="font-weight: 500;">Movistar KOI</div>
+          <span class="t3" style="font-size: 13px; margin-left: auto;">Bans</span>
+          <div style="display: flex; gap: 6px;"><img src="Varus.png" class="champ ban" alt="Varus"><img src="Maokai.png" class="champ ban" alt="Maokai"><img src="Yone.png" class="champ ban" alt="Yone"></div>
+          <span class="t3" style="font-size: 13px;">Picks</span>
+          <div style="display: flex; gap: 6px;"><img src="Anivia.png" class="champ" alt="Anivia"><img src="Sivir.png" class="champ" alt="Sivir"><img src="Alistar.png" class="champ" alt="Alistar"><img src="Aatrox.png" class="champ" alt="Aatrox"><img src="Zaahen.png" class="champ" alt="Zaahen"></div>
+        </div>
+        <div class="t3" style="font-size: 13px;">Draft row: bans are desaturated so picks read first. Same row shape on Matches, Pro Drafts and scouting.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#8B7CF6","options":["#8B7CF6","#F59E0B","#2DD4BF","#FB7185"],"section":"Theme"}}'>
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#8B7CF6' }; }
+}
+</script>
+</body>
+</html>
