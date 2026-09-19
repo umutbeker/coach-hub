@@ -6,6 +6,8 @@ import { TEAM_LP_NAME } from '../../lib/team';
 import { champImg } from '../../lib/champions';
 import Nav from '../components/Nav';
 import Icon from '../components/Icon';
+import HubCard, { Big, Line, Muted } from '../components/HubCard';
+import { fmtTime, toRole, type EventType, type PoolMatrix, type Role, type ScrimGame, type VodNote } from '../../lib/hub';
 
 const CACHE = { riot: 60 * 60 * 1000, pro: 30 * 60 * 1000, lp: 6 * 60 * 60 * 1000 };
 
@@ -60,6 +62,26 @@ function WrBar({ pct }: { pct: number }) {
   );
 }
 
+type OppPlayer = { name: string; role: string; games: number; wr: number; champs: { name: string; n: number; w?: number }[] };
+type OppReport = { games: number; wins: number; players: OppPlayer[] };
+type UpNext = { key: string; type: EventType; title: string; when: string; sort: string };
+const TYPE_TAG: Record<EventType, string> = { scrim: 'tag accent', official: 'tag blue', review: 'tag win', other: 'tag neutral' };
+const pctOf = (w: number, n: number) => (n ? Math.round((w / n) * 100) : 0);
+const wrCol = (p: number) => (p >= 55 ? 'var(--win)' : p < 45 ? 'var(--loss)' : 'var(--text)');
+const shortDay = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+function Icons({ names, dim, size = 28 }: { names: string[]; dim?: boolean; size?: number }) {
+  return (
+    <div className="row" style={{ gap: 4 }}>
+      {names.map(c => (
+        <img key={c} src={champImg(c)} alt={c} title={c}
+          style={{ width: size, height: size, borderRadius: 5, opacity: dim ? 0.5 : 1, border: '1px solid var(--border)' }}
+          onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+      ))}
+    </div>
+  );
+}
+
 export default function PlayerDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -67,6 +89,14 @@ export default function PlayerDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [proStats, setProStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  // Home: what a player needs before solo queue — feedback, schedule, the next
+  // opponent in their lane, and the pool the coach has set for them.
+  const [notes, setNotes] = useState<(VodNote & { vod: { id: string; title: string } | null })[] | null>(null);
+  const [upNext, setUpNext] = useState<UpNext[]>([]);
+  const [opp, setOpp] = useState<{ name: string; report: OppReport | null } | null>(null);
+  const [myPool, setMyPool] = useState<Record<string, string>>({});
+  const [myScrims, setMyScrims] = useState<ScrimGame[]>([]);
+  const [showSolo, setShowSolo] = useState(false);
 
   const fetchData = async (parsedUser: any) => {
     setLoading(true);
@@ -150,6 +180,33 @@ export default function PlayerDashboard() {
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
+  const loadHome = (p: { name: string; lane?: string }) => {
+    fetch(`/api/notes?player=${encodeURIComponent(p.name)}`).then(r => r.json()).then(d => setNotes(d.notes ?? [])).catch(() => setNotes([]));
+    fetch('/api/pool').then(r => r.json()).then((d: { matrix?: PoolMatrix }) => setMyPool(d.matrix?.[p.name] ?? {})).catch(() => {});
+    fetch('/api/scrims').then(r => r.json()).then((d: { games?: ScrimGame[] }) => setMyScrims((d.games ?? []).filter(g => g.ourPicks?.[p.lane as Role]))).catch(() => {});
+    Promise.all([
+      fetch('/api/overview').then(r => r.json()).catch(() => null),
+      fetch('/api/fixture').then(r => r.json()).catch(() => null),
+    ]).then(([ov, fx]) => {
+      const cal: UpNext[] = (ov?.calendar?.next ?? []).map((e: { id: string; type: EventType; title: string; date: string; time: string }) =>
+        ({ key: e.id, type: e.type, title: e.title, when: `${shortDay(e.date)} · ${e.time}`, sort: `${e.date} ${e.time}` }));
+      const official = (fx?.tournaments ?? []).flatMap((t: { matches: { id: string; opponent: string; scheduledAt: string | null; isPast: boolean }[] }) => t.matches)
+        .filter((m: { isPast: boolean; scheduledAt: string | null }) => !m.isPast && m.scheduledAt)
+        .map((m: { id: string; opponent: string; scheduledAt: string }) => ({
+          key: `fx_${m.id}`, type: 'official' as EventType, title: `vs ${m.opponent}`,
+          when: new Date(m.scheduledAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+          sort: m.scheduledAt.replace('T', ' '),
+        }));
+      setUpNext([...cal, ...official].sort((a, b) => a.sort.localeCompare(b.sort)).slice(0, 3));
+
+      const name: string | null = ov?.prep?.opponent ?? null;
+      if (!name) { setOpp(null); return; }
+      setOpp({ name, report: null });
+      fetch(`/api/prep?opponent=${encodeURIComponent(name)}`).then(r => r.json())
+        .then(d => setOpp({ name, report: d.report ?? null })).catch(() => {});
+    });
+  };
+
   useEffect(() => {
     const u = localStorage.getItem('currentUser');
     if (!u) { router.push('/'); return; }
@@ -160,6 +217,7 @@ export default function PlayerDashboard() {
     const target = viewing ? JSON.parse(viewing) : parsed;
     setUser(target);
     fetchData(target);
+    loadHome(target);
   }, [router]);
 
   const form = useMemo(() => {
@@ -203,55 +261,113 @@ export default function PlayerDashboard() {
           </button>
         ) : null}
 
-        <div className="card" style={{ padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
-          <span className="avatar" style={{ width: 88, height: 88, fontSize: 30 }}>
+        <div className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+          <span className="avatar" style={{ width: 64, height: 64, fontSize: 22 }}>
             {user.image && user.image !== '/logo.png' ? <img src={user.image} alt="" /> : initials(user.name)}
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <div className="h" style={{ fontSize: 40 }}>{user.name}</div>
-              {user.lane ? <span className="tag neutral" style={{ height: 26, fontSize: 13, textTransform: 'capitalize' }}>{user.lane}</span> : null}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <div className="h" style={{ fontSize: 28 }}>{user.name}</div>
+              {user.lane ? <span className="tag neutral" style={{ textTransform: 'capitalize' }}>{user.lane}</span> : null}
             </div>
-            <div className="t2 mono" style={{ fontSize: 14 }}>{user.riotId ?? '—'}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-              {stats?.streak?.count ? (
-                <span className={stats.streak.type === 'W' ? 'tag win' : 'tag loss'}>
-                  {stats.streak.count} {stats.streak.type === 'W' ? 'win' : 'loss'} streak
-                </span>
-              ) : null}
-              {stats?._updatedAt ? (
-                <span className="tag neutral">Synced {new Date(stats._updatedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-              ) : null}
-            </div>
+            <div className="t2 mono" style={{ fontSize: 13 }}>{user.riotId ?? '—'}</div>
           </div>
-
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 40, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <div className="sec sm">Solo queue</div>
-              <div className="h" style={{ fontSize: 28, color: rankColor }}>{stats?.rank ?? '—'}</div>
-              <div className="mono" style={{ fontSize: 26, fontWeight: 600 }}>
-                {stats?.lp ?? 0} <span className="t3" style={{ fontSize: 15, fontWeight: 500 }}>LP</span>
-              </div>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+              <span className="t3" style={{ fontSize: 12 }}>Solo queue</span>
+              <span style={{ fontSize: 14 }}>
+                <b className="h" style={{ fontSize: 16, color: rankColor }}>{stats?.rank ?? '—'}</b>
+                <span className="mono t2"> · {stats?.lp ?? 0} LP · {stats?.recentWinRate ?? '—'} last 20</span>
+              </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <div className="sec sm">Season</div>
-              <div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>
-                {stats?.wins ?? 0}<span className="t3">–</span>{stats?.losses ?? 0}
-              </div>
-              <div className="t2" style={{ fontSize: 14 }}>{stats?.overallWinRate ?? '—'} win rate</div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <div className="sec sm">This week</div>
-              <div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>
-                {stats?.weeklyGames ?? 0} <span className="t3" style={{ fontSize: 15, fontWeight: 500 }}>games</span>
-              </div>
-              <div className="t2" style={{ fontSize: 14 }}>
-                {stats?.weeklyWins ?? 0}–{(stats?.weeklyGames ?? 0) - (stats?.weeklyWins ?? 0)} · {stats?.weeklyWinRate ?? '—'}
-              </div>
-            </div>
+            <button className="btn sm" onClick={() => setShowSolo(v => !v)}>
+              <Icon name={showSolo ? 'chevron-up' : 'chevron-down'} />{showSolo ? 'Hide details' : 'Solo queue details'}
+            </button>
           </div>
         </div>
 
+        <div className="hubg">
+          <HubCard title="Feedback about you" icon="message" href="/feedback" cta="All">
+            {notes === null ? <Muted>Loading…</Muted> : !notes.length ? <Muted>No notes about you yet. They show up here when a coach tags you on a VOD.</Muted> : (
+              <>
+                {notes.slice(0, 4).map(n => (
+                  <button key={n.id} className="nline" onClick={e => { e.stopPropagation(); router.push(`/review/${n.vodId}?t=${n.t}`); }} title="Watch this moment">
+                    <span className="mono" style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 13 }}>{fmtTime(n.t)}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.text}</span>
+                  </button>
+                ))}
+                {notes.length > 4 ? <Muted>+{notes.length - 4} more</Muted> : null}
+              </>
+            )}
+          </HubCard>
+
+          <HubCard title="Up next" icon="calendar" href="/calendar" cta="Calendar">
+            {!upNext.length ? <Muted>Nothing scheduled.</Muted> : upNext.map(e => (
+              <Line key={e.key}>
+                <span className={TYPE_TAG[e.type]} style={{ width: 64, justifyContent: 'center', textTransform: 'capitalize' }}>{e.type}</span>
+                <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.title}</span>
+                <span className="t3 mono" style={{ marginLeft: 'auto', fontSize: 13, whiteSpace: 'nowrap' }}>{e.when}</span>
+              </Line>
+            ))}
+          </HubCard>
+
+          {(() => {
+            const myRole = (user.lane ?? '') as Role;
+            const laner = opp?.report?.players.filter(p => toRole(p.role) === myRole).sort((a, b) => b.games - a.games)[0] ?? null;
+            return (
+              <HubCard title="Your lane opponent" icon="book" href={opp ? `/prep?opponent=${encodeURIComponent(opp.name)}` : '/prep'} cta="Prep">
+                {!opp ? <Muted>No next opponent set yet.</Muted> : (
+                  <>
+                    <Line><span className="t3">vs</span><span className="h" style={{ fontSize: 18 }}>{opp.name}</span>
+                      {opp.report ? <span className="mono t2" style={{ marginLeft: 'auto', fontSize: 13 }}>{opp.report.wins}–{opp.report.games - opp.report.wins} lately</span> : null}
+                    </Line>
+                    {!opp.report ? <Muted>Scouting report not built yet.</Muted> : !laner ? <Muted>No {user.lane} player found in their games.</Muted> : (
+                      <>
+                        <Line>
+                          <span style={{ fontWeight: 600 }}>{laner.name}</span>
+                          <span className="mono t2" style={{ fontSize: 13 }}>{laner.games} games · <span style={{ color: wrCol(laner.wr) }}>{laner.wr}%</span></span>
+                        </Line>
+                        {laner.champs.slice(0, 3).map(c => (
+                          <Line key={c.name}>
+                            <img src={champImg(c.name)} alt="" style={{ width: 24, height: 24, borderRadius: 4 }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+                            <span>{c.name}</span>
+                            <span className="mono t3" style={{ marginLeft: 'auto', fontSize: 13 }}>{c.n}× <span style={{ color: wrCol(pctOf(c.w ?? 0, c.n)) }}>{pctOf(c.w ?? 0, c.n)}%</span></span>
+                          </Line>
+                        ))}
+                      </>
+                    )}
+                  </>
+                )}
+              </HubCard>
+            );
+          })()}
+
+          {(() => {
+            const ready = Object.keys(myPool).filter(c => myPool[c] === 'ready');
+            const practice = Object.keys(myPool).filter(c => myPool[c] === 'practice');
+            const role = (user.lane ?? '') as Role;
+            const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+            const week = myScrims.filter(g => g.date >= weekAgo);
+            const counts: Record<string, number> = {};
+            myScrims.forEach(g => { const c = g.ourPicks[role]; if (c) counts[c] = (counts[c] ?? 0) + 1; });
+            const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([c]) => c);
+            return (
+              <HubCard title="Your pool" icon="grid" href="/scrims" cta="Scrims">
+                {ready.length ? <Line><span className="t3" style={{ width: 60, flex: 'none' }}>Ready</span><Icons names={ready.slice(0, 6)} /></Line> : null}
+                {practice.length ? <Line><span className="t3" style={{ width: 60, flex: 'none' }}>Practice</span><Icons names={practice.slice(0, 6)} dim /></Line> : null}
+                {!ready.length && !practice.length ? <Muted>Your coach hasn’t rated your pool yet.</Muted> : null}
+                <div style={{ display: 'flex', gap: 20, marginTop: 4 }}>
+                  <div><Big>{week.length}</Big><div className="t3" style={{ fontSize: 13 }}>scrims · 7 days</div></div>
+                  <div><Big color={week.length ? wrCol(pctOf(week.filter(g => g.result === 'W').length, week.length)) : undefined}>{week.length ? `${pctOf(week.filter(g => g.result === 'W').length, week.length)}%` : '—'}</Big><div className="t3" style={{ fontSize: 13 }}>win rate</div></div>
+                </div>
+                {top.length ? <Line><span className="t3" style={{ width: 60, flex: 'none' }}>Played</span><Icons names={top} size={24} /></Line> : null}
+              </HubCard>
+            );
+          })()}
+        </div>
+
+        {showSolo ? (
+          <>
         {loading ? <div className="t3" style={{ textAlign: 'center', padding: 40 }}>Loading solo queue data…</div> : null}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 2fr) minmax(320px, 3fr)', gap: 16 }}>
@@ -337,6 +453,9 @@ export default function PlayerDashboard() {
           </div>
         </div>
 
+          </>
+        ) : null}
+
         <div className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div>
@@ -387,6 +506,8 @@ export default function PlayerDashboard() {
       </div>
 
       <style>{`
+        .hub .nline{display:grid;grid-template-columns:48px minmax(0,1fr);gap:8px;align-items:center;background:none;border:none;padding:4px 0;text-align:left;cursor:pointer;color:var(--text);font-size:14px;}
+        .hub .nline:hover{color:var(--accent);}
         .hub .thead{display:grid;gap:12px;padding:0 16px 8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);}
         .hub .trow{display:grid;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid var(--border);}
         .hub .sunk{padding:16px 18px;border-radius:var(--r-ctl);background:var(--surface-sunken);border:1px solid var(--border);display:flex;flex-direction:column;gap:4px;}

@@ -24,10 +24,9 @@ const LINKS: { key: NavKey; label: string; icon: IconName; href: (coach: boolean
 ];
 
 // "New" badges: when a section was last opened is kept per viewer in the
-// browser; the server only counts what is newer. Refreshed at most once a
-// minute across page changes.
+// browser; the server only counts what is newer (a few Redis reads, so it is
+// fetched on every page rather than cached).
 const SEEN = (user: string, k: string) => `seen_${k}_${user}`;
-const BADGE_CACHE = 'nav_badges';
 
 function readSeen(user: string, k: 'review' | 'games') {
   try {
@@ -59,12 +58,8 @@ export default function Nav({ active, user }: { active: NavKey | null; user: Use
     const name = user.name;
     // Opening a section clears its badge.
     if (active === 'review' || active === 'games') {
-      try { localStorage.setItem(SEEN(name, active), String(Date.now())); sessionStorage.removeItem(BADGE_CACHE); } catch { /* ignore */ }
+      try { localStorage.setItem(SEEN(name, active), String(Date.now())); } catch { /* ignore */ }
     }
-    try {
-      const c = JSON.parse(sessionStorage.getItem(BADGE_CACHE) || 'null');
-      if (c && c.user === name && Date.now() - c.at < 60_000) { setBadges(c.b); return; }
-    } catch { /* ignore */ }
     const q = new URLSearchParams({
       me: name,
       review: String(readSeen(name, 'review')),
@@ -74,9 +69,7 @@ export default function Nav({ active, user }: { active: NavKey | null; user: Use
     let live = true;
     fetch(`/api/badges?${q}`).then(r => r.json()).then(b => {
       if (!live) return;
-      const next = { review: b.review ?? 0, games: b.games ?? 0 };
-      setBadges(next);
-      try { sessionStorage.setItem(BADGE_CACHE, JSON.stringify({ user: name, at: Date.now(), b: next })); } catch { /* ignore */ }
+      setBadges({ review: b.review ?? 0, games: b.games ?? 0 });
     }).catch(() => {});
     return () => { live = false; };
   }, [user?.name, isCoach, active]);
@@ -85,7 +78,6 @@ export default function Nav({ active, user }: { active: NavKey | null; user: Use
     try {
       localStorage.removeItem('currentUser');
       sessionStorage.removeItem('viewingPlayer');
-      sessionStorage.removeItem(BADGE_CACHE);
     } catch { /* storage can be unavailable; navigating away is the point */ }
     router.push('/');
   };

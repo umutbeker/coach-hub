@@ -120,3 +120,18 @@ export function parseTime(v: string): number | null {
   if (parts.some(n => isNaN(n))) return null;
   return parts.reduce((acc, n) => acc * 60 + n, 0);
 }
+
+/**
+ * Leaguepedia's ScoreboardPlayers.Role is free text ("Bot", "Mid", …) with
+ * varying spellings, so roles are normalised rather than matched exactly —
+ * an unmatched spelling would silently leave a lane empty.
+ */
+export function toRole(raw: string): Role | null {
+  const r = raw.trim().toLowerCase().replace(/[^a-z]/g, '');
+  if (r.startsWith('top')) return 'top';
+  if (r.startsWith('jung')) return 'jungle';
+  if (r === 'mid' || r.startsWith('middle')) return 'mid';
+  if (r === 'bot' || r.startsWith('bottom') || r === 'adc' || r.startsWith('adcarry') || r === 'carry') return 'adc';
+  if (r.startsWith('sup')) return 'support';
+  return null;
+}

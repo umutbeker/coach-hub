@@ -7,7 +7,8 @@ import { TEAM_NAME } from '../../lib/team';
 import { champImg } from '../../lib/champions';
 import type { EventType } from '../../lib/hub';
 import Nav from '../components/Nav';
-import Icon, { type IconName } from '../components/Icon';
+import Icon from '../components/Icon';
+import HubCard, { Big, Line, Muted } from '../components/HubCard';
 import PoolMatrix from '../components/PoolMatrix';
 import { useUser } from '../components/useUser';
 
@@ -58,32 +59,6 @@ type SoloStats = {
 type RosterEntry = (typeof PLAYERS)[number] & { stats: SoloStats | null };
 
 type NextOfficial = { opponent: string; date: string; scheduledAt: string; league: string } | null;
-
-/** One section of the hub, summarised. The whole card links to the page. */
-function HubCard({ title, icon, href, cta, children }: { title: string; icon: IconName; href: string; cta: string; children: React.ReactNode }) {
-  const router = useRouter();
-  return (
-    <div className="card hubc" role="link" tabIndex={0}
-      onClick={() => router.push(href)} onKeyDown={e => { if (e.key === 'Enter') router.push(href); }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ color: 'var(--accent)', display: 'inline-flex' }}><Icon name={icon} /></span>
-        <span className="h" style={{ fontSize: 18 }}>{title}</span>
-        <span className="t3 hubgo" style={{ marginLeft: 'auto', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-          {cta}<Icon name="chevron-right" size={15} />
-        </span>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>{children}</div>
-    </div>
-  );
-}
-
-const Line = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, minWidth: 0 }}>{children}</div>
-);
-const Muted = ({ children }: { children: React.ReactNode }) => <div className="t3" style={{ fontSize: 14 }}>{children}</div>;
-const Big = ({ children, color }: { children: React.ReactNode; color?: string }) => (
-  <div className="mono" style={{ fontSize: 26, fontWeight: 600, color, lineHeight: 1.15 }}>{children}</div>
-);
 
 export default function CoachDashboard() {
   const router = useRouter();
@@ -433,15 +408,9 @@ export default function CoachDashboard() {
       </div>
 
       <style>{`
-        .hub .hubg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
-        .hub .hubc{padding:18px 20px;display:flex;flex-direction:column;gap:14px;cursor:pointer;min-height:170px;transition:border-color .12s,background .12s;}
-        .hub .hubc:hover{border-color:var(--border-strong);background:#191D25;}
-        .hub .hubc:hover .hubgo{color:var(--accent);}
         .hub .pcard{padding:20px;display:flex;flex-direction:column;gap:16px;text-align:left;cursor:pointer;align-items:stretch;}
         .hub .pcard:hover{border-color:var(--border-strong);background:#191D25;}
         .hub .pcard.warn{border-color:rgba(251,191,36,0.4);}
-        @media(max-width:1300px){.hub .hubg{grid-template-columns:repeat(2,minmax(0,1fr));}}
-        @media(max-width:700px){.hub .hubg{grid-template-columns:1fr;}}
       `}</style>
     </div>
   );

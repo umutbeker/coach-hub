@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { champImg } from '../../lib/champions';
 import { parseVod } from '../../lib/vod';
-import { ROLES, ROLE_LABEL, newId, type DraftPlan, type DraftPlanSide, type PoolMatrix, type Role, type ScrimGame } from '../../lib/hub';
+import { ROLES, ROLE_LABEL, newId, toRole, type DraftPlan, type DraftPlanSide, type PoolMatrix, type Role, type ScrimGame } from '../../lib/hub';
 import { USERS } from '../../lib/users';
 import Nav from '../components/Nav';
 import Icon from '../components/Icon';
@@ -158,19 +158,7 @@ function CountList({ title, hint, items, showWr }: { title: string; hint: string
 }
 
 // ── Lane by lane ────────────────────────────────────────────────────────────
-// Leaguepedia's ScoreboardPlayers.Role is free text ("Bot", "Mid", …) and
-// spellings vary, so roles are normalised rather than matched exactly — an
-// unmatched spelling would silently leave a lane empty.
 const LANE_NAME: Record<Role, string> = { top: 'top', jungle: 'jungle', mid: 'mid', adc: 'bot lane', support: 'support' };
-function toRole(raw: string): Role | null {
-  const r = raw.trim().toLowerCase().replace(/[^a-z]/g, '');
-  if (r.startsWith('top')) return 'top';
-  if (r.startsWith('jung')) return 'jungle';
-  if (r === 'mid' || r.startsWith('middle')) return 'mid';
-  if (r === 'bot' || r.startsWith('bottom') || r === 'adc' || r.startsWith('adcarry') || r === 'carry') return 'adc';
-  if (r.startsWith('sup')) return 'support';
-  return null;
-}
 
 type Lane = {
   role: Role;

@@ -354,3 +354,11 @@ body {
   .hub .nav { padding: 0 20px; gap: 16px; }
   .hub .page { padding: 16px 16px 32px; }
 }
+
+/* Hub summary cards (coach and player home) */
+.hub .hubg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.hub .hubc { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; min-height: 150px; transition: border-color .12s, background .12s; }
+.hub .hubc:hover { border-color: var(--border-strong); background: #191D25; }
+.hub .hubc:hover .hubgo { color: var(--accent); }
+@media (max-width: 1300px) { .hub .hubg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .hub .hubg { grid-template-columns: 1fr; } }
