@@ -141,12 +141,14 @@ async function fetchPlayerData(riotId: string, apiKey: string) {
 
     recentMatches.push({
       id: matchId, champion: champName,
-      result: won ? 'Galibiyet' : 'Bozgun',
+      // Locale-free: the UI formats these. They used to be stored pre-rendered
+      // in Turkish ('Galibiyet', '31dk', '19 Eyl'), which no UI could undo.
+      result: won ? 'W' : 'L',
       kills: k, deaths: d, assists: a,
       kda: ((k + a) / (d || 1)).toFixed(2),
       cs, csPerMin: (cs / gameDurationMin).toFixed(1),
-      duration: `${Math.floor(gameDurationMin)}dk`,
-      time: new Date(match.info.gameCreation).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
+      durationMin: Math.floor(gameDurationMin),
+      playedAt: new Date(match.info.gameCreation).toISOString(),
       isWeekly: weeklyMatchSet.has(matchId),
     });
   });
@@ -167,8 +169,8 @@ async function fetchPlayerData(riotId: string, apiKey: string) {
 
   let currentStreak = 0, streakType = '';
   for (const m of recentMatches) {
-    if (currentStreak === 0) { streakType = m.result === 'Galibiyet' ? 'W' : 'L'; currentStreak = 1; }
-    else if ((m.result === 'Galibiyet') === (streakType === 'W')) currentStreak++;
+    if (currentStreak === 0) { streakType = m.result; currentStreak = 1; }
+    else if (m.result === streakType) currentStreak++;
     else break;
   }
 

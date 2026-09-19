@@ -24,9 +24,9 @@ The project is already linked to the Vercel project `s2g-hub` via `.vercel/proje
 
 Required env: `KV_REST_API_URL` / `KV_REST_API_TOKEN` (read by `Redis.fromEnv()`), `RIOT_API_KEY`, `PANDASCORE_API_KEY`, `GEMINI_API_KEY`, `PUSHER_APP_ID`/`PUSHER_KEY`/`PUSHER_SECRET`/`PUSHER_CLUSTER` plus their `NEXT_PUBLIC_PUSHER_*` counterparts, and `CRON_SECRET`.
 
-## UI redesign in progress
+## Design
 
-The approved redesign lives in [design/mockups/](design/mockups/) as literal HTML/CSS — read [design/README.md](design/README.md) before touching any page. Build from it; do not re-derive direction. The draft room (`app/draft/*`) is explicitly excluded and must look identical after any global change.
+The UI follows the mockups in [design/mockups/](design/mockups/) (literal HTML/CSS, see [design/README.md](design/README.md)). When changing a redesigned page, match them rather than inventing new styling. The draft room (`app/draft/*`) was deliberately left out of the redesign and must look identical after any global change.
 
 ## What this is
 
@@ -113,4 +113,9 @@ Pages cache aggressively in `localStorage` under `<key>` plus a `<key>_time` tim
 
 ### Styling
 
-Tailwind 4 utilities for layout, but the four main pages also define terse two-or-three-letter class names (`HB`, `BT`, `MDB`, `FDB`) in an inline `<style>` block inside their JSX. `app/globals.css` is nearly empty and holds only the Tailwind import and the font/theme variables. UI copy is Turkish.
+There are two styling systems and they must not mix.
+
+- **Redesigned pages** (`/`, `/coach`, `/player`, `/matches`, `/pro`) put `className="hub"` on their root. Tokens (`--bg`, `--surface`, `--accent`, `--win`, `--loss`, …) are on `:root` in [app/globals.css](app/globals.css); every component class there (`.card`, `.btn`, `.tag`, `.tab`, `.champ`, …) is scoped as `.hub .x`. Shared pieces are [app/components/Nav.tsx](app/components/Nav.tsx) and [app/components/Icon.tsx](app/components/Icon.tsx) (inline stroke SVG — no emoji). Fonts come from `next/font` in [app/layout.tsx](app/layout.tsx): Barlow Semi Condensed (`.h`), IBM Plex Sans (body, 15px base, nothing under 12px), IBM Plex Mono (`.mono`, stats). UI copy is English.
+- **The draft room** keeps its own inline `<style>` block, its own `@import` of `Barlow`/`Barlow Condensed` from Google Fonts, and short class names (`.btn`, `.logo`, `.main`, `.center`). That is why the redesign's classes are scoped under `.hub`: an unscoped `.btn` in globals would leak into it. It is also why `layout.tsx` must never load a family named `Barlow` or `Barlow Condensed`. Its own `body{}` rule comes after globals in the document and wins.
+
+`/api/sync` stores match records locale-free (`result: 'W'|'L'`, `durationMin`, `playedAt` ISO); pages format them. Older records stored pre-rendered Turkish (`'Galibiyet'`, `'31dk'`), which is why `isWin()` in the pages still accepts `'Galibiyet'` — harmless once every client cache has turned over.

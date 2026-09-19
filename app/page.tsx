@@ -4,129 +4,122 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { USERS } from '../lib/users';
 import { TEAM_NAME } from '../lib/team';
+import Icon from './components/Icon';
+
+type Role = 'player' | 'coach';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [loginRole, setLoginRole] = useState<'player' | 'coach' | null>(null);
+  const [role, setRole] = useState<Role>('player');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const user = USERS.find(u => u.username === username && u.password === password && u.role === loginRole);
-    if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      if (user.role === 'coach') {
-        router.push('/coach');
-      } else {
-        router.push('/player');
-      }
-    } else {
-      setError('Wrong credentials, try again!');
+    const user = USERS.find(
+      u => u.username === username.trim() && u.password === password && u.role === role,
+    );
+    if (!user) {
+      setError('Those credentials do not match a ' + role + ' account.');
+      return;
     }
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    router.push(user.role === 'coach' ? '/coach' : '/player');
   };
 
-  const resetForm = () => {
-    setLoginRole(null);
-    setUsername('');
-    setPassword('');
+  const switchRole = (next: Role) => {
+    setRole(next);
     setError('');
   };
 
   return (
-    <div className="min-h-screen bg-[#090510] flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#7B32A8]/15 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="hub" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '28px 40px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span className="ic" style={{ width: 26, height: 26, color: 'var(--accent)' }}>
+          <Icon name="mark" size={26} />
+        </span>
+        <span className="h" style={{ fontSize: 17, letterSpacing: '0.06em' }}>{TEAM_NAME.toUpperCase()}</span>
+        <span className="t3" style={{ fontSize: 12, letterSpacing: '0.14em', fontWeight: 500 }}>HUB</span>
+      </div>
 
-      <div className="w-full max-w-md bg-[#120A20]/80 backdrop-blur-md border border-[#2A164A] rounded-2xl p-8 shadow-2xl relative z-10">
-
-        <div className="flex flex-col items-center text-center mb-8">
-          <img
-            src="/logo.png"
-            alt={`${TEAM_NAME} Logo`}
-            className="w-32 h-auto mb-6 drop-shadow-[0_0_20px_rgba(232,72,138,0.4)]"
-          />
-          <h1 className="text-4xl font-black tracking-wider mb-2 uppercase flex flex-col gap-1">
-            <span className="text-[#F0B92D] text-sm tracking-[0.3em] font-bold">BETA VERSION</span>
-            <span className="text-white">{TEAM_NAME}<span className="text-[#E8488A]">HUB</span></span>
-          </h1>
-        </div>
-
-        {!loginRole && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <button
-              onClick={() => setLoginRole('player')}
-              className="w-full bg-[#1A0E2E] hover:bg-[#23133D] text-[#D4C5ED] font-semibold py-3.5 px-4 rounded-xl transition-all duration-200 border border-[#351D5C] hover:border-[#E8488A]/50 flex items-center justify-center gap-2"
-            >
-              Player Login
-            </button>
-            <button
-              onClick={() => setLoginRole('coach')}
-              className="w-full bg-gradient-to-r from-[#C22E7A] to-[#E8488A] hover:from-[#D6358A] hover:to-[#F4579B] text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-200 shadow-[0_0_20px_rgba(232,72,138,0.25)] hover:shadow-[0_0_30px_rgba(232,72,138,0.45)] flex items-center justify-center gap-2"
-            >
-              Coach Login
-            </button>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 20px 64px' }}>
+        <div className="card" style={{ width: '100%', maxWidth: 440, padding: 36, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="h" style={{ fontSize: 32 }}>Sign in</div>
+            <div className="t2">
+              Team hub for {TEAM_NAME} Esports. Pick your role, then use the credentials your coach gave you.
+            </div>
           </div>
-        )}
 
-        {loginRole && (
-          <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
-            <div className="text-center mb-6">
-              <span className={`text-sm font-bold tracking-widest uppercase px-3 py-1 rounded-full ${loginRole === 'coach' ? 'bg-[#E8488A]/20 text-[#E8488A] border border-[#E8488A]/30' : 'bg-[#7B32A8]/20 text-[#D4C5ED] border border-[#7B32A8]/30'}`}>
-                {loginRole === 'coach' ? 'Coach Authorization' : 'Player Authorization'}
-              </span>
+          <div className="seg">
+            <button type="button" className={role === 'player' ? 'on' : ''} onClick={() => switchRole('player')}>Player</button>
+            <button type="button" className={role === 'coach' ? 'on' : ''} onClick={() => switchRole('coach')}>Coach</button>
+          </div>
+
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div className="field">
+              <label className="label" htmlFor="username">Username</label>
+              <input
+                id="username"
+                className="input"
+                autoComplete="username"
+                value={username}
+                onChange={e => { setUsername(e.target.value); setError(''); }}
+              />
+            </div>
+            <div className="field">
+              <label className="label" htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                className="input"
+                autoComplete="current-password"
+                value={password}
+                onChange={e => { setPassword(e.target.value); setError(''); }}
+              />
             </div>
 
-            {error && (
-              <p className="text-[#E8488A] text-sm text-center font-semibold bg-[#E8488A]/10 py-2 rounded-lg border border-[#E8488A]/20">
+            {error ? (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--loss)', fontSize: 13 }}>
+                <Icon name="warning" size={16} />
                 {error}
-              </p>
-            )}
+              </div>
+            ) : null}
 
-            <input
-              type="text"
-              placeholder="Kullanıcı Adı"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-[#090510] text-[#D4C5ED] border border-[#2A164A] rounded-xl px-4 py-3.5 focus:outline-none focus:border-[#E8488A] transition-colors"
-              autoFocus
-            />
-
-            <input
-              type="password"
-              placeholder="Şifre"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#090510] text-[#D4C5ED] border border-[#2A164A] rounded-xl px-4 py-3.5 focus:outline-none focus:border-[#E8488A] transition-colors"
-            />
-
-            <button
-              type="submit"
-              className={`w-full font-bold py-3.5 px-4 mt-2 rounded-xl transition-all duration-200 ${loginRole === 'coach' ? 'bg-gradient-to-r from-[#C22E7A] to-[#E8488A] text-white shadow-[0_0_20px_rgba(232,72,138,0.25)] hover:shadow-[0_0_30px_rgba(232,72,138,0.45)]' : 'bg-[#1A0E2E] hover:bg-[#23133D] text-[#D4C5ED] border border-[#351D5C] hover:border-[#E8488A]/50'}`}
-            >
-              Login
-            </button>
-
-            <button
-              type="button"
-              onClick={resetForm}
-              className="w-full text-[#6A5A8A] hover:text-[#D4C5ED] text-sm font-medium py-2 transition-colors"
-            >
-              ← Go back
+            <button type="submit" className="btn primary" style={{ width: '100%' }}>
+              Sign in as {role}
             </button>
           </form>
-        )}
 
-        {/* /pro herkese açık — giriş yapmadan da görülebilsin diye burada. */}
-        <div className="mt-6 pt-5 border-t border-[#2A164A] text-center">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--text-3)', fontSize: 13 }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            <span>or</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          </div>
+
           <button
             type="button"
             onClick={() => router.push('/pro')}
-            className="text-[#6A5A8A] hover:text-[#E8488A] text-sm font-medium transition-colors"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+              borderRadius: 'var(--r-ctl)', border: '1px solid var(--border)',
+              background: 'var(--surface-sunken)', color: 'var(--text)',
+              cursor: 'pointer', textAlign: 'left',
+            }}
           >
-            🎬 LEC &amp; LCK draftlarını izle — giriş gerekmez
+            <span style={{ color: 'var(--accent)', display: 'inline-flex' }}><Icon name="play" /></span>
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontWeight: 500 }}>Watch LEC &amp; LCK pro drafts</span>
+              <span className="t3" style={{ fontSize: 13 }}>Public — no sign-in needed</span>
+            </span>
+            <span className="t3" style={{ marginLeft: 'auto', display: 'inline-flex' }}><Icon name="chevron-right" /></span>
           </button>
         </div>
+      </div>
+
+      <div className="t3" style={{ fontSize: 13, textAlign: 'center', paddingBottom: 28 }}>
+        Beta · Data from Riot Games, Leaguepedia and PandaScore
       </div>
     </div>
   );
