@@ -30,7 +30,7 @@ The UI follows the mockups in [design/mockups/](design/mockups/) (literal HTML/C
 
 ## What this is
 
-"Pyramid4 HUB" — a player and coach dashboard for the Pyramid IV Esports League of Legends team. Next.js 16 App Router, React 19, TypeScript, Tailwind 4. Four screens behind a login — coach panel, player panel, match history, and a live draft room — plus one public page.
+"Pyramid4 HUB" — a player and coach dashboard for the Pyramid IV Esports League of Legends team. Next.js 16 App Router, React 19, TypeScript, Tailwind 4. Behind a login: coach panel, player panel, match history, the live draft room, and the coaching tools (scrims, VOD review, feedback, match prep, calendar). Plus one public page. The team cares about pro and scrim play far more than solo queue — new features should serve coaching and competitive analysis.
 
 ## Architecture
 
@@ -49,6 +49,14 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `fixture:cache` | `/api/fixture` (30m TTL) | `/api/fixture` |
 | `vods:v2:lec` / `vods:v2:lck` | `/api/pro-vods` (12h TTL) | `/api/pro-vods`, `/pro` |
 | `sync:updatedAt` | `/api/sync` | `/api/data` |
+| `scrims:v1` (hash) | `/api/scrims` | `/api/scrims` |
+| `vods-lib:v1` (hash) | `/api/vods` | `/api/vods` |
+| `vodnotes:v1:<vodId>` (hash) | `/api/notes` | `/api/notes` |
+| `pool:v1` (hash, field = player) | `/api/pool` | `/api/pool` |
+| `prep:v1` / `oppreport:v1` (hash, field = opponent slug) | `/api/prep` | `/api/prep` |
+| `calendar:v1` (hash) | `/api/calendar` | `/api/calendar` |
+
+The coaching-tool collections are Redis **hashes**, one field per record, accessed through [lib/store.ts](lib/store.ts); their types are in [lib/hub.ts](lib/hub.ts). A collection is one `hgetall`, a write touches one field. Don't fold a collection into a single JSON value — a season of scrims would outgrow Upstash's per-value limit. These keys hold hand-entered team data with no other copy, unlike the synced keys above, which can be rebuilt.
 
 `/api/sync` reports `{"success":false,"error":"No matches found"}` whenever `cargoquery` is absent from the Leaguepedia response — which includes a rate-limited response, not just a genuinely empty result. Treat that message as "no usable reply", and retry before concluding the query is wrong.
 
@@ -103,6 +111,15 @@ Series are not inferred from dates or team names: `MatchScheduleGame.MatchId` is
 
 The Redis keys carry a `v2` segment because the response shape changed from a flat game list to series; bump it again rather than letting a differently-shaped cached payload reach the page.
 
+### Coaching tools
+
+- **Scrims are never mixed with official games.** Official data is Leaguepedia-only; scrims live in `scrims:v1`. `/matches` shows official only. Anything that combines them must say so with a source label.
+- **Scrims are entered by hand** at `/scrims/new`. Riot's public API does not return the custom games scrims are played in (checked: `queue=0` returns `[]`). Picks are entered by role, and the role decides which roster player gets credited — that is how the champion pool matrix attributes scrim games.
+- **VODs are links, not uploads.** Unlisted YouTube or a direct video URL. Uploading would need a storage bucket (Vercel caps function request bodies). [app/components/VideoPlayer.tsx](app/components/VideoPlayer.tsx) drives YouTube through the IFrame API, because a plain embed can't be seeked from outside; that is what lets a note jump the video to its timestamp. Other hosts get a link-out.
+- **Notes** carry a timestamp, a category and tagged players. `/feedback` reads them per player across every VOD.
+- **Match prep** (`/prep`) builds the opponent report in the browser from Leaguepedia and saves it through `/api/prep`, so the team reads one saved copy instead of each viewer spending the per-IP limit. `/api/opponent-ai` turns the computed numbers (not raw rows) into a Gemini brief.
+- **Calendar** stores scrims, reviews and other events; official matches are merged in from `/api/fixture` at read time, never stored twice.
+
 ### Auth
 
 Client-side only and not a security boundary. [app/page.tsx](app/page.tsx) matches credentials against the plaintext `USERS` array in [lib/users.ts](lib/users.ts) and stores the matched user in `localStorage.currentUser`; each page re-reads it in an effect and `router.push`es away on mismatch. `lib/users.ts` is imported by a client component, so it ships to the browser — the credentials are public to anyone with the URL. API routes have no auth at all. Coaches viewing a player use `sessionStorage.viewingPlayer` to impersonate on `/player`.
@@ -115,7 +132,7 @@ Pages cache aggressively in `localStorage` under `<key>` plus a `<key>_time` tim
 
 There are two styling systems and they must not mix.
 
-- **Redesigned pages** (`/`, `/coach`, `/player`, `/matches`, `/pro`) put `className="hub"` on their root. Tokens (`--bg`, `--surface`, `--accent`, `--win`, `--loss`, …) are on `:root` in [app/globals.css](app/globals.css); every component class there (`.card`, `.btn`, `.tag`, `.tab`, `.champ`, …) is scoped as `.hub .x`. Shared pieces are [app/components/Nav.tsx](app/components/Nav.tsx) and [app/components/Icon.tsx](app/components/Icon.tsx) (inline stroke SVG — no emoji). Fonts come from `next/font` in [app/layout.tsx](app/layout.tsx): Barlow Semi Condensed (`.h`), IBM Plex Sans (body, 15px base, nothing under 12px), IBM Plex Mono (`.mono`, stats). UI copy is English.
+- **Redesigned pages** (every page except `/draft`) put `className="hub"` on their root. Tokens (`--bg`, `--surface`, `--accent`, `--win`, `--loss`, …) are on `:root` in [app/globals.css](app/globals.css); every component class there (`.card`, `.btn`, `.tag`, `.tab`, `.champ`, …) is scoped as `.hub .x`. Shared pieces live in [app/components/](app/components/): `Nav`, `Icon` (inline stroke SVG — no emoji), `useUser` (the signed-in user via `useSyncExternalStore`: no hydration mismatch, no setState-in-effect), `ChampionPicker`/`Slot`, `VideoPlayer`, `PoolMatrix`. New pages should use `useUser` rather than reading localStorage in an effect. Fonts come from `next/font` in [app/layout.tsx](app/layout.tsx): Barlow Semi Condensed (`.h`), IBM Plex Sans (body, 15px base, nothing under 12px), IBM Plex Mono (`.mono`, stats). UI copy is English.
 - **The draft room** keeps its own inline `<style>` block, its own `@import` of `Barlow`/`Barlow Condensed` from Google Fonts, and short class names (`.btn`, `.logo`, `.main`, `.center`). That is why the redesign's classes are scoped under `.hub`: an unscoped `.btn` in globals would leak into it. It is also why `layout.tsx` must never load a family named `Barlow` or `Barlow Condensed`. Its own `body{}` rule comes after globals in the document and wins.
 
 `/api/sync` stores match records locale-free (`result: 'W'|'L'`, `durationMin`, `playedAt` ISO); pages format them. Older records stored pre-rendered Turkish (`'Galibiyet'`, `'31dk'`), which is why `isWin()` in the pages still accepts `'Galibiyet'` — harmless once every client cache has turned over.

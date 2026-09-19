@@ -33,7 +33,8 @@ export async function POST(request: Request) {
   const p = b?.plan;
   const opp = String(p?.opponent ?? '').trim();
   if (!opp) return NextResponse.json({ error: 'plan.opponent required' }, { status: 400 });
-  const side = (s: any) => ({
+  type RawSide = { bans?: unknown; priorityPicks?: unknown; notes?: unknown } | undefined;
+  const side = (s: RawSide) => ({
     bans: (Array.isArray(s?.bans) ? s.bans : []).map(String).slice(0, 5),
     priorityPicks: (Array.isArray(s?.priorityPicks) ? s.priorityPicks : []).map(String).slice(0, 10),
     notes: String(s?.notes ?? '').slice(0, 2000),
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     blue: side(p.blue),
     red: side(p.red),
     branches: (Array.isArray(p?.branches) ? p.branches : [])
-      .map((x: any) => ({ id: String(x?.id ?? Math.random().toString(36).slice(2)), when: String(x?.when ?? '').slice(0, 300), then: String(x?.then ?? '').slice(0, 300) }))
+      .map((x: { id?: unknown; when?: unknown; then?: unknown }) => ({ id: String(x?.id ?? Math.random().toString(36).slice(2)), when: String(x?.when ?? '').slice(0, 300), then: String(x?.then ?? '').slice(0, 300) }))
       .filter((x: { when: string; then: string }) => x.when || x.then)
       .slice(0, 20),
     updatedBy: String(b?.updatedBy ?? 'unknown'),
