@@ -57,21 +57,23 @@ export async function GET() {
     );
     const running = await runningRes.json();
 
-    // Fetch recent past matches (so there's always something to show)
-    const pastRes = await fetch(
-      `https://api.pandascore.co/lol/matches/past?filter[opponent_id]=${teamId}&per_page=5&sort=-scheduled_at`,
-      { headers }
-    );
-    const past = await pastRes.json();
-
-    // Combine all matches — running first, then upcoming, then past
+    // Sadece canlı ve gelecek maçlar — geçmiş maçlar fikstürde gösterilmiyor.
     const allMatches: any[] = [
       ...(Array.isArray(running) ? running : []),
       ...(Array.isArray(upcoming) ? upcoming : []),
-      ...(Array.isArray(past) ? past : []),
-    ];
+    ].filter((m: any) => {
+      if (m.status === 'finished' || m.status === 'canceled') return false;
+      if (!m.scheduled_at) return true; // tarihi belirsiz ama henüz oynanmamış
+      return new Date(m.scheduled_at).getTime() >= Date.now();
+    });
 
-    if (allMatches.length === 0) throw new Error('No matches found');
+    // Yaklaşan maç yoksa bu bir hata değil — boş fikstür dönüyoruz ki
+    // arayüz 500 yerine "maç yok" gösterebilsin.
+    if (allMatches.length === 0) {
+      const empty = { teamName, teamId, tournaments: [] };
+      await redis.set(CACHE_KEY, JSON.stringify(empty), { ex: CACHE_TTL });
+      return NextResponse.json(empty);
+    }
 
     // Group by tournament
     const tournamentMap: Record<string, any> = {};
