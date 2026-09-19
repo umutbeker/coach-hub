@@ -370,6 +370,9 @@ function Prep() {
   const [briefing, setBriefing] = useState(false);
   const [briefErr, setBriefErr] = useState('');
   const [saving, setSaving] = useState(false);
+  // The opponent the draft room scouts. Set here, stored on the shared draft
+  // state (SET_OPPONENT), so it reaches the draft room over Pusher.
+  const [nextOpp, setNextOpp] = useState<string | null>(null);
 
   // Who could we be preparing for: next fixture, the coach's manual pick,
   // teams we've scrimmed, and teams we already have a plan for.
@@ -380,7 +383,10 @@ function Prep() {
         (d.tournaments ?? []).flatMap((t: { matches: { opponent: string; isPast: boolean }[] }) => t.matches)
           .filter((m: { isPast: boolean }) => !m.isPast).forEach((m: { opponent: string }) => { if (m.opponent && m.opponent !== 'TBD') add.set(m.opponent, 'next match'); });
       }),
-      fetch('/api/draft').then(r => r.json()).then(d => { if (d.opponent && !add.has(d.opponent)) add.set(d.opponent, 'set by coach'); }),
+      fetch('/api/draft').then(r => r.json()).then(d => {
+        setNextOpp(d.opponent ?? null);
+        if (d.opponent && !add.has(d.opponent)) add.set(d.opponent, 'next opponent');
+      }),
       fetch('/api/prep').then(r => r.json()).then(d => (d.plans ?? []).forEach((p: DraftPlan) => { if (!add.has(p.opponent)) add.set(p.opponent, 'has a plan'); })),
       fetch('/api/scrims').then(r => r.json()).then(d => (d.games ?? []).slice(0, 40).forEach((g: ScrimGame) => { if (!add.has(g.opponent)) add.set(g.opponent, 'scrimmed'); })),
     ]).then(() => setSuggest([...add.entries()].slice(0, 10).map(([name, why]) => ({ name, why }))));
@@ -456,6 +462,15 @@ function Prep() {
     setSaving(false);
   };
 
+  const setAsNext = async (name: string | null) => {
+    setNextOpp(name);
+    await fetch('/api/draft', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'SET_OPPONENT', payload: { opponent: name ?? '' }, userName: user?.name }),
+    }).catch(() => {});
+  };
+  const isNext = !!nextOpp && !!opponent && nextOpp.toLowerCase() === opponent.toLowerCase();
+
   const age = report?.savedAt ?? report?.builtAt;
   const stale = useMemo(() => (age ? Date.now() - age > 3 * 86400000 : false), [age]);
 
@@ -491,6 +506,20 @@ function Prep() {
 
         {!opponent ? <div className="card empty">Pick an opponent to start.</div> : (
           <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div className="h" style={{ fontSize: 28 }}>{opponent}</div>
+              {isNext ? (
+                <>
+                  <span className="tag win" style={{ gap: 6 }}><Icon name="check" size={14} />Next opponent</span>
+                  <button className="btn ghost sm" onClick={() => setAsNext(null)}>Clear</button>
+                </>
+              ) : (
+                <button className="btn sm" onClick={() => setAsNext(opponent)} title="The draft room scouts the next opponent">
+                  <Icon name="target" />Set as next opponent
+                </button>
+              )}
+              {nextOpp && !isNext ? <span className="t3" style={{ fontSize: 13 }}>Currently: {nextOpp}</span> : null}
+            </div>
             <div className="tabs">
               <button className={tab === 'report' ? 'tab on' : 'tab'} onClick={() => setTab('report')}>Scouting report</button>
               <button className={tab === 'plan' ? 'tab on' : 'tab'} onClick={() => setTab('plan')}>Draft plan</button>
@@ -499,7 +528,6 @@ function Prep() {
             {loadingFor ? <div className="empty">Loading…</div> : tab === 'report' ? (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                  <div className="h" style={{ fontSize: 24 }}>{opponent}</div>
                   {age ? <span className={stale ? 'tag warn' : 'tag neutral'}>Built {new Date(age).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}{stale ? ' · may be out of date' : ''}</span> : null}
                   <button className="btn" style={{ marginLeft: 'auto' }} onClick={build} disabled={building}>
                     <Icon name="refresh" />{building ? 'Building…' : report ? 'Rebuild' : 'Build report'}

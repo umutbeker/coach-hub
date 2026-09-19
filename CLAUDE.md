@@ -119,6 +119,8 @@ The Redis keys carry a `v2` segment because the response shape changed from a fl
 - **Notes** carry a timestamp, a category and tagged players. `/feedback` reads them per player across every VOD.
 - **Match prep** (`/prep`) builds the opponent report in the browser from Leaguepedia and saves it through `/api/prep`, so the team reads one saved copy instead of each viewer spending the per-IP limit. `/api/opponent-ai` turns the computed numbers (not raw rows) into a Gemini brief.
 - **Calendar** stores scrims, reviews and other events; official matches are merged in from `/api/fixture` at read time, never stored twice.
+- **The next opponent** is set in Prep ("Set as next opponent"), stored on the shared draft state via the `SET_OPPONENT` action, and read by the draft room's scout panel. There is no other place to set it.
+- **The coach panel is the hub's front page:** an Overview of summary cards, one per section, each linking to its page, all fed by one Redis-only read (`/api/overview`) plus the cached fixture. When adding a section, give it a card there. The old Schedule & scouting tab is gone — Calendar and Prep replaced it.
 
 ### Auth
 
