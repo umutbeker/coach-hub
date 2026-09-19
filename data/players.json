@@ -1,0 +1,1720 @@
+{
+  "updatedAt": "2026-03-14T11:38:58.807Z",
+  "players": {
+    "Mersa": {
+      "rank": "CHALLENGER I",
+      "lp": 1415,
+      "tier": "CHALLENGER",
+      "wins": 162,
+      "losses": 132,
+      "overallWinRate": "55%",
+      "weeklyGames": 16,
+      "weeklyWins": 12,
+      "weeklyWinRate": "75%",
+      "recentGames": 20,
+      "recentWinRate": "60%",
+      "streak": {
+        "count": 2,
+        "type": "W"
+      },
+      "avgGoldDiff15": 59,
+      "avgCsDiff15": "-5.0",
+      "multiKills": {
+        "doubles": 0,
+        "triples": 0,
+        "quadras": 0,
+        "pentas": 0
+      },
+      "avgDragons": "2.2",
+      "avgBarons": "0.5",
+      "avgHerald": "0.4",
+      "avgWardsPlaced": "38.9",
+      "avgWardsKilled": "5.2",
+      "avgControlWards": "5.0",
+      "championStats": [
+        {
+          "name": "Rakan",
+          "games": 3,
+          "wins": 3,
+          "winRate": "100%",
+          "kda": "7.27",
+          "avgKills": "1.7",
+          "avgDeaths": "3.7",
+          "avgAssists": "25.0",
+          "history": [
+            "W",
+            "W",
+            "W"
+          ]
+        },
+        {
+          "name": "Nautilus",
+          "games": 3,
+          "wins": 1,
+          "winRate": "33%",
+          "kda": "2.14",
+          "avgKills": "1.0",
+          "avgDeaths": "4.7",
+          "avgAssists": "9.0",
+          "history": [
+            "L",
+            "L",
+            "W"
+          ]
+        },
+        {
+          "name": "Karma",
+          "games": 3,
+          "wins": 2,
+          "winRate": "67%",
+          "kda": "2.64",
+          "avgKills": "1.0",
+          "avgDeaths": "4.7",
+          "avgAssists": "11.3",
+          "history": [
+            "W",
+            "W",
+            "L"
+          ]
+        },
+        {
+          "name": "Seraphine",
+          "games": 2,
+          "wins": 1,
+          "winRate": "50%",
+          "kda": "2.20",
+          "avgKills": "1.0",
+          "avgDeaths": "7.5",
+          "avgAssists": "15.5",
+          "history": [
+            "W",
+            "L"
+          ]
+        },
+        {
+          "name": "Neeko",
+          "games": 2,
+          "wins": 2,
+          "winRate": "100%",
+          "kda": "2.81",
+          "avgKills": "3.0",
+          "avgDeaths": "8.0",
+          "avgAssists": "19.5",
+          "history": [
+            "W",
+            "W"
+          ]
+        },
+        {
+          "name": "Senna",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "2.50",
+          "avgKills": "6.0",
+          "avgDeaths": "6.0",
+          "avgAssists": "9.0",
+          "history": [
+            "L"
+          ]
+        },
+        {
+          "name": "Pantheon",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "1.23",
+          "avgKills": "3.0",
+          "avgDeaths": "13.0",
+          "avgAssists": "13.0",
+          "history": [
+            "L"
+          ]
+        }
+      ],
+      "recentMatches": [
+        {
+          "id": "EUW1_7776349295",
+          "champion": "Seraphine",
+          "result": "Galibiyet",
+          "kills": 1,
+          "deaths": 6,
+          "assists": 19,
+          "kda": "3.33",
+          "cs": 20,
+          "csPerMin": "0.6",
+          "duration": "32dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7775479050",
+          "champion": "Rakan",
+          "result": "Galibiyet",
+          "kills": 0,
+          "deaths": 4,
+          "assists": 19,
+          "kda": "4.75",
+          "cs": 18,
+          "csPerMin": "0.8",
+          "duration": "22dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774851414",
+          "champion": "Nautilus",
+          "result": "Bozgun",
+          "kills": 2,
+          "deaths": 6,
+          "assists": 8,
+          "kda": "1.67",
+          "cs": 26,
+          "csPerMin": "0.9",
+          "duration": "27dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774766060",
+          "champion": "Neeko",
+          "result": "Galibiyet",
+          "kills": 3,
+          "deaths": 11,
+          "assists": 19,
+          "kda": "2.00",
+          "cs": 31,
+          "csPerMin": "0.8",
+          "duration": "36dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774696610",
+          "champion": "Senna",
+          "result": "Bozgun",
+          "kills": 6,
+          "deaths": 6,
+          "assists": 9,
+          "kda": "2.50",
+          "cs": 16,
+          "csPerMin": "0.6",
+          "duration": "27dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7773344651",
+          "champion": "Pantheon",
+          "result": "Bozgun",
+          "kills": 3,
+          "deaths": 13,
+          "assists": 13,
+          "kda": "1.23",
+          "cs": 28,
+          "csPerMin": "1.1",
+          "duration": "26dk",
+          "time": "11 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7773122532",
+          "champion": "Nautilus",
+          "result": "Bozgun",
+          "kills": 0,
+          "deaths": 6,
+          "assists": 9,
+          "kda": "1.50",
+          "cs": 22,
+          "csPerMin": "0.8",
+          "duration": "29dk",
+          "time": "11 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7772478035",
+          "champion": "Nami",
+          "result": "Galibiyet",
+          "kills": 0,
+          "deaths": 0,
+          "assists": 14,
+          "kda": "14.00",
+          "cs": 20,
+          "csPerMin": "0.8",
+          "duration": "26dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7772398894",
+          "champion": "Rakan",
+          "result": "Galibiyet",
+          "kills": 4,
+          "deaths": 5,
+          "assists": 32,
+          "kda": "7.20",
+          "cs": 24,
+          "csPerMin": "0.7",
+          "duration": "35dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7768933291",
+          "champion": "Rakan",
+          "result": "Galibiyet",
+          "kills": 1,
+          "deaths": 2,
+          "assists": 24,
+          "kda": "12.50",
+          "cs": 21,
+          "csPerMin": "0.8",
+          "duration": "27dk",
+          "time": "8 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7768856325",
+          "champion": "Karma",
+          "result": "Galibiyet",
+          "kills": 1,
+          "deaths": 5,
+          "assists": 11,
+          "kda": "2.40",
+          "cs": 19,
+          "csPerMin": "0.6",
+          "duration": "30dk",
+          "time": "8 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7768777919",
+          "champion": "Renata",
+          "result": "Galibiyet",
+          "kills": 2,
+          "deaths": 7,
+          "assists": 20,
+          "kda": "3.14",
+          "cs": 30,
+          "csPerMin": "1.0",
+          "duration": "30dk",
+          "time": "8 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7768722475",
+          "champion": "Neeko",
+          "result": "Galibiyet",
+          "kills": 3,
+          "deaths": 5,
+          "assists": 20,
+          "kda": "4.60",
+          "cs": 21,
+          "csPerMin": "1.0",
+          "duration": "21dk",
+          "time": "8 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7767969266",
+          "champion": "Bard",
+          "result": "Galibiyet",
+          "kills": 4,
+          "deaths": 1,
+          "assists": 14,
+          "kda": "18.00",
+          "cs": 22,
+          "csPerMin": "1.0",
+          "duration": "22dk",
+          "time": "8 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7767919880",
+          "champion": "Nautilus",
+          "result": "Galibiyet",
+          "kills": 1,
+          "deaths": 2,
+          "assists": 10,
+          "kda": "5.50",
+          "cs": 18,
+          "csPerMin": "1.2",
+          "duration": "15dk",
+          "time": "8 Mar",
+          "isWeekly": true
+        }
+      ]
+    },
+    "Scorth": {
+      "rank": "GRANDMASTER I",
+      "lp": 1143,
+      "tier": "GRANDMASTER",
+      "wins": 228,
+      "losses": 206,
+      "overallWinRate": "53%",
+      "weeklyGames": 7,
+      "weeklyWins": 4,
+      "weeklyWinRate": "57%",
+      "recentGames": 20,
+      "recentWinRate": "35%",
+      "streak": {
+        "count": 1,
+        "type": "L"
+      },
+      "avgGoldDiff15": 305,
+      "avgCsDiff15": "9.0",
+      "multiKills": {
+        "doubles": 20,
+        "triples": 5,
+        "quadras": 1,
+        "pentas": 1
+      },
+      "avgDragons": "1.8",
+      "avgBarons": "0.6",
+      "avgHerald": "0.4",
+      "avgWardsPlaced": "10.4",
+      "avgWardsKilled": "3.9",
+      "avgControlWards": "0.9",
+      "championStats": [
+        {
+          "name": "Aphelios",
+          "games": 6,
+          "wins": 2,
+          "winRate": "33%",
+          "kda": "2.31",
+          "avgKills": "11.0",
+          "avgDeaths": "7.0",
+          "avgAssists": "5.2",
+          "history": [
+            "L",
+            "W",
+            "L",
+            "L",
+            "W"
+          ]
+        },
+        {
+          "name": "Caitlyn",
+          "games": 2,
+          "wins": 1,
+          "winRate": "50%",
+          "kda": "2.36",
+          "avgKills": "7.0",
+          "avgDeaths": "5.5",
+          "avgAssists": "6.0",
+          "history": [
+            "W",
+            "L"
+          ]
+        },
+        {
+          "name": "Ezreal",
+          "games": 2,
+          "wins": 1,
+          "winRate": "50%",
+          "kda": "2.89",
+          "avgKills": "6.5",
+          "avgDeaths": "4.5",
+          "avgAssists": "6.5",
+          "history": [
+            "L",
+            "W"
+          ]
+        },
+        {
+          "name": "Corki",
+          "games": 2,
+          "wins": 1,
+          "winRate": "50%",
+          "kda": "3.33",
+          "avgKills": "9.5",
+          "avgDeaths": "4.5",
+          "avgAssists": "5.5",
+          "history": [
+            "L",
+            "W"
+          ]
+        },
+        {
+          "name": "Gnar",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "1.13",
+          "avgKills": "2.0",
+          "avgDeaths": "8.0",
+          "avgAssists": "7.0",
+          "history": [
+            "L"
+          ]
+        },
+        {
+          "name": "Xayah",
+          "games": 1,
+          "wins": 1,
+          "winRate": "100%",
+          "kda": "4.83",
+          "avgKills": "11.0",
+          "avgDeaths": "6.0",
+          "avgAssists": "18.0",
+          "history": [
+            "W"
+          ]
+        },
+        {
+          "name": "Vayne",
+          "games": 1,
+          "wins": 1,
+          "winRate": "100%",
+          "kda": "2.67",
+          "avgKills": "8.0",
+          "avgDeaths": "6.0",
+          "avgAssists": "8.0",
+          "history": [
+            "W"
+          ]
+        }
+      ],
+      "recentMatches": [
+        {
+          "id": "EUW1_7773122532",
+          "champion": "Gnar",
+          "result": "Bozgun",
+          "kills": 2,
+          "deaths": 8,
+          "assists": 7,
+          "kda": "1.13",
+          "cs": 224,
+          "csPerMin": "7.7",
+          "duration": "29dk",
+          "time": "11 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7772478035",
+          "champion": "Caitlyn",
+          "result": "Galibiyet",
+          "kills": 8,
+          "deaths": 2,
+          "assists": 6,
+          "kda": "7.00",
+          "cs": 253,
+          "csPerMin": "9.5",
+          "duration": "26dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7772398894",
+          "champion": "Xayah",
+          "result": "Galibiyet",
+          "kills": 11,
+          "deaths": 6,
+          "assists": 18,
+          "kda": "4.83",
+          "cs": 350,
+          "csPerMin": "10.0",
+          "duration": "35dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7771683920",
+          "champion": "Ezreal",
+          "result": "Bozgun",
+          "kills": 0,
+          "deaths": 5,
+          "assists": 5,
+          "kda": "1.00",
+          "cs": 223,
+          "csPerMin": "8.6",
+          "duration": "25dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7771643618",
+          "champion": "Caitlyn",
+          "result": "Bozgun",
+          "kills": 6,
+          "deaths": 9,
+          "assists": 6,
+          "kda": "1.33",
+          "cs": 190,
+          "csPerMin": "7.8",
+          "duration": "24dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7771563996",
+          "champion": "Vayne",
+          "result": "Galibiyet",
+          "kills": 8,
+          "deaths": 6,
+          "assists": 8,
+          "kda": "2.67",
+          "cs": 182,
+          "csPerMin": "7.9",
+          "duration": "23dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7771439161",
+          "champion": "Ezreal",
+          "result": "Galibiyet",
+          "kills": 13,
+          "deaths": 4,
+          "assists": 8,
+          "kda": "5.25",
+          "cs": 440,
+          "csPerMin": "10.0",
+          "duration": "43dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7766357097",
+          "champion": "Aphelios",
+          "result": "Bozgun",
+          "kills": 9,
+          "deaths": 9,
+          "assists": 5,
+          "kda": "1.56",
+          "cs": 183,
+          "csPerMin": "7.2",
+          "duration": "25dk",
+          "time": "7 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7766291303",
+          "champion": "Corki",
+          "result": "Bozgun",
+          "kills": 1,
+          "deaths": 8,
+          "assists": 2,
+          "kda": "0.38",
+          "cs": 173,
+          "csPerMin": "7.6",
+          "duration": "22dk",
+          "time": "7 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7766205106",
+          "champion": "Corki",
+          "result": "Galibiyet",
+          "kills": 18,
+          "deaths": 1,
+          "assists": 9,
+          "kda": "27.00",
+          "cs": 323,
+          "csPerMin": "10.4",
+          "duration": "31dk",
+          "time": "7 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7766110864",
+          "champion": "Sion",
+          "result": "Bozgun",
+          "kills": 6,
+          "deaths": 7,
+          "assists": 5,
+          "kda": "1.57",
+          "cs": 220,
+          "csPerMin": "7.0",
+          "duration": "31dk",
+          "time": "7 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7766046919",
+          "champion": "Aphelios",
+          "result": "Bozgun",
+          "kills": 5,
+          "deaths": 6,
+          "assists": 4,
+          "kda": "1.50",
+          "cs": 162,
+          "csPerMin": "8.2",
+          "duration": "19dk",
+          "time": "7 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7764833111",
+          "champion": "Aphelios",
+          "result": "Galibiyet",
+          "kills": 22,
+          "deaths": 7,
+          "assists": 10,
+          "kda": "4.57",
+          "cs": 247,
+          "csPerMin": "7.9",
+          "duration": "31dk",
+          "time": "6 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7764810942",
+          "champion": "Lulu",
+          "result": "Bozgun",
+          "kills": 2,
+          "deaths": 5,
+          "assists": 18,
+          "kda": "4.00",
+          "cs": 35,
+          "csPerMin": "1.0",
+          "duration": "36dk",
+          "time": "6 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7764793870",
+          "champion": "Aphelios",
+          "result": "Bozgun",
+          "kills": 1,
+          "deaths": 9,
+          "assists": 2,
+          "kda": "0.33",
+          "cs": 123,
+          "csPerMin": "6.6",
+          "duration": "18dk",
+          "time": "6 Mar",
+          "isWeekly": false
+        }
+      ]
+    },
+    "Kofte": {
+      "rank": "CHALLENGER I",
+      "lp": 1935,
+      "tier": "CHALLENGER",
+      "wins": 155,
+      "losses": 102,
+      "overallWinRate": "60%",
+      "weeklyGames": 18,
+      "weeklyWins": 8,
+      "weeklyWinRate": "44%",
+      "recentGames": 20,
+      "recentWinRate": "40%",
+      "streak": {
+        "count": 2,
+        "type": "W"
+      },
+      "avgGoldDiff15": 927,
+      "avgCsDiff15": "14.8",
+      "multiKills": {
+        "doubles": 5,
+        "triples": 0,
+        "quadras": 0,
+        "pentas": 0
+      },
+      "avgDragons": "1.6",
+      "avgBarons": "0.4",
+      "avgHerald": "0.3",
+      "avgWardsPlaced": "9.3",
+      "avgWardsKilled": "2.8",
+      "avgControlWards": "2.2",
+      "championStats": [
+        {
+          "name": "Orianna",
+          "games": 7,
+          "wins": 4,
+          "winRate": "57%",
+          "kda": "3.52",
+          "avgKills": "4.6",
+          "avgDeaths": "4.4",
+          "avgAssists": "11.0",
+          "history": [
+            "W",
+            "L",
+            "L",
+            "W",
+            "L"
+          ]
+        },
+        {
+          "name": "Ahri",
+          "games": 3,
+          "wins": 1,
+          "winRate": "33%",
+          "kda": "1.50",
+          "avgKills": "1.3",
+          "avgDeaths": "2.7",
+          "avgAssists": "2.7",
+          "history": [
+            "W",
+            "L",
+            "L"
+          ]
+        },
+        {
+          "name": "Galio",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "3.75",
+          "avgKills": "10.0",
+          "avgDeaths": "4.0",
+          "avgAssists": "5.0",
+          "history": [
+            "L"
+          ]
+        },
+        {
+          "name": "JarvanIV",
+          "games": 1,
+          "wins": 1,
+          "winRate": "100%",
+          "kda": "19.00",
+          "avgKills": "10.0",
+          "avgDeaths": "0.0",
+          "avgAssists": "9.0",
+          "history": [
+            "W"
+          ]
+        },
+        {
+          "name": "Aurora",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "0.60",
+          "avgKills": "1.0",
+          "avgDeaths": "5.0",
+          "avgAssists": "2.0",
+          "history": [
+            "L"
+          ]
+        },
+        {
+          "name": "Sion",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "2.00",
+          "avgKills": "1.0",
+          "avgDeaths": "2.0",
+          "avgAssists": "3.0",
+          "history": [
+            "L"
+          ]
+        },
+        {
+          "name": "Gnar",
+          "games": 1,
+          "wins": 1,
+          "winRate": "100%",
+          "kda": "5.50",
+          "avgKills": "4.0",
+          "avgDeaths": "2.0",
+          "avgAssists": "7.0",
+          "history": [
+            "W"
+          ]
+        }
+      ],
+      "recentMatches": [
+        {
+          "id": "EUW1_7778614888",
+          "champion": "Orianna",
+          "result": "Galibiyet",
+          "kills": 6,
+          "deaths": 3,
+          "assists": 16,
+          "kda": "7.33",
+          "cs": 229,
+          "csPerMin": "8.3",
+          "duration": "27dk",
+          "time": "14 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7778593599",
+          "champion": "Ahri",
+          "result": "Galibiyet",
+          "kills": 1,
+          "deaths": 4,
+          "assists": 5,
+          "kda": "1.50",
+          "cs": 198,
+          "csPerMin": "8.1",
+          "duration": "24dk",
+          "time": "14 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7778575567",
+          "champion": "Ahri",
+          "result": "Bozgun",
+          "kills": 0,
+          "deaths": 1,
+          "assists": 3,
+          "kda": "3.00",
+          "cs": 233,
+          "csPerMin": "10.6",
+          "duration": "21dk",
+          "time": "14 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776961910",
+          "champion": "Galio",
+          "result": "Bozgun",
+          "kills": 10,
+          "deaths": 4,
+          "assists": 5,
+          "kda": "3.75",
+          "cs": 331,
+          "csPerMin": "8.8",
+          "duration": "37dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776933128",
+          "champion": "JarvanIV",
+          "result": "Galibiyet",
+          "kills": 10,
+          "deaths": 0,
+          "assists": 9,
+          "kda": "19.00",
+          "cs": 164,
+          "csPerMin": "8.5",
+          "duration": "19dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776310942",
+          "champion": "Aurora",
+          "result": "Bozgun",
+          "kills": 1,
+          "deaths": 5,
+          "assists": 2,
+          "kda": "0.60",
+          "cs": 226,
+          "csPerMin": "8.6",
+          "duration": "26dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776246722",
+          "champion": "Orianna",
+          "result": "Galibiyet",
+          "kills": 1,
+          "deaths": 4,
+          "assists": 19,
+          "kda": "5.00",
+          "cs": 269,
+          "csPerMin": "9.3",
+          "duration": "28dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774842648",
+          "champion": "Orianna",
+          "result": "Galibiyet",
+          "kills": 1,
+          "deaths": 3,
+          "assists": 14,
+          "kda": "5.00",
+          "cs": 216,
+          "csPerMin": "9.0",
+          "duration": "23dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774787044",
+          "champion": "Sion",
+          "result": "Bozgun",
+          "kills": 1,
+          "deaths": 2,
+          "assists": 3,
+          "kda": "2.00",
+          "cs": 197,
+          "csPerMin": "8.5",
+          "duration": "23dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7773121357",
+          "champion": "Gnar",
+          "result": "Galibiyet",
+          "kills": 4,
+          "deaths": 2,
+          "assists": 7,
+          "kda": "5.50",
+          "cs": 212,
+          "csPerMin": "8.2",
+          "duration": "25dk",
+          "time": "11 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7773089672",
+          "champion": "Ahri",
+          "result": "Bozgun",
+          "kills": 3,
+          "deaths": 3,
+          "assists": 0,
+          "kda": "1.00",
+          "cs": 130,
+          "csPerMin": "8.5",
+          "duration": "15dk",
+          "time": "11 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7773035723",
+          "champion": "Orianna",
+          "result": "Bozgun",
+          "kills": 1,
+          "deaths": 5,
+          "assists": 3,
+          "kda": "0.80",
+          "cs": 195,
+          "csPerMin": "8.9",
+          "duration": "21dk",
+          "time": "11 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7772583560",
+          "champion": "Varus",
+          "result": "Bozgun",
+          "kills": 4,
+          "deaths": 8,
+          "assists": 1,
+          "kda": "0.63",
+          "cs": 198,
+          "csPerMin": "6.8",
+          "duration": "28dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7772507230",
+          "champion": "Karma",
+          "result": "Bozgun",
+          "kills": 2,
+          "deaths": 5,
+          "assists": 8,
+          "kda": "2.00",
+          "cs": 28,
+          "csPerMin": "1.4",
+          "duration": "19dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7772443875",
+          "champion": "Orianna",
+          "result": "Bozgun",
+          "kills": 6,
+          "deaths": 5,
+          "assists": 3,
+          "kda": "1.80",
+          "cs": 289,
+          "csPerMin": "9.5",
+          "duration": "30dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        }
+      ]
+    },
+    "Bonnie": {
+      "rank": "CHALLENGER I",
+      "lp": 1571,
+      "tier": "CHALLENGER",
+      "wins": 339,
+      "losses": 242,
+      "overallWinRate": "58%",
+      "weeklyGames": 20,
+      "weeklyWins": 11,
+      "weeklyWinRate": "55%",
+      "recentGames": 20,
+      "recentWinRate": "55%",
+      "streak": {
+        "count": 5,
+        "type": "W"
+      },
+      "avgGoldDiff15": 983,
+      "avgCsDiff15": "-1.6",
+      "multiKills": {
+        "doubles": 12,
+        "triples": 1,
+        "quadras": 0,
+        "pentas": 0
+      },
+      "avgDragons": "1.4",
+      "avgBarons": "0.5",
+      "avgHerald": "0.6",
+      "avgWardsPlaced": "10.3",
+      "avgWardsKilled": "4.0",
+      "avgControlWards": "4.0",
+      "championStats": [
+        {
+          "name": "Ezreal",
+          "games": 4,
+          "wins": 3,
+          "winRate": "75%",
+          "kda": "2.76",
+          "avgKills": "7.8",
+          "avgDeaths": "5.3",
+          "avgAssists": "6.8",
+          "history": [
+            "W",
+            "W",
+            "L",
+            "W"
+          ]
+        },
+        {
+          "name": "Vi",
+          "games": 3,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "3.14",
+          "avgKills": "7.0",
+          "avgDeaths": "4.7",
+          "avgAssists": "7.7",
+          "history": [
+            "L",
+            "L",
+            "L"
+          ]
+        },
+        {
+          "name": "LeeSin",
+          "games": 2,
+          "wins": 2,
+          "winRate": "100%",
+          "kda": "3.54",
+          "avgKills": "9.0",
+          "avgDeaths": "6.5",
+          "avgAssists": "14.0",
+          "history": [
+            "W",
+            "W"
+          ]
+        },
+        {
+          "name": "Zac",
+          "games": 2,
+          "wins": 2,
+          "winRate": "100%",
+          "kda": "5.86",
+          "avgKills": "6.5",
+          "avgDeaths": "3.5",
+          "avgAssists": "14.0",
+          "history": [
+            "W",
+            "W"
+          ]
+        },
+        {
+          "name": "JarvanIV",
+          "games": 2,
+          "wins": 1,
+          "winRate": "50%",
+          "kda": "6.17",
+          "avgKills": "7.0",
+          "avgDeaths": "3.0",
+          "avgAssists": "11.5",
+          "history": [
+            "W",
+            "L"
+          ]
+        },
+        {
+          "name": "Qiyana",
+          "games": 1,
+          "wins": 1,
+          "winRate": "100%",
+          "kda": "12.00",
+          "avgKills": "14.0",
+          "avgDeaths": "2.0",
+          "avgAssists": "10.0",
+          "history": [
+            "W"
+          ]
+        },
+        {
+          "name": "XinZhao",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "3.00",
+          "avgKills": "6.0",
+          "avgDeaths": "4.0",
+          "avgAssists": "6.0",
+          "history": [
+            "L"
+          ]
+        }
+      ],
+      "recentMatches": [
+        {
+          "id": "EUW1_7778024544",
+          "champion": "LeeSin",
+          "result": "Galibiyet",
+          "kills": 12,
+          "deaths": 4,
+          "assists": 9,
+          "kda": "5.25",
+          "cs": 130,
+          "csPerMin": "6.8",
+          "duration": "19dk",
+          "time": "14 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7777961748",
+          "champion": "LeeSin",
+          "result": "Galibiyet",
+          "kills": 6,
+          "deaths": 9,
+          "assists": 19,
+          "kda": "2.78",
+          "cs": 167,
+          "csPerMin": "6.4",
+          "duration": "26dk",
+          "time": "14 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7777804329",
+          "champion": "Qiyana",
+          "result": "Galibiyet",
+          "kills": 14,
+          "deaths": 2,
+          "assists": 10,
+          "kda": "12.00",
+          "cs": 251,
+          "csPerMin": "7.8",
+          "duration": "32dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7777491036",
+          "champion": "Zac",
+          "result": "Galibiyet",
+          "kills": 10,
+          "deaths": 7,
+          "assists": 19,
+          "kda": "4.14",
+          "cs": 226,
+          "csPerMin": "6.3",
+          "duration": "36dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7777373834",
+          "champion": "Ezreal",
+          "result": "Galibiyet",
+          "kills": 8,
+          "deaths": 1,
+          "assists": 3,
+          "kda": "11.00",
+          "cs": 157,
+          "csPerMin": "8.6",
+          "duration": "18dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776529315",
+          "champion": "Vi",
+          "result": "Bozgun",
+          "kills": 10,
+          "deaths": 6,
+          "assists": 8,
+          "kda": "3.00",
+          "cs": 188,
+          "csPerMin": "7.0",
+          "duration": "26dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776436335",
+          "champion": "XinZhao",
+          "result": "Bozgun",
+          "kills": 6,
+          "deaths": 4,
+          "assists": 6,
+          "kda": "3.00",
+          "cs": 245,
+          "csPerMin": "8.8",
+          "duration": "27dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776366343",
+          "champion": "Jayce",
+          "result": "Galibiyet",
+          "kills": 5,
+          "deaths": 14,
+          "assists": 4,
+          "kda": "0.64",
+          "cs": 307,
+          "csPerMin": "8.4",
+          "duration": "36dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776310942",
+          "champion": "Vi",
+          "result": "Bozgun",
+          "kills": 9,
+          "deaths": 1,
+          "assists": 1,
+          "kda": "10.00",
+          "cs": 211,
+          "csPerMin": "8.1",
+          "duration": "26dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776246722",
+          "champion": "JarvanIV",
+          "result": "Galibiyet",
+          "kills": 8,
+          "deaths": 2,
+          "assists": 18,
+          "kda": "13.00",
+          "cs": 245,
+          "csPerMin": "8.5",
+          "duration": "28dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7775514411",
+          "champion": "Zac",
+          "result": "Galibiyet",
+          "kills": 3,
+          "deaths": 0,
+          "assists": 9,
+          "kda": "12.00",
+          "cs": 203,
+          "csPerMin": "9.0",
+          "duration": "22dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774937239",
+          "champion": "JarvanIV",
+          "result": "Bozgun",
+          "kills": 6,
+          "deaths": 4,
+          "assists": 5,
+          "kda": "2.75",
+          "cs": 122,
+          "csPerMin": "7.7",
+          "duration": "15dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774896963",
+          "champion": "Poppy",
+          "result": "Bozgun",
+          "kills": 1,
+          "deaths": 6,
+          "assists": 2,
+          "kda": "0.50",
+          "cs": 205,
+          "csPerMin": "7.4",
+          "duration": "27dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774870750",
+          "champion": "Varus",
+          "result": "Galibiyet",
+          "kills": 2,
+          "deaths": 0,
+          "assists": 4,
+          "kda": "6.00",
+          "cs": 170,
+          "csPerMin": "9.8",
+          "duration": "17dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774824623",
+          "champion": "Ezreal",
+          "result": "Galibiyet",
+          "kills": 4,
+          "deaths": 7,
+          "assists": 7,
+          "kda": "1.57",
+          "cs": 182,
+          "csPerMin": "6.8",
+          "duration": "26dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        }
+      ]
+    },
+    "DnDn": {
+      "rank": "CHALLENGER I",
+      "lp": 1555,
+      "tier": "CHALLENGER",
+      "wins": 200,
+      "losses": 122,
+      "overallWinRate": "62%",
+      "weeklyGames": 12,
+      "weeklyWins": 7,
+      "weeklyWinRate": "58%",
+      "recentGames": 20,
+      "recentWinRate": "50%",
+      "streak": {
+        "count": 2,
+        "type": "L"
+      },
+      "avgGoldDiff15": 1207,
+      "avgCsDiff15": "25.4",
+      "multiKills": {
+        "doubles": 12,
+        "triples": 1,
+        "quadras": 0,
+        "pentas": 0
+      },
+      "avgDragons": "1.3",
+      "avgBarons": "0.6",
+      "avgHerald": "0.5",
+      "avgWardsPlaced": "7.0",
+      "avgWardsKilled": "1.6",
+      "avgControlWards": "0.0",
+      "championStats": [
+        {
+          "name": "LeeSin",
+          "games": 6,
+          "wins": 4,
+          "winRate": "67%",
+          "kda": "3.04",
+          "avgKills": "7.3",
+          "avgDeaths": "4.3",
+          "avgAssists": "5.8",
+          "history": [
+            "L",
+            "W",
+            "W",
+            "L",
+            "W"
+          ]
+        },
+        {
+          "name": "Kennen",
+          "games": 2,
+          "wins": 1,
+          "winRate": "50%",
+          "kda": "1.18",
+          "avgKills": "2.5",
+          "avgDeaths": "5.5",
+          "avgAssists": "4.0",
+          "history": [
+            "L",
+            "W"
+          ]
+        },
+        {
+          "name": "Graves",
+          "games": 2,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "1.25",
+          "avgKills": "3.5",
+          "avgDeaths": "6.0",
+          "avgAssists": "4.0",
+          "history": [
+            "L",
+            "L"
+          ]
+        },
+        {
+          "name": "Anivia",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "0.67",
+          "avgKills": "0.0",
+          "avgDeaths": "3.0",
+          "avgAssists": "2.0",
+          "history": [
+            "L"
+          ]
+        },
+        {
+          "name": "Fiora",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "1.00",
+          "avgKills": "2.0",
+          "avgDeaths": "3.0",
+          "avgAssists": "1.0",
+          "history": [
+            "L"
+          ]
+        },
+        {
+          "name": "Yasuo",
+          "games": 1,
+          "wins": 1,
+          "winRate": "100%",
+          "kda": "9.00",
+          "avgKills": "7.0",
+          "avgDeaths": "0.0",
+          "avgAssists": "2.0",
+          "history": [
+            "W"
+          ]
+        },
+        {
+          "name": "DrMundo",
+          "games": 1,
+          "wins": 0,
+          "winRate": "0%",
+          "kda": "1.14",
+          "avgKills": "4.0",
+          "avgDeaths": "7.0",
+          "avgAssists": "4.0",
+          "history": [
+            "L"
+          ]
+        }
+      ],
+      "recentMatches": [
+        {
+          "id": "EUW1_7778046084",
+          "champion": "Anivia",
+          "result": "Bozgun",
+          "kills": 0,
+          "deaths": 3,
+          "assists": 2,
+          "kda": "0.67",
+          "cs": 209,
+          "csPerMin": "9.1",
+          "duration": "23dk",
+          "time": "14 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776504696",
+          "champion": "Fiora",
+          "result": "Bozgun",
+          "kills": 2,
+          "deaths": 3,
+          "assists": 1,
+          "kda": "1.00",
+          "cs": 193,
+          "csPerMin": "9.7",
+          "duration": "19dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776470045",
+          "champion": "Yasuo",
+          "result": "Galibiyet",
+          "kills": 7,
+          "deaths": 0,
+          "assists": 2,
+          "kda": "9.00",
+          "cs": 135,
+          "csPerMin": "8.9",
+          "duration": "15dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776422529",
+          "champion": "LeeSin",
+          "result": "Galibiyet",
+          "kills": 5,
+          "deaths": 0,
+          "assists": 7,
+          "kda": "12.00",
+          "cs": 236,
+          "csPerMin": "10.2",
+          "duration": "23dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776349295",
+          "champion": "DrMundo",
+          "result": "Bozgun",
+          "kills": 4,
+          "deaths": 7,
+          "assists": 4,
+          "kda": "1.14",
+          "cs": 283,
+          "csPerMin": "8.8",
+          "duration": "32dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776288540",
+          "champion": "LeeSin",
+          "result": "Bozgun",
+          "kills": 2,
+          "deaths": 4,
+          "assists": 0,
+          "kda": "0.50",
+          "cs": 320,
+          "csPerMin": "10.9",
+          "duration": "29dk",
+          "time": "13 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7776226252",
+          "champion": "Yorick",
+          "result": "Galibiyet",
+          "kills": 6,
+          "deaths": 1,
+          "assists": 7,
+          "kda": "13.00",
+          "cs": 229,
+          "csPerMin": "9.9",
+          "duration": "23dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774943864",
+          "champion": "Vayne",
+          "result": "Galibiyet",
+          "kills": 5,
+          "deaths": 8,
+          "assists": 1,
+          "kda": "0.75",
+          "cs": 181,
+          "csPerMin": "7.7",
+          "duration": "23dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774896963",
+          "champion": "LeeSin",
+          "result": "Galibiyet",
+          "kills": 7,
+          "deaths": 3,
+          "assists": 4,
+          "kda": "3.67",
+          "cs": 302,
+          "csPerMin": "10.9",
+          "duration": "27dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7774851414",
+          "champion": "LeeSin",
+          "result": "Galibiyet",
+          "kills": 13,
+          "deaths": 3,
+          "assists": 10,
+          "kda": "7.67",
+          "cs": 236,
+          "csPerMin": "8.6",
+          "duration": "27dk",
+          "time": "12 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7771754604",
+          "champion": "Kennen",
+          "result": "Bozgun",
+          "kills": 3,
+          "deaths": 6,
+          "assists": 0,
+          "kda": "0.50",
+          "cs": 157,
+          "csPerMin": "8.6",
+          "duration": "18dk",
+          "time": "10 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7769578918",
+          "champion": "Ezreal",
+          "result": "Galibiyet",
+          "kills": 8,
+          "deaths": 3,
+          "assists": 10,
+          "kda": "6.00",
+          "cs": 243,
+          "csPerMin": "9.0",
+          "duration": "27dk",
+          "time": "8 Mar",
+          "isWeekly": true
+        },
+        {
+          "id": "EUW1_7764731728",
+          "champion": "Orianna",
+          "result": "Bozgun",
+          "kills": 5,
+          "deaths": 5,
+          "assists": 3,
+          "kda": "1.60",
+          "cs": 206,
+          "csPerMin": "8.1",
+          "duration": "25dk",
+          "time": "6 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7764687827",
+          "champion": "LeeSin",
+          "result": "Bozgun",
+          "kills": 5,
+          "deaths": 10,
+          "assists": 3,
+          "kda": "0.80",
+          "cs": 266,
+          "csPerMin": "8.1",
+          "duration": "33dk",
+          "time": "6 Mar",
+          "isWeekly": false
+        },
+        {
+          "id": "EUW1_7764444984",
+          "champion": "Graves",
+          "result": "Bozgun",
+          "kills": 4,
+          "deaths": 4,
+          "assists": 4,
+          "kda": "2.00",
+          "cs": 265,
+          "csPerMin": "9.3",
+          "duration": "28dk",
+          "time": "6 Mar",
+          "isWeekly": false
+        }
+      ]
+    }
+  }
+}
