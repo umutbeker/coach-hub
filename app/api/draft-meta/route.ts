@@ -7,15 +7,57 @@ const redis = Redis.fromEnv();
 const META_KEY = 'draft:meta';
 const META_TTL = 60 * 60 * 12; // 12 saat
 
-const TOURNAMENTS = [
-  { name: 'LEC', query: 'LEC 2025' },
-  { name: 'EMEA Masters', query: 'EMEA Masters 2025' },
-];
+// Meta'nın çıkarıldığı ligler. Sezon yılı ÇALIŞMA ANINDA ekleniyor —
+// 'LEC 2025' gibi sabit bir string yeni yıla girince sessizce 0 satır döner.
+const LEAGUES = ['LEC', 'EMEA Masters'];
+
+// Önce içinde bulunduğumuz sezon, veri yoksa bir önceki. Sezon başlarında
+// yeni yılın henüz maçı olmaz, o yüzden geri düşüş şart.
+function seasonCandidates(): number[] {
+  const y = new Date().getFullYear();
+  return [y, y - 1];
+}
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+// Serverless fonksiyonun ölmeden önce yanıt dönebilmesi için toplam bütçe.
+// Leaguepedia limiti dakikalarca sürebiliyor; onu burada beklemek fonksiyonu
+// zaman aşımına sokar. Bütçe dolunca elimizdekiyle dönüyoruz — asıl doldurma
+// işi günlük cron'da (/api/sync-all) yapılıyor, kullanıcı cache'den okuyor.
+const BUDGET_MS = 45_000;
+
+// Leaguepedia rate limit'i IP bazlı ve dar. Sorgular SIRAYLA atılmalı —
+// Promise.all ile paralel atmak limiti tek seferde tetikliyor.
+// Limit yanıtı HTTP 200 + gövdede error.code='ratelimited' olarak geliyor,
+// yani !res.ok kontrolü bunu yakalamaz.
+// cargoquery her satırı { title: {...} } olarak sarmalıyor; alanlar düz string.
+type LpRow = Record<string, string>;
+
+async function lpQuery(params: URLSearchParams, label: string, deadline: number): Promise<LpRow[] | null> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(`https://lol.fandom.com/api.php?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.error?.code !== 'ratelimited') {
+          return data.cargoquery?.map((item: { title: LpRow }) => item.title) || [];
+        }
+      }
+    } catch (e) {
+      console.error(`[draft-meta] ${label} fetch hatası:`, e);
+    }
+    const wait = 3000 * (attempt + 1);
+    if (Date.now() + wait > deadline) {
+      console.error(`[draft-meta] ${label}: bütçe doldu (rate limit)`);
+      return null; // "limit/hata" — "veri yok" değil
+    }
+    await sleep(wait);
+  }
+}
 
 // 1) Pick/Ban + pick order verisi
-async function fetchDraftData(tournamentQuery: string) {
-  try {
-    const params = new URLSearchParams({
+async function fetchDraftData(tournamentQuery: string, deadline: number) {
+  const params = new URLSearchParams({
       action: 'cargoquery',
       tables: 'PicksAndBansS7=PB,ScoreboardGames=SG',
       fields: [
@@ -32,20 +74,12 @@ async function fetchDraftData(tournamentQuery: string) {
       format: 'json',
       origin: '*',
     });
-    const res = await fetch(`https://lol.fandom.com/api.php?${params}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.cargoquery?.map((item: any) => item.title) || [];
-  } catch (e) {
-    console.error(`[draft-meta] draft fetch hatası:`, e);
-    return [];
-  }
+  return lpQuery(params, `draft/${tournamentQuery}`, deadline);
 }
 
 // 2) Şampiyon + Rol verisi (ScoreboardPlayers'dan)
-async function fetchChampionRoles(tournamentQuery: string) {
-  try {
-    const params = new URLSearchParams({
+async function fetchChampionRoles(tournamentQuery: string, deadline: number) {
+  const params = new URLSearchParams({
       action: 'cargoquery',
       tables: 'ScoreboardPlayers=SP,ScoreboardGames=SG',
       fields: 'SP.Champion,SP.Role,SP.PlayerWin,SG.DateTime_UTC',
@@ -56,14 +90,7 @@ async function fetchChampionRoles(tournamentQuery: string) {
       format: 'json',
       origin: '*',
     });
-    const res = await fetch(`https://lol.fandom.com/api.php?${params}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.cargoquery?.map((item: any) => item.title) || [];
-  } catch (e) {
-    console.error(`[draft-meta] roles fetch hatası:`, e);
-    return [];
-  }
+  return lpQuery(params, `roles/${tournamentQuery}`, deadline);
 }
 
 function processMetaData(draftMatches: any[], roleData: any[]) {
@@ -217,23 +244,46 @@ export async function GET(request: Request) {
 
     console.log('[draft-meta] Veri çekiliyor...');
 
-    // Paralel olarak hem draft hem role verisini çek
-    const [draftResults, roleResults] = await Promise.all([
-      Promise.all(TOURNAMENTS.map(t => fetchDraftData(t.query))),
-      Promise.all(TOURNAMENTS.map(t => fetchChampionRoles(t.query))),
-    ]);
+    const deadline = Date.now() + BUDGET_MS;
+    const allDrafts: LpRow[] = [];
+    const allRoles: LpRow[] = [];
+    const resolved: string[] = [];
+    let rateLimited = false;
 
-    const allDrafts = draftResults.flat();
-    const allRoles = roleResults.flat();
+    // Sıralı — paralel sorgu Leaguepedia limitini tetikliyor.
+    for (const league of LEAGUES) {
+      for (const year of seasonCandidates()) {
+        const query = `${league} ${year}`;
 
-    console.log(`[draft-meta] ${allDrafts.length} maç, ${allRoles.length} oyuncu kaydı`);
+        const drafts = await fetchDraftData(query, deadline);
+        if (drafts === null) { rateLimited = true; break; }
+        if (drafts.length === 0) continue; // bu sezonda veri yok, öncekine düş
+
+        const roles = await fetchChampionRoles(query, deadline);
+        if (roles === null) rateLimited = true;
+
+        allDrafts.push(...drafts);
+        allRoles.push(...(roles ?? []));
+        resolved.push(query);
+        break; // bu lig için sezon bulundu
+      }
+    }
+
+    console.log(`[draft-meta] ${resolved.join(', ') || 'yok'} — ${allDrafts.length} maç, ${allRoles.length} oyuncu kaydı`);
 
     if (allDrafts.length === 0) {
-      return NextResponse.json({ success: false, error: 'Veri bulunamadı' });
+      // Limit yüzünden boş kalmakla gerçekten veri olmaması ayrı şeyler.
+      return NextResponse.json({
+        success: false,
+        error: rateLimited
+          ? 'Leaguepedia rate limit — veri çekilemedi, birazdan tekrar deneyin'
+          : `Veri bulunamadı (denenen: ${LEAGUES.join(', ')} / ${seasonCandidates().join(', ')})`,
+        rateLimited,
+      });
     }
 
     const metaData = processMetaData(allDrafts, allRoles);
-    const metaWithTournaments = { ...metaData, tournaments: TOURNAMENTS.map(t => t.name) };
+    const metaWithTournaments = { ...metaData, tournaments: resolved };
 
     await redis.set(META_KEY, JSON.stringify(metaWithTournaments), { ex: META_TTL });
 

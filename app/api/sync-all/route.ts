@@ -37,6 +37,18 @@ export async function GET(request: Request) {
     results.push({ player: 'matches', success: false, error: e.message });
   }
 
+  // Draft meta'yı önceden doldur — 12 saatlik cache'i cron ısıtıyor ki
+  // draft sırasında AI asistanı Leaguepedia'yı beklemesin.
+  try {
+    const res = await fetch(`${baseUrl}/api/draft-meta?refresh=true`, {
+      signal: AbortSignal.timeout(55000),
+    });
+    const data = await res.json();
+    results.push({ player: 'draft-meta', success: data.success, error: data.error });
+  } catch (e: any) {
+    results.push({ player: 'draft-meta', success: false, error: e.message });
+  }
+
   return NextResponse.json({
     success: true,
     updatedAt: new Date().toISOString(),
