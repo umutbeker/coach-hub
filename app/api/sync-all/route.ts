@@ -60,6 +60,21 @@ export async function GET(request: Request) {
     results.push({ player: 'pro-vods', success: false, error: e.message });
   }
 
+  // Pre-build the scouting report for whoever is set as the next opponent, so
+  // the coach opens a ready report instead of waiting for Leaguepedia.
+  try {
+    const draft = await fetch(`${baseUrl}/api/draft`, { signal: AbortSignal.timeout(20000) }).then(r => r.json());
+    if (draft?.opponent) {
+      const res = await fetch(`${baseUrl}/api/opponent-report?opponent=${encodeURIComponent(draft.opponent)}&refresh=true`, {
+        signal: AbortSignal.timeout(55000),
+      });
+      const data = await res.json();
+      results.push({ player: 'opponent-report', success: res.ok, error: data.error });
+    }
+  } catch (e) {
+    results.push({ player: 'opponent-report', success: false, error: e instanceof Error ? e.message : 'failed' });
+  }
+
   return NextResponse.json({
     success: true,
     updatedAt: new Date().toISOString(),
