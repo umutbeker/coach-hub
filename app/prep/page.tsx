@@ -4,7 +4,8 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { champImg } from '../../lib/champions';
 import { parseVod } from '../../lib/vod';
-import { newId, type DraftPlan, type DraftPlanSide, type ScrimGame } from '../../lib/hub';
+import { ROLES, ROLE_LABEL, newId, type DraftPlan, type DraftPlanSide, type PoolMatrix, type Role, type ScrimGame } from '../../lib/hub';
+import { USERS } from '../../lib/users';
 import Nav from '../components/Nav';
 import Icon from '../components/Icon';
 import ChampionPicker, { Slot } from '../components/ChampionPicker';
@@ -156,9 +157,127 @@ function CountList({ title, hint, items, showWr }: { title: string; hint: string
   );
 }
 
+// ── Lane by lane ────────────────────────────────────────────────────────────
+// Leaguepedia's ScoreboardPlayers.Role is free text ("Bot", "Mid", …) and
+// spellings vary, so roles are normalised rather than matched exactly — an
+// unmatched spelling would silently leave a lane empty.
+const LANE_NAME: Record<Role, string> = { top: 'top', jungle: 'jungle', mid: 'mid', adc: 'bot lane', support: 'support' };
+function toRole(raw: string): Role | null {
+  const r = raw.trim().toLowerCase().replace(/[^a-z]/g, '');
+  if (r.startsWith('top')) return 'top';
+  if (r.startsWith('jung')) return 'jungle';
+  if (r === 'mid' || r.startsWith('middle')) return 'mid';
+  if (r === 'bot' || r.startsWith('bottom') || r === 'adc' || r.startsWith('adcarry') || r === 'carry') return 'adc';
+  if (r.startsWith('sup')) return 'support';
+  return null;
+}
+
+type Lane = {
+  role: Role;
+  ours: { name: string; ready: string[]; practice: string[]; scrim: { name: string; n: number; w: number }[] } | null;
+  theirs: Report['players'][number] | null;
+  contested: string[];
+};
+
+function buildLanes(r: Report, pool: PoolMatrix, scrims: ScrimGame[]): Lane[] {
+  return ROLES.map(role => {
+    const me = USERS.find(u => u.role === 'player' && u.lane === role);
+    const tiers = me ? pool[me.name] ?? {} : {};
+    const ready = Object.keys(tiers).filter(c => tiers[c] === 'ready');
+    const practice = Object.keys(tiers).filter(c => tiers[c] === 'practice');
+    const scrim = tally(scrims.map(g => g.ourPicks?.[role] ?? ''), scrims.map(g => g.result === 'W'))
+      .slice(0, 4).map(c => ({ name: c.name, n: c.n, w: c.w ?? 0 }));
+    const theirs = r.players.filter(p => toRole(p.role) === role).sort((a, b) => b.games - a.games)[0] ?? null;
+    // A champion both sides play is contested: a pick to deny or a ban to spend.
+    const oursAll = new Set([...ready, ...practice, ...scrim.map(c => c.name)]);
+    return {
+      role,
+      ours: me ? { name: me.name, ready, practice, scrim } : null,
+      theirs,
+      contested: (theirs?.champs ?? []).map(c => c.name).filter(c => oursAll.has(c)),
+    };
+  });
+}
+
+function Mini({ names, dim, title }: { names: string[]; dim?: boolean; title?: (n: string) => string }) {
+  return (
+    <div className="row" style={{ gap: 4 }}>
+      {names.map(c => (
+        <img key={c} src={champImg(c)} alt={c} title={title ? title(c) : c}
+          style={{ width: 28, height: 28, borderRadius: 5, opacity: dim ? 0.5 : 1, border: '1px solid var(--border)' }}
+          onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+      ))}
+    </div>
+  );
+}
+
+function PoolLine({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <span className="t3" style={{ fontSize: 12, width: 56, flex: 'none' }}>{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function LaneMatchups({ lanes, opponent }: { lanes: Lane[]; opponent: string }) {
+  return (
+    <div className="card">
+      <div style={{ padding: '14px 18px 10px', display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+        <div className="h" style={{ fontSize: 20 }}>Lane by lane</div>
+        <span className="t3" style={{ fontSize: 13 }}>
+          our pool as rated in Champion pool · their most-played on stage · contested = both sides play it
+        </span>
+      </div>
+      <div className="lanes thead" style={{ padding: '0 18px 6px' }}>
+        <span>Lane</span><span>Us</span><span>{opponent}</span><span>Contested</span>
+      </div>
+      {lanes.map(l => (
+        <div key={l.role} className="lanes" style={{ padding: '10px 18px', borderTop: '1px solid var(--border)', alignItems: 'start' }}>
+          <span className="tag neutral" style={{ justifyContent: 'center', width: 70 }}>{ROLE_LABEL[l.role]}</span>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+            <span style={{ fontWeight: 600 }}>{l.ours?.name ?? '—'}</span>
+            {l.ours?.ready.length ? <PoolLine label="Ready"><Mini names={l.ours.ready} /></PoolLine> : null}
+            {l.ours?.practice.length ? <PoolLine label="Practice"><Mini names={l.ours.practice} dim /></PoolLine> : null}
+            {l.ours?.scrim.length ? (
+              <PoolLine label="Scrims">
+                <Mini names={l.ours.scrim.map(c => c.name)}
+                  title={c => { const x = l.ours!.scrim.find(y => y.name === c)!; return `${c} · ${x.n} games · ${pct(x.w, x.n)}%`; }} />
+              </PoolLine>
+            ) : null}
+            {l.ours && !l.ours.ready.length && !l.ours.practice.length && !l.ours.scrim.length
+              ? <span className="t3" style={{ fontSize: 13 }}>No pool rated and no scrims yet</span> : null}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+            {l.theirs ? (
+              <>
+                <span>
+                  <span style={{ fontWeight: 600 }}>{l.theirs.name}</span>{' '}
+                  <span className="mono t2" style={{ fontSize: 13 }}>· {l.theirs.games} games · <span style={{ color: wrColor(l.theirs.wr) }}>{l.theirs.wr}%</span></span>
+                </span>
+                {l.theirs.champs.slice(0, 4).map(c => (
+                  <div key={c.name} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
+                    <img src={champImg(c.name)} alt="" style={{ width: 24, height: 24, borderRadius: 4 }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+                    <span>{c.name}</span>
+                    <span className="mono t3">{c.n}× <span style={{ color: wrColor(pct(c.w ?? 0, c.n)) }}>{pct(c.w ?? 0, c.n)}%</span></span>
+                  </div>
+                ))}
+              </>
+            ) : <span className="t3" style={{ fontSize: 13 }}>No {LANE_NAME[l.role]} player found</span>}
+          </div>
+
+          <div>{l.contested.length ? <Mini names={l.contested} /> : <span className="t3" style={{ fontSize: 13 }}>—</span>}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const KIND_TAG: Record<string, string> = { ban: 'tag loss', watch: 'tag warn', exploit: 'tag win', draft: 'tag accent', player: 'tag blue' };
 
-function ReportView({ r, onBrief, briefing, briefErr }: { r: Report; onBrief: () => void; briefing: boolean; briefErr: string }) {
+function ReportView({ r, lanes, onBrief, briefing, briefErr }: { r: Report; lanes: Lane[]; onBrief: () => void; briefing: boolean; briefErr: string }) {
   const [vod, setVod] = useState<string | null>(null);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -194,6 +313,8 @@ function ReportView({ r, onBrief, briefing, briefErr }: { r: Report; onBrief: ()
           </>
         ) : !briefErr ? <div className="t3" style={{ fontSize: 14 }}>No brief yet.</div> : null}
       </div>
+
+      <LaneMatchups lanes={lanes} opponent={r.opponent} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12 }}>
         <CountList title="First pick on blue" hint="what they take B1" items={r.firstPicks} />
@@ -373,6 +494,8 @@ function Prep() {
   // The opponent the draft room scouts. Set here, stored on the shared draft
   // state (SET_OPPONENT), so it reaches the draft room over Pusher.
   const [nextOpp, setNextOpp] = useState<string | null>(null);
+  const [pool, setPool] = useState<PoolMatrix>({});
+  const [scrims, setScrims] = useState<ScrimGame[]>([]);
 
   // Who could we be preparing for: next fixture, the coach's manual pick,
   // teams we've scrimmed, and teams we already have a plan for.
@@ -388,7 +511,11 @@ function Prep() {
         if (d.opponent && !add.has(d.opponent)) add.set(d.opponent, 'next opponent');
       }),
       fetch('/api/prep').then(r => r.json()).then(d => (d.plans ?? []).forEach((p: DraftPlan) => { if (!add.has(p.opponent)) add.set(p.opponent, 'has a plan'); })),
-      fetch('/api/scrims').then(r => r.json()).then(d => (d.games ?? []).slice(0, 40).forEach((g: ScrimGame) => { if (!add.has(g.opponent)) add.set(g.opponent, 'scrimmed'); })),
+      fetch('/api/scrims').then(r => r.json()).then(d => {
+        setScrims(d.games ?? []);
+        (d.games ?? []).slice(0, 40).forEach((g: ScrimGame) => { if (!add.has(g.opponent)) add.set(g.opponent, 'scrimmed'); });
+      }),
+      fetch('/api/pool').then(r => r.json()).then(d => setPool(d.matrix ?? {})),
     ]).then(() => setSuggest([...add.entries()].slice(0, 10).map(([name, why]) => ({ name, why }))));
   }, []);
 
@@ -471,6 +598,8 @@ function Prep() {
   };
   const isNext = !!nextOpp && !!opponent && nextOpp.toLowerCase() === opponent.toLowerCase();
 
+  const lanes = useMemo(() => (report ? buildLanes(report, pool, scrims) : []), [report, pool, scrims]);
+
   const age = report?.savedAt ?? report?.builtAt;
   const stale = useMemo(() => (age ? Date.now() - age > 3 * 86400000 : false), [age]);
 
@@ -534,7 +663,7 @@ function Prep() {
                   </button>
                 </div>
                 {err ? <div className="card" style={{ padding: 16, color: 'var(--loss)', borderColor: 'rgba(248,113,113,0.4)' }}>{err}</div> : null}
-                {report ? <ReportView r={report} onBrief={brief} briefing={briefing} briefErr={briefErr} /> : !building && !err ? (
+                {report ? <ReportView r={report} lanes={lanes} onBrief={brief} briefing={briefing} briefErr={briefErr} /> : !building && !err ? (
                   <div className="card empty">No report for {opponent} yet. Build it once and the whole team can open it.</div>
                 ) : null}
               </>
@@ -544,7 +673,9 @@ function Prep() {
           </>
         )}
       </div>
-      <style>{`.hub .pdr{display:grid;grid-template-columns:110px 1fr;gap:8px 12px;align-items:center;padding:0 16px 14px;}`}</style>
+      <style>{`.hub .lanes{display:grid;grid-template-columns:80px minmax(0,1.2fr) minmax(0,1fr) minmax(0,0.7fr);gap:14px;align-items:center;}
+        @media(max-width:900px){.hub .lanes{grid-template-columns:1fr;}}
+        .hub .pdr{display:grid;grid-template-columns:110px 1fr;gap:8px 12px;align-items:center;padding:0 16px 14px;}`}</style>
     </div>
   );
 }
