@@ -24,6 +24,10 @@ The project is already linked to the Vercel project `s2g-hub` via `.vercel/proje
 
 Required env: `KV_REST_API_URL` / `KV_REST_API_TOKEN` (read by `Redis.fromEnv()`), `RIOT_API_KEY`, `PANDASCORE_API_KEY`, `GEMINI_API_KEY`, `PUSHER_APP_ID`/`PUSHER_KEY`/`PUSHER_SECRET`/`PUSHER_CLUSTER` plus their `NEXT_PUBLIC_PUSHER_*` counterparts, and `CRON_SECRET`.
 
+## UI redesign in progress
+
+The approved redesign lives in [design/mockups/](design/mockups/) as literal HTML/CSS — read [design/README.md](design/README.md) before touching any page. Build from it; do not re-derive direction. The draft room (`app/draft/*`) is explicitly excluded and must look identical after any global change.
+
 ## What this is
 
 "Pyramid4 HUB" — a player and coach dashboard for the Pyramid IV Esports League of Legends team. Next.js 16 App Router, React 19, TypeScript, Tailwind 4. Four screens behind a login — coach panel, player panel, match history, and a live draft room — plus one public page.
