@@ -281,7 +281,46 @@ body {
 .hub .nl:hover { color: var(--text); }
 .hub .nl.on { color: var(--text); background: var(--surface-2); }
 
+.hub .nav-links { display: flex; gap: 2px; flex-wrap: wrap; min-width: 0; }
+.hub .nav-links .nl { padding: 0 12px; }
+/* Ten destinations don't fit with icons below ~1600px; keep the labels. */
+@media (max-width: 1600px) { .hub .nav-links .ic { display: none; } }
+@media (max-width: 1250px) { .hub .nav { height: auto; min-height: var(--nav-h); flex-wrap: wrap; padding-block: 10px; gap: 12px; } }
+
 .hub .page { padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 24px; }
+.hub .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.hub .empty { text-align: center; padding: 48px 20px; color: var(--text-3); }
+.hub .sunk {
+  padding: 14px 16px;
+  border-radius: var(--r-ctl);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hub textarea.input { height: auto; min-height: 88px; padding: 12px 14px; resize: vertical; line-height: 1.5; }
+.hub select.input { appearance: none; cursor: pointer; }
+.hub .thead { display: grid; gap: 12px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.hub .trow { display: grid; gap: 12px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--border); }
+.hub .modal-back {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(5, 6, 8, 0.72);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 6vh 20px 20px; overflow-y: auto;
+}
+.hub .modal { width: 100%; max-width: 720px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-card); }
+.hub .slot {
+  width: 44px; height: 44px; border-radius: var(--r-ctl);
+  border: 1px dashed var(--border-strong); background: var(--surface-sunken);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text-3); cursor: pointer; padding: 0; flex: none; overflow: hidden;
+}
+.hub .slot:hover { border-color: var(--accent); color: var(--accent); }
+.hub .slot.filled { border-style: solid; border-color: var(--border); }
+.hub .slot.active { border: 2px solid var(--accent); }
+.hub .slot img { width: 100%; height: 100%; object-fit: cover; }
+.hub .slot.ban img { filter: grayscale(1); opacity: 0.55; }
 
 @media (max-width: 900px) {
   .hub .nav { padding: 0 20px; gap: 16px; }

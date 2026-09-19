@@ -7,6 +7,7 @@ import { TEAM_NAME } from '../../lib/team';
 import { champImg } from '../../lib/champions';
 import Nav from '../components/Nav';
 import Icon from '../components/Icon';
+import PoolMatrix from '../components/PoolMatrix';
 
 // Riot is rate limited and /api/data walks the roster one player at a time,
 // so the roster loads progressively rather than all at once.
@@ -46,7 +47,7 @@ export default function CoachDashboard() {
   const [teamStats, setTeamStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingPlayerName, setLoadingPlayerName] = useState('');
-  const [tab, setTab] = useState<'roster' | 'fixture'>('roster');
+  const [tab, setTab] = useState<'roster' | 'fixture' | 'pool'>('roster');
   const [fixture, setFixture] = useState<any>(null);
   const [fixtureLoading, setFixtureLoading] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
@@ -334,9 +335,10 @@ export default function CoachDashboard() {
         <div className="tabs">
           <button className={tab === 'roster' ? 'tab on' : 'tab'} onClick={() => setTab('roster')}>Roster</button>
           <button className={tab === 'fixture' ? 'tab on' : 'tab'} onClick={() => setTab('fixture')}>Schedule &amp; scouting</button>
+          <button className={tab === 'pool' ? 'tab on' : 'tab'} onClick={() => setTab('pool')}>Champion pool</button>
         </div>
 
-        {tab === 'roster' ? (
+        {tab === 'pool' ? <PoolMatrix /> : tab === 'roster' ? (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
               <div className="card stat">

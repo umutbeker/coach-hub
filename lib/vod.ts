@@ -53,3 +53,21 @@ export function parseVod(raw: string | null | undefined): Vod | null {
 
   return { url, embed: null, kind: 'other', start: null };
 }
+
+/** YouTube video id from any common link form, or null. */
+export function youtubeId(raw: string): string | null {
+  try {
+    const u = new URL(raw.trim());
+    const host = u.hostname.replace(/^www\.|^m\./, '');
+    if (host === 'youtu.be') return u.pathname.slice(1).split('/')[0] || null;
+    if (host.endsWith('youtube.com')) {
+      if (u.searchParams.get('v')) return u.searchParams.get('v');
+      const m = u.pathname.match(/^\/(?:embed|shorts|live)\/([^/?]+)/);
+      return m ? m[1] : null;
+    }
+  } catch { /* not a URL */ }
+  return null;
+}
+
+/** A link a <video> element can play directly. */
+export const isDirectVideo = (raw: string) => /\.(mp4|webm|mov|m4v|ogg)(\?|#|$)/i.test(raw.trim());

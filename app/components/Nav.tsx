@@ -4,13 +4,21 @@ import { useRouter } from 'next/navigation';
 import { TEAM_NAME } from '../../lib/team';
 import Icon, { type IconName } from './Icon';
 
-export type NavKey = 'coach' | 'player' | 'matches' | 'draft' | 'pro';
+export type NavKey =
+  | 'coach' | 'player' | 'feedback' | 'calendar' | 'scrims' | 'review' | 'prep'
+  | 'matches' | 'draft' | 'pro';
 
 type User = { name?: string; role?: string; image?: string } | null;
 
-const LINKS: { key: NavKey; href: string; label: string; icon: IconName; coachOnly?: boolean }[] = [
-  { key: 'coach', href: '/coach', label: 'Coach', icon: 'users', coachOnly: true },
-  { key: 'player', href: '/player', label: 'My stats', icon: 'users' },
+// who: 'coach' = coaches only, 'player' = players only, undefined = everyone.
+const LINKS: { key: NavKey; href: string; label: string; icon: IconName; who?: 'coach' | 'player' }[] = [
+  { key: 'coach', href: '/coach', label: 'Coach', icon: 'users', who: 'coach' },
+  { key: 'player', href: '/player', label: 'My stats', icon: 'users', who: 'player' },
+  { key: 'feedback', href: '/feedback', label: 'Feedback', icon: 'message' },
+  { key: 'calendar', href: '/calendar', label: 'Calendar', icon: 'calendar' },
+  { key: 'scrims', href: '/scrims', label: 'Scrims', icon: 'target' },
+  { key: 'review', href: '/review', label: 'Review', icon: 'video' },
+  { key: 'prep', href: '/prep', label: 'Prep', icon: 'book' },
   { key: 'matches', href: '/matches', label: 'Matches', icon: 'list' },
   { key: 'draft', href: '/draft', label: 'Draft', icon: 'clipboard' },
   { key: 'pro', href: '/pro', label: 'Pro Drafts', icon: 'play' },
@@ -56,8 +64,8 @@ export default function Nav({ active, user }: { active: NavKey | null; user: Use
       </button>
 
       {user ? (
-        <div style={{ display: 'flex', gap: 4 }}>
-          {LINKS.filter(l => (l.coachOnly ? isCoach : !(l.key === 'player' && isCoach))).map(l => (
+        <div className="nav-links">
+          {LINKS.filter(l => !l.who || (l.who === 'coach') === isCoach).map(l => (
             <button
               key={l.key}
               className={active === l.key ? 'nl on' : 'nl'}
@@ -79,7 +87,6 @@ export default function Nav({ active, user }: { active: NavKey | null; user: Use
                 : initials(user.name)}
             </span>
             <span style={{ fontWeight: 500 }}>{user.name}</span>
-            <span className="t3" style={{ fontSize: 13 }}>{isCoach ? 'Head coach' : 'Player'}</span>
             <button className="btn ghost sm" onClick={signOut}>
               <Icon name="signout" />
               Sign out

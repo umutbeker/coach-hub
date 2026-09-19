@@ -6,7 +6,8 @@ type Props = { name: IconName; size?: number; className?: string };
 export type IconName =
   | 'mark' | 'users' | 'list' | 'clipboard' | 'play' | 'signout' | 'refresh'
   | 'search' | 'chevron-down' | 'chevron-up' | 'chevron-right' | 'arrow-left'
-  | 'external' | 'warning' | 'trend' | 'calendar' | 'x';
+  | 'external' | 'warning' | 'trend' | 'calendar' | 'x'
+  | 'video' | 'message' | 'target' | 'book' | 'plus' | 'trash' | 'check' | 'grid';
 
 const P: Record<IconName, React.ReactNode> = {
   // Placeholder brand mark — a pyramid. Swap for the real logo when it lands.
@@ -27,6 +28,14 @@ const P: Record<IconName, React.ReactNode> = {
   trend: <><path d="m22 7-8.5 8.5-5-5L2 17" /><path d="M16 7h6v6" /></>,
   calendar: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>,
   x: <path d="M18 6 6 18M6 6l12 12" />,
+  video: <><rect x="2" y="5" width="15" height="14" rx="2" /><path d="m17 10 5-3v10l-5-3" /></>,
+  message: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />,
+  target: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></>,
+  book: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z" /><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" /></>,
+  plus: <path d="M12 5v14M5 12h14" />,
+  trash: <><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></>,
+  check: <path d="M20 6 9 17l-5-5" />,
+  grid: <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></>,
 };
 
 // 'play' and 'mark' read better filled/heavier than the 1.75 stroke default.
