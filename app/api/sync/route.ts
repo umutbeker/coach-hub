@@ -8,7 +8,7 @@ const redis = Redis.fromEnv();
 
 const PLAYERS = USERS
   .filter(u => u.role === 'player' && u.riotId)
-  .map(u => ({ name: u.name, riotId: u.riotId as string }));
+  .map(u => ({ name: u.name, riotId: u.riotId as string, lpName: u.lpName ?? u.name }));
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -229,7 +229,7 @@ export async function GET(request: Request) {
       const lpParams = new URLSearchParams({
         action: 'cargoquery', tables: 'ScoreboardPlayers',
         fields: 'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side,Name',
-        where: `Name='${player.name}' AND Team='${TEAM_LP_NAME}'`,
+        where: `Name='${player.lpName}' AND Team='${TEAM_LP_NAME}'`,
         order_by: 'DateTime_UTC DESC', limit: '50', format: 'json', origin: '*',
       });
       const lpRes = await fetch(`https://lol.fandom.com/api.php?${lpParams.toString()}`);

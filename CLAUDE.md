@@ -45,6 +45,8 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `fixture:cache` | `/api/fixture` (30m TTL) | `/api/fixture` |
 | `sync:updatedAt` | `/api/sync` | `/api/data` |
 
+`/api/sync` reports `{"success":false,"error":"No matches found"}` whenever `cargoquery` is absent from the Leaguepedia response — which includes a rate-limited response, not just a genuinely empty result. Treat that message as "no usable reply", and retry before concluding the query is wrong.
+
 `data/players.json` is a stale snapshot of `player:*` values, not a live source — nothing imports it.
 
 ### Write path is a cron, read path is instant
@@ -61,7 +63,11 @@ The three name constants are not interchangeable:
 - `TEAM_LP_NAME` — the exact `Team` value on Leaguepedia (`Pyramid IV Esports`), interpolated verbatim into cargoquery where-clauses. A mismatch returns zero rows rather than an error, so a wrong value looks like "no data" instead of a bug.
 - `TEAM_PANDASCORE_NAME` / `TEAM_ACRONYM` — lowercase substring and exact-match acronym used to spot our own side in PandaScore fixtures.
 
-`USERS[].name` is likewise load-bearing in two directions: it is the Redis key (`player:<name>`) *and* the `Name` value in Leaguepedia queries, so it must match the wiki's spelling exactly. `USERS[].riotId` drives the Riot sync; entries without one (coaches) are skipped.
+Each roster entry carries three identities that genuinely differ and must not be collapsed back into one:
+
+- `name` — display, and the Redis key (`player:<name>`, `lp:<name>`).
+- `lpName` — the `Name` value on Leaguepedia. It diverges from `name` in practice (`Akashii` has a doubled i, `moe` is lowercase), and a wrong value returns zero rows rather than an error.
+- `riotId` — drives the Riot sync. Entries without one (coaches) are skipped everywhere a player list is derived.
 
 ### External data sources
 

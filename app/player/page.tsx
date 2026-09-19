@@ -46,7 +46,7 @@ export default function PlayerDashboard() {
       if (isFresh(lpKey, CACHE_DURATIONS.lp)) { lpData = loadCache(lpKey); }
       else {
         try { const redisRes = await fetch(`/api/data?type=lp&player=${parsedUser.name}`); const redisData = await redisRes.json(); if (redisData.data?.cargoquery?.length > 0) { lpData = redisData.data; saveCache(lpKey, lpData); } else { throw new Error('empty'); } }
-        catch { try { const lpParams = new URLSearchParams({ action:'cargoquery', tables:'ScoreboardPlayers', fields:'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side', where:`Name='${parsedUser.name}' AND Team='${TEAM_LP_NAME}'`, order_by:'DateTime_UTC DESC', limit:'50', format:'json', origin:'*' }); const res = await fetch(`https://lol.fandom.com/api.php?${lpParams}`); lpData = await res.json(); if (lpData.cargoquery?.length > 0) saveCache(lpKey, lpData); } catch { lpData = loadCache(lpKey); } }
+        catch { try { const lpParams = new URLSearchParams({ action:'cargoquery', tables:'ScoreboardPlayers', fields:'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side', where:`Name='${parsedUser.lpName ?? parsedUser.name}' AND Team='${TEAM_LP_NAME}'`, order_by:'DateTime_UTC DESC', limit:'50', format:'json', origin:'*' }); const res = await fetch(`https://lol.fandom.com/api.php?${lpParams}`); lpData = await res.json(); if (lpData.cargoquery?.length > 0) saveCache(lpKey, lpData); } catch { lpData = loadCache(lpKey); } }
       }
       if (lpData?.cargoquery?.length > 0) {
         const lpM = lpData.cargoquery.map((x: any) => x.title);
