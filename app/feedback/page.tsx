@@ -53,7 +53,7 @@ export default function FeedbackPage() {
         <SectionTabs items={[{ label: 'VODs', href: '/review', on: false }, { label: 'Feedback', href: '/feedback', on: true }]} />
         <div className="page-head">
           <div>
-            <div className="h" style={{ fontSize: 32 }}>{isCoach ? 'Player feedback' : 'My feedback'}</div>
+            <div className="h" style={{ fontSize: 24 }}>{isCoach ? 'Player feedback' : 'My feedback'}</div>
             <div className="t2" style={{ marginTop: 4 }}>
               Every VOD note tagged {isCoach ? 'with a player' : 'with you'} — click one to watch that moment
             </div>
@@ -71,10 +71,10 @@ export default function FeedbackPage() {
           </div>
         ) : (
           <div className="fb">
-            <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, alignSelf: 'start' }}>
+            <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14, alignSelf: 'start' }}>
               <div>
                 <div className="sec sm">Notes</div>
-                <div className="mono" style={{ fontSize: 32, fontWeight: 600 }}>{notes.length}</div>
+                <div className="mono" style={{ fontSize: 26, fontWeight: 600 }}>{notes.length}</div>
                 <div className="t3" style={{ fontSize: 13 }}>across {new Set(notes.map(n => n.vodId)).size} VODs</div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

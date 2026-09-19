@@ -88,7 +88,7 @@ export default function CalendarPage() {
       title={e.notes || e.title}>
       <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{e.time}</span>
       <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.title}</span>
-      {e.type === 'scrim' && isLogged(e) ? <span style={{ fontSize: 11, color: 'var(--win)' }}>results logged</span> : null}
+      {e.type === 'scrim' && isLogged(e) ? <span style={{ fontSize: 12, color: 'var(--win)' }}>results logged</span> : null}
     </button>
   );
 
@@ -98,7 +98,7 @@ export default function CalendarPage() {
       <div className="page">
         <div className="page-head">
           <div>
-            <div className="h" style={{ fontSize: 32 }}>Calendar</div>
+            <div className="h" style={{ fontSize: 24 }}>Calendar</div>
             <div className="t2" style={{ marginTop: 4 }}>Scrims, reviews and official matches — official ones come from the fixture automatically</div>
           </div>
           <button className="btn primary" onClick={() => setForm({ type: 'scrim', date: today, time: '19:00', durationMin: 180, notes: '' })}>
@@ -139,7 +139,7 @@ export default function CalendarPage() {
         <div className="card">
           <div style={{ padding: '16px 20px 8px' }}><div className="h" style={{ fontSize: 20 }}>Coming up</div></div>
           {!upcoming.length ? <div className="t3" style={{ padding: '0 20px 18px', fontSize: 14 }}>Nothing scheduled.</div> : upcoming.map(e => (
-            <div key={e.id} className="trow" style={{ gridTemplateColumns: '130px 70px 1fr auto', padding: '12px 20px' }}>
+            <div key={e.id} className="trow" style={{ gridTemplateColumns: '130px 70px 1fr auto', padding: '10px 16px' }}>
               <span className="t2" style={{ fontSize: 14 }}>{new Date(e.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
               <span className="mono t2">{e.time}</span>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', minWidth: 0 }}>
@@ -159,11 +159,11 @@ export default function CalendarPage() {
       {form ? (
         <div className="modal-back" onMouseDown={e => { if (e.target === e.currentTarget) setForm(null); }}>
           <div className="modal" style={{ maxWidth: 560 }}>
-            <div style={{ display: 'flex', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
               <div className="h" style={{ fontSize: 20 }}>{form.id ? 'Edit event' : 'New event'}</div>
               <button className="btn ghost sm" style={{ marginLeft: 'auto' }} onClick={() => setForm(null)} aria-label="Close"><Icon name="x" /></button>
             </div>
-            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div className="seg" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
                 {(['scrim', 'review', 'other'] as const).map(t => (
                   <button key={t} type="button" className={form.type === t ? 'on' : ''} onClick={() => setForm({ ...form, type: t })}>{TYPE[t].label}</button>

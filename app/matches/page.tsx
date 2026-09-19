@@ -76,7 +76,7 @@ function Champs({ names, kind }: { names: string[]; kind: 'ban' | 'pick' }) {
 
 function DraftSide({ side, team, bans, picks }: { side: 'blue' | 'red'; team: string; bans: string[]; picks: string[] }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
       <span className={side === 'blue' ? 'tag blue' : 'tag red'} style={{ width: 44, justifyContent: 'center' }}>
         {side === 'blue' ? 'Blue' : 'Red'}
       </span>
@@ -163,7 +163,7 @@ export default function MatchesPage() {
         <SectionTabs items={[{ label: 'Scrims', href: '/scrims', on: false }, { label: 'Official matches', href: '/matches', on: true }]} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
           <div>
-            <div className="h" style={{ fontSize: 32 }}>Match history</div>
+            <div className="h" style={{ fontSize: 24 }}>Match history</div>
             <div className="t2" style={{ marginTop: 4 }}>{TEAM_NAME} Esports · official games</div>
           </div>
           {tournaments.length > 1 ? (
@@ -175,25 +175,25 @@ export default function MatchesPage() {
           ) : null}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
           <div className="card stat">
             <div className="sec sm">Series</div>
-            <div className="mono" style={{ fontSize: 32, fontWeight: 600 }}>{stats.seriesW}<span className="t3">–</span>{stats.seriesL}</div>
+            <div className="mono" style={{ fontSize: 26, fontWeight: 600 }}>{stats.seriesW}<span className="t3">–</span>{stats.seriesL}</div>
             <div className="t3" style={{ fontSize: 13 }}>{stats.seriesWr}% series win rate</div>
           </div>
           <div className="card stat">
             <div className="sec sm">Games</div>
-            <div className="mono" style={{ fontSize: 32, fontWeight: 600 }}>{stats.gamesW}<span className="t3">–</span>{stats.gamesL}</div>
+            <div className="mono" style={{ fontSize: 26, fontWeight: 600 }}>{stats.gamesW}<span className="t3">–</span>{stats.gamesL}</div>
             <div className="t3" style={{ fontSize: 13 }}>{stats.gameWr}% game win rate</div>
           </div>
           <div className="card stat">
             <div className="sec sm">Blue side</div>
-            <div className="mono" style={{ fontSize: 32, fontWeight: 600, color: 'var(--blue-side)' }}>{stats.blueWr}%</div>
+            <div className="mono" style={{ fontSize: 26, fontWeight: 600, color: 'var(--blue-side)' }}>{stats.blueWr}%</div>
             <div className="t3" style={{ fontSize: 13 }}>{stats.blueW}–{stats.blueL}</div>
           </div>
           <div className="card stat">
             <div className="sec sm">Red side</div>
-            <div className="mono" style={{ fontSize: 32, fontWeight: 600, color: 'var(--red-side)' }}>{stats.redWr}%</div>
+            <div className="mono" style={{ fontSize: 26, fontWeight: 600, color: 'var(--red-side)' }}>{stats.redWr}%</div>
             <div className="t3" style={{ fontSize: 13 }}>{stats.redW}–{stats.redL}</div>
           </div>
         </div>
@@ -228,7 +228,7 @@ export default function MatchesPage() {
                     <div style={{ borderTop: '1px solid var(--border)', background: '#121519' }}>
                       {s.games.map((g, i) => (
                         <div key={g.id}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderTop: i === 0 ? 'none' : '1px solid var(--border)', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderTop: i === 0 ? 'none' : '1px solid var(--border)', flexWrap: 'wrap' }}>
                             <span className="tag neutral">Game {i + 1}</span>
                             <span className={g.result === 'W' ? 'tag win' : 'tag loss'}>{g.result === 'W' ? 'Win' : 'Loss'}</span>
                             <span className="t3" style={{ fontSize: 13 }}>{TEAM_NAME} on {g.s2gBlue ? 'blue' : 'red'}</span>

@@ -103,7 +103,7 @@ export default function ScrimsPage() {
         <SectionTabs items={[{ label: 'Scrims', href: '/scrims', on: true }, { label: 'Official matches', href: '/matches', on: false }]} />
         <div className="page-head">
           <div>
-            <div className="h" style={{ fontSize: 32 }}>Scrims</div>
+            <div className="h" style={{ fontSize: 24 }}>Scrims</div>
             <div className="t2" style={{ marginTop: 4 }}>Practice games, kept separate from official matches</div>
           </div>
           <button className="btn primary" onClick={() => router.push('/scrims/new')}><Icon name="plus" />Log scrim</button>
@@ -126,20 +126,20 @@ export default function ScrimsPage() {
 
         {loading ? <div className="empty">Loading…</div> : !games.length ? (
           <div className="card empty" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-            <div className="h" style={{ fontSize: 24, color: 'var(--text)' }}>No scrims logged yet</div>
+            <div className="h" style={{ fontSize: 20, color: 'var(--text)' }}>No scrims logged yet</div>
             <div style={{ maxWidth: 460 }}>Log a scrim block after practice — picks, bans and the result take about a minute a game. Records, side win rates and champion stats build up from here.</div>
             <button className="btn primary" onClick={() => router.push('/scrims/new')}><Icon name="plus" />Log your first scrim</button>
           </div>
         ) : (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-              <div className="card stat"><div className="sec sm">Record</div><div className="mono" style={{ fontSize: 32, fontWeight: 600 }}>{stats.w}<span className="t3">–</span>{stats.l}</div><div className="t3" style={{ fontSize: 13 }}>{pct(stats.w, stats.n)}% win rate · {stats.n} games</div></div>
-              <div className="card stat"><div className="sec sm">Blue side</div><div className="mono" style={{ fontSize: 32, fontWeight: 600, color: 'var(--blue-side)' }}>{stats.blueWr}%</div><div className="t3" style={{ fontSize: 13 }}>{stats.blueN} games</div></div>
-              <div className="card stat"><div className="sec sm">Red side</div><div className="mono" style={{ fontSize: 32, fontWeight: 600, color: 'var(--red-side)' }}>{stats.redWr}%</div><div className="t3" style={{ fontSize: 13 }}>{stats.redN} games</div></div>
-              <div className="card stat"><div className="sec sm">Last 7 days</div><div className="mono" style={{ fontSize: 32, fontWeight: 600 }}>{stats.week}</div><div className="t3" style={{ fontSize: 13 }}>games played</div></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+              <div className="card stat"><div className="sec sm">Record</div><div className="mono" style={{ fontSize: 26, fontWeight: 600 }}>{stats.w}<span className="t3">–</span>{stats.l}</div><div className="t3" style={{ fontSize: 13 }}>{pct(stats.w, stats.n)}% win rate · {stats.n} games</div></div>
+              <div className="card stat"><div className="sec sm">Blue side</div><div className="mono" style={{ fontSize: 26, fontWeight: 600, color: 'var(--blue-side)' }}>{stats.blueWr}%</div><div className="t3" style={{ fontSize: 13 }}>{stats.blueN} games</div></div>
+              <div className="card stat"><div className="sec sm">Red side</div><div className="mono" style={{ fontSize: 26, fontWeight: 600, color: 'var(--red-side)' }}>{stats.redWr}%</div><div className="t3" style={{ fontSize: 13 }}>{stats.redN} games</div></div>
+              <div className="card stat"><div className="sec sm">Last 7 days</div><div className="mono" style={{ fontSize: 26, fontWeight: 600 }}>{stats.week}</div><div className="t3" style={{ fontSize: 13 }}>games played</div></div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr)', gap: 16, alignItems: 'start' }} className="two">
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr)', gap: 12, alignItems: 'start' }} className="two">
               <div className="card">
                 <div style={{ padding: '18px 20px 10px' }}><div className="h" style={{ fontSize: 20 }}>Our most played</div></div>
                 {stats.byChamp.map(c => (

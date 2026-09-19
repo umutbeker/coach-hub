@@ -168,14 +168,14 @@ function Form() {
             <button className="btn ghost sm" style={{ paddingLeft: 0, marginBottom: 8 }} onClick={() => router.push('/scrims')}>
               <Icon name="arrow-left" />Scrims
             </button>
-            <div className="h" style={{ fontSize: 32 }}>Log a scrim block</div>
+            <div className="h" style={{ fontSize: 24 }}>Log a scrim block</div>
             <div className="t2" style={{ marginTop: 4 }}>
               Click a slot, then type and press Enter — the picker moves to the next empty slot on its own.
             </div>
           </div>
         </div>
 
-        <div className="card" style={{ padding: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        <div className="card" style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
           <div className="field">
             <label className="label" htmlFor="opp">Opponent</label>
             <input id="opp" className="input" list="known-opps" value={opponent} onChange={e => setOpponent(e.target.value)} placeholder="Team name" autoFocus={!opponent} />
@@ -201,7 +201,7 @@ function Form() {
           <button className="btn ghost sm" style={{ marginLeft: 8 }} onClick={addGame}><Icon name="plus" />Add game</button>
         </div>
 
-        <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <Row label="Our side">
             <div className="seg" style={{ width: 240 }}>
               <button type="button" className={g.side === 'blue' ? 'on' : ''} onClick={() => patchGame(x => ({ ...x, side: 'blue' }))}>Blue</button>

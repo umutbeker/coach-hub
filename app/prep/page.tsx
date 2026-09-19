@@ -163,14 +163,14 @@ function ReportView({ r, onBrief, briefing, briefErr }: { r: Report; onBrief: ()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
-        <div className="card stat"><div className="sec sm">Record · last {r.games}</div><div className="mono" style={{ fontSize: 30, fontWeight: 600 }}>{r.wins}<span className="t3">–</span>{r.games - r.wins}</div><div className="t3" style={{ fontSize: 13 }}>{pct(r.wins, r.games)}% win rate</div></div>
-        <div className="card stat"><div className="sec sm">Blue side</div><div className="mono" style={{ fontSize: 30, fontWeight: 600, color: 'var(--blue-side)' }}>{pct(r.side.blue.w, r.side.blue.n)}%</div><div className="t3" style={{ fontSize: 13 }}>{r.side.blue.w}–{r.side.blue.n - r.side.blue.w}</div></div>
-        <div className="card stat"><div className="sec sm">Red side</div><div className="mono" style={{ fontSize: 30, fontWeight: 600, color: 'var(--red-side)' }}>{pct(r.side.red.w, r.side.red.n)}%</div><div className="t3" style={{ fontSize: 13 }}>{r.side.red.w}–{r.side.red.n - r.side.red.w}</div></div>
-        <div className="card stat"><div className="sec sm">Avg game</div><div className="mono" style={{ fontSize: 30, fontWeight: 600 }}>{r.avgMinutes ? `${Math.round(r.avgMinutes)}m` : '—'}</div><div className="t3" style={{ fontSize: 13 }}>{r.avgMinutes ? (r.avgMinutes < 29 ? 'plays for early' : r.avgMinutes > 34 ? 'goes long' : 'mid-length games') : ''}</div></div>
+        <div className="card stat"><div className="sec sm">Record · last {r.games}</div><div className="mono" style={{ fontSize: 24, fontWeight: 600 }}>{r.wins}<span className="t3">–</span>{r.games - r.wins}</div><div className="t3" style={{ fontSize: 13 }}>{pct(r.wins, r.games)}% win rate</div></div>
+        <div className="card stat"><div className="sec sm">Blue side</div><div className="mono" style={{ fontSize: 24, fontWeight: 600, color: 'var(--blue-side)' }}>{pct(r.side.blue.w, r.side.blue.n)}%</div><div className="t3" style={{ fontSize: 13 }}>{r.side.blue.w}–{r.side.blue.n - r.side.blue.w}</div></div>
+        <div className="card stat"><div className="sec sm">Red side</div><div className="mono" style={{ fontSize: 24, fontWeight: 600, color: 'var(--red-side)' }}>{pct(r.side.red.w, r.side.red.n)}%</div><div className="t3" style={{ fontSize: 13 }}>{r.side.red.w}–{r.side.red.n - r.side.red.w}</div></div>
+        <div className="card stat"><div className="sec sm">Avg game</div><div className="mono" style={{ fontSize: 24, fontWeight: 600 }}>{r.avgMinutes ? `${Math.round(r.avgMinutes)}m` : '—'}</div><div className="t3" style={{ fontSize: 13 }}>{r.avgMinutes ? (r.avgMinutes < 29 ? 'plays for early' : r.avgMinutes > 34 ? 'goes long' : 'mid-length games') : ''}</div></div>
         <div className="card stat"><div className="sec sm">Per game</div><div className="mono" style={{ fontSize: 20, fontWeight: 600, marginTop: 4 }}>{r.perGame.dragons?.toFixed(1) ?? '—'} <span className="t3" style={{ fontSize: 13 }}>drag</span> · {r.perGame.barons?.toFixed(1) ?? '—'} <span className="t3" style={{ fontSize: 13 }}>baron</span></div><div className="t3" style={{ fontSize: 13 }}>{r.perGame.towers?.toFixed(1) ?? '—'} towers · {r.perGame.grubs?.toFixed(1) ?? '—'} grubs</div></div>
       </div>
 
-      <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div className="h" style={{ fontSize: 20 }}>Brief</div>
           <span className="t3" style={{ fontSize: 13 }}>written by AI from the numbers on this page</span>
@@ -264,11 +264,11 @@ function PlanEditor({ plan, onChange, onSave, saving, savedAt }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 12 }}>
         {(['blue', 'red'] as const).map(s => {
           const v = plan[s];
           return (
-            <div key={s} className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, borderTop: `3px solid ${s === 'blue' ? 'var(--blue-side)' : 'var(--red-side)'}` }}>
+            <div key={s} className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14, borderTop: `3px solid ${s === 'blue' ? 'var(--blue-side)' : 'var(--red-side)'}` }}>
               <div className="h" style={{ fontSize: 20 }}>If we are {s === 'blue' ? 'blue' : 'red'}</div>
               <div>
                 <div className="sec sm" style={{ marginBottom: 8 }}>Planned bans</div>
@@ -282,7 +282,7 @@ function PlanEditor({ plan, onChange, onSave, saving, savedAt }: {
                   {v.priorityPicks.map((c, i) => (
                     <div key={c + i} style={{ position: 'relative' }}>
                       <Slot name={c} onClick={() => setPicker({ side: s, kind: 'pick', i })} />
-                      <span className="mono" style={{ position: 'absolute', top: -6, left: -6, width: 18, height: 18, borderRadius: 9, background: 'var(--accent)', color: 'var(--accent-ink)', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                      <span className="mono" style={{ position: 'absolute', top: -7, left: -7, width: 20, height: 20, borderRadius: 10, background: 'var(--accent)', color: 'var(--accent-ink)', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                     </div>
                   ))}
                   {v.priorityPicks.length < 10 ? <Slot onClick={() => setPicker({ side: s, kind: 'pick', i: v.priorityPicks.length })} /> : null}
@@ -298,7 +298,7 @@ function PlanEditor({ plan, onChange, onSave, saving, savedAt }: {
         })}
       </div>
 
-      <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className="h" style={{ fontSize: 20 }}>If they… then we…</div>
           <button className="btn sm" style={{ marginLeft: 'auto' }}
@@ -482,12 +482,12 @@ function Prep() {
       <div className="page">
         <div className="page-head">
           <div>
-            <div className="h" style={{ fontSize: 32 }}>Match prep</div>
+            <div className="h" style={{ fontSize: 24 }}>Match prep</div>
             <div className="t2" style={{ marginTop: 4 }}>Scouting report and draft plan for an opponent</div>
           </div>
         </div>
 
-        <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <input className="input" style={{ flex: 1, minWidth: 240 }} placeholder="Opponent — team name as written on Leaguepedia" value={input}
               onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') choose(input); }} />
@@ -507,7 +507,7 @@ function Prep() {
         {!opponent ? <div className="card empty">Pick an opponent to start.</div> : (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <div className="h" style={{ fontSize: 28 }}>{opponent}</div>
+              <div className="h" style={{ fontSize: 22 }}>{opponent}</div>
               {isNext ? (
                 <>
                   <span className="tag win" style={{ gap: 6 }}><Icon name="check" size={14} />Next opponent</span>

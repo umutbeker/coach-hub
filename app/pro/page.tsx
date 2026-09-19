@@ -63,7 +63,7 @@ function Champs({ names, kind }: { names: string[]; kind: 'ban' | 'pick' }) {
 function DraftSide({ side, team, bans, picks }: { side: 'blue' | 'red'; team: string; bans: string[]; picks: string[] }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px',
+      display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px',
       borderTop: '1px solid var(--border)', flexWrap: 'wrap',
     }}>
       <span className={side === 'blue' ? 'tag blue' : 'tag red'} style={{ width: 44, justifyContent: 'center' }}>
@@ -88,7 +88,7 @@ function GameBlock({ g }: { g: Game }) {
   return (
     <>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px',
+        display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px',
         borderTop: '1px solid var(--border)', flexWrap: 'wrap',
       }}>
         <span className="tag neutral">Game {g.gameInMatch ?? '?'}</span>
@@ -181,7 +181,7 @@ export default function ProPage() {
       <div className="page">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
           <div>
-            <div className="h" style={{ fontSize: 32 }}>Pro drafts</div>
+            <div className="h" style={{ fontSize: 24 }}>Pro drafts</div>
             <div className="t2" style={{ marginTop: 4 }}>
               Recent LEC and LCK series with every draft and the moment it happened on the broadcast
             </div>

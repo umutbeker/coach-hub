@@ -54,14 +54,14 @@ export default function ReviewLibrary() {
         <SectionTabs items={[{ label: 'VODs', href: '/review', on: true }, { label: 'Feedback', href: '/feedback', on: false }]} />
         <div className="page-head">
           <div>
-            <div className="h" style={{ fontSize: 32 }}>VOD review</div>
+            <div className="h" style={{ fontSize: 24 }}>VOD review</div>
             <div className="t2" style={{ marginTop: 4 }}>Leave notes at a timestamp; clicking a note jumps the video there</div>
           </div>
           <button className="btn primary" onClick={() => setAdding(a => !a)}><Icon name="plus" />Add VOD</button>
         </div>
 
         {adding ? (
-          <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
               <div className="field" style={{ gridColumn: '1 / -1' }}>
                 <label className="label" htmlFor="u">Video link</label>

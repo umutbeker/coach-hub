@@ -95,9 +95,9 @@ function Review() {
           <button className="btn ghost sm" style={{ paddingLeft: 0, marginBottom: 8 }} onClick={() => router.push('/review')}>
             <Icon name="arrow-left" />All VODs
           </button>
-          {missing ? <div className="h" style={{ fontSize: 28 }}>VOD not found</div> : (
+          {missing ? <div className="h" style={{ fontSize: 22 }}>VOD not found</div> : (
             <>
-              <div className="h" style={{ fontSize: 30 }}>{vod?.title ?? 'Loading…'}</div>
+              <div className="h" style={{ fontSize: 24 }}>{vod?.title ?? 'Loading…'}</div>
               {vod ? (
                 <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                   <span className={vod.source === 'scrim' ? 'tag accent' : vod.source === 'official' ? 'tag blue' : 'tag neutral'}>

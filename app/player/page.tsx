@@ -44,7 +44,7 @@ function Stat({ label, value, sub, color }: { label: string; value: React.ReactN
   return (
     <div className="card stat">
       <div className="sec sm">{label}</div>
-      <div className="mono" style={{ fontSize: 28, fontWeight: 600, color }}>{value}</div>
+      <div className="mono" style={{ fontSize: 22, fontWeight: 600, color }}>{value}</div>
       {sub ? <div className="t3" style={{ fontSize: 13 }}>{sub}</div> : null}
     </div>
   );
@@ -203,7 +203,7 @@ export default function PlayerDashboard() {
           </button>
         ) : null}
 
-        <div className="card" style={{ padding: '28px 32px', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
+        <div className="card" style={{ padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
           <span className="avatar" style={{ width: 88, height: 88, fontSize: 30 }}>
             {user.image && user.image !== '/logo.png' ? <img src={user.image} alt="" /> : initials(user.name)}
           </span>
@@ -229,20 +229,20 @@ export default function PlayerDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div className="sec sm">Solo queue</div>
               <div className="h" style={{ fontSize: 28, color: rankColor }}>{stats?.rank ?? '—'}</div>
-              <div className="mono" style={{ fontSize: 32, fontWeight: 600 }}>
+              <div className="mono" style={{ fontSize: 26, fontWeight: 600 }}>
                 {stats?.lp ?? 0} <span className="t3" style={{ fontSize: 15, fontWeight: 500 }}>LP</span>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div className="sec sm">Season</div>
-              <div className="mono" style={{ fontSize: 28, fontWeight: 600 }}>
+              <div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>
                 {stats?.wins ?? 0}<span className="t3">–</span>{stats?.losses ?? 0}
               </div>
               <div className="t2" style={{ fontSize: 14 }}>{stats?.overallWinRate ?? '—'} win rate</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div className="sec sm">This week</div>
-              <div className="mono" style={{ fontSize: 28, fontWeight: 600 }}>
+              <div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>
                 {stats?.weeklyGames ?? 0} <span className="t3" style={{ fontSize: 15, fontWeight: 500 }}>games</span>
               </div>
               <div className="t2" style={{ fontSize: 14 }}>
@@ -255,9 +255,9 @@ export default function PlayerDashboard() {
         {loading ? <div className="t3" style={{ textAlign: 'center', padding: 40 }}>Loading solo queue data…</div> : null}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 2fr) minmax(320px, 3fr)', gap: 16 }}>
-          <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
-              <div className="h" style={{ fontSize: 24 }}>Form</div>
+              <div className="h" style={{ fontSize: 20 }}>Form</div>
               <div className="t3" style={{ fontSize: 13 }}>last {form?.games ?? 0} ranked · newest right</div>
             </div>
             <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -274,7 +274,7 @@ export default function PlayerDashboard() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
             <Stat label="Gold @15" sub="vs lane opponent"
               value={(stats?.avgGoldDiff15 ?? 0) > 0 ? `+${stats.avgGoldDiff15}` : (stats?.avgGoldDiff15 ?? 0)}
               color={(stats?.avgGoldDiff15 ?? 0) >= 0 ? 'var(--win)' : 'var(--loss)'} />
@@ -291,10 +291,10 @@ export default function PlayerDashboard() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 2fr) minmax(340px, 3fr)', gap: 16, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 2fr) minmax(340px, 3fr)', gap: 12, alignItems: 'start' }}>
           <div className="card">
-            <div style={{ padding: '20px 24px 12px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <div className="h" style={{ fontSize: 24 }}>Champion pool</div>
+            <div style={{ padding: '14px 18px 10px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <div className="h" style={{ fontSize: 20 }}>Champion pool</div>
               <div className="t3" style={{ fontSize: 13 }}>last 20</div>
             </div>
             <div className="thead" style={{ gridTemplateColumns: '44px 1fr 60px 60px 110px', padding: '0 24px 8px' }}>
@@ -313,8 +313,8 @@ export default function PlayerDashboard() {
           </div>
 
           <div className="card">
-            <div style={{ padding: '20px 24px 12px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <div className="h" style={{ fontSize: 24 }}>Recent games</div>
+            <div style={{ padding: '14px 18px 10px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <div className="h" style={{ fontSize: 20 }}>Recent games</div>
               <div className="t3" style={{ fontSize: 13 }}>ranked solo</div>
             </div>
             <div className="thead" style={{ gridTemplateColumns: '44px 1fr 80px 70px 60px 90px' }}>
@@ -337,10 +337,10 @@ export default function PlayerDashboard() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div>
-              <div className="h" style={{ fontSize: 24 }}>Pro stage</div>
+              <div className="h" style={{ fontSize: 20 }}>Pro stage</div>
               <div className="t2" style={{ fontSize: 13 }}>Official games · from Leaguepedia</div>
             </div>
             <div className="t3" style={{ fontSize: 13 }}>{proStats?.totalProGames ?? 0} games on record</div>
@@ -348,10 +348,10 @@ export default function PlayerDashboard() {
 
           {proStats?.totalProGames ? (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16 }}>
-                <div className="sunk"><div className="sec sm">Win rate</div><div className="mono" style={{ fontSize: 28, fontWeight: 600 }}>{proStats.overallWinRate}%</div><div className="t3" style={{ fontSize: 13 }}>{proStats.wins}–{proStats.losses}</div></div>
-                <div className="sunk"><div className="sec sm">KDA</div><div className="mono" style={{ fontSize: 28, fontWeight: 600 }}>{proStats.overallKda}</div><div className="t3" style={{ fontSize: 13 }}>{proStats.avgLine}</div></div>
-                <div className="sunk"><div className="sec sm">CS / game</div><div className="mono" style={{ fontSize: 28, fontWeight: 600 }}>{proStats.avgProCsPerGame}</div><div className="t3" style={{ fontSize: 13 }}>across {proStats.totalProGames} games</div></div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
+                <div className="sunk"><div className="sec sm">Win rate</div><div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>{proStats.overallWinRate}%</div><div className="t3" style={{ fontSize: 13 }}>{proStats.wins}–{proStats.losses}</div></div>
+                <div className="sunk"><div className="sec sm">KDA</div><div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>{proStats.overallKda}</div><div className="t3" style={{ fontSize: 13 }}>{proStats.avgLine}</div></div>
+                <div className="sunk"><div className="sec sm">CS / game</div><div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>{proStats.avgProCsPerGame}</div><div className="t3" style={{ fontSize: 13 }}>across {proStats.totalProGames} games</div></div>
                 <div className="sunk" style={{ gap: 10 }}>
                   <div className="sec sm">Most played on stage</div>
                   <div className="row">

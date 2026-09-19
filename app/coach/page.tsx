@@ -193,7 +193,7 @@ export default function CoachDashboard() {
       <div className="page">
         <div className="page-head">
           <div>
-            <div className="h" style={{ fontSize: 32 }}>Coach panel</div>
+            <div className="h" style={{ fontSize: 24 }}>Coach panel</div>
             <div className="t2" style={{ marginTop: 4 }}>{TEAM_NAME} Esports · everything at a glance</div>
           </div>
         </div>
@@ -333,7 +333,7 @@ export default function CoachDashboard() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-                <div className="h" style={{ fontSize: 24 }}>Roster</div>
+                <div className="h" style={{ fontSize: 20 }}>Roster</div>
                 <span className="t3" style={{ fontSize: 13 }}>solo queue</span>
                 <div style={{ display: 'flex', gap: 16, fontSize: 14, flexWrap: 'wrap' }} className="t2">
                   <span>Form <b className="mono" style={{ color: 'var(--text)' }}>{soloq.form !== null ? `${soloq.form}%` : '—'}</b></span>
@@ -345,7 +345,7 @@ export default function CoachDashboard() {
                   <button className="btn sm" onClick={() => fetchTeamData()} disabled={loading}><Icon name="refresh" />Refresh</button>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
                 {teamStats.map(p => {
                   const s = p.stats;
                   const weekly = s?.weeklyGames ?? 0;
@@ -370,7 +370,7 @@ export default function CoachDashboard() {
                       {s && !s.error && s.tier ? (
                         <>
                           <div>
-                            <div className="mono" style={{ fontSize: 28, fontWeight: 600 }}>
+                            <div className="mono" style={{ fontSize: 22, fontWeight: 600 }}>
                               {s.lp} <span className="t3" style={{ fontSize: 14, fontWeight: 500 }}>LP</span>
                             </div>
                             <div className="t2" style={{ fontSize: 13 }}>
@@ -402,7 +402,7 @@ export default function CoachDashboard() {
             </div>
 
             {teamPool.length ? (
-              <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                   <div className="h" style={{ fontSize: 22 }}>Team champion pool</div>
                   <div className="t3" style={{ fontSize: 13 }}>solo queue · last 20 per player · pro and scrim pools are in the Champion pool tab</div>
