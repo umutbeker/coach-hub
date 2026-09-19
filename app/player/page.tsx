@@ -192,7 +192,7 @@ export default function PlayerDashboard() {
 
   return (
     <div className="hub">
-      <Nav active="player" user={{ name: user.name, role: actualRole ?? user.role, image: user.image }} />
+      <Nav active="home" user={{ name: user.name, role: actualRole ?? user.role, image: user.image }} />
 
       <div className="page">
         {viewingOther ? (

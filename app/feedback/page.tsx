@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { USERS } from '../../lib/users';
 import { NOTE_CATEGORIES, fmtTime, type NoteCategory, type VodNote, type VodSource } from '../../lib/hub';
-import Nav from '../components/Nav';
+import Nav, { SectionTabs } from '../components/Nav';
 import Icon from '../components/Icon';
 import { useUser } from '../components/useUser';
 
@@ -48,8 +48,9 @@ export default function FeedbackPage() {
 
   return (
     <div className="hub">
-      <Nav active="feedback" user={user} />
+      <Nav active="review" user={user} />
       <div className="page">
+        <SectionTabs items={[{ label: 'VODs', href: '/review', on: false }, { label: 'Feedback', href: '/feedback', on: true }]} />
         <div className="page-head">
           <div>
             <div className="h" style={{ fontSize: 32 }}>{isCoach ? 'Player feedback' : 'My feedback'}</div>

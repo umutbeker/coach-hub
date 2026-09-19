@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { champImg } from '../../lib/champions';
 import { ROLES, ROLE_LABEL, type ScrimGame } from '../../lib/hub';
-import Nav from '../components/Nav';
+import Nav, { SectionTabs } from '../components/Nav';
 import Icon from '../components/Icon';
 import { useUser } from '../components/useUser';
 
@@ -98,8 +98,9 @@ export default function ScrimsPage() {
 
   return (
     <div className="hub">
-      <Nav active="scrims" user={user} />
+      <Nav active="games" user={user} />
       <div className="page">
+        <SectionTabs items={[{ label: 'Scrims', href: '/scrims', on: true }, { label: 'Official matches', href: '/matches', on: false }]} />
         <div className="page-head">
           <div>
             <div className="h" style={{ fontSize: 32 }}>Scrims</div>

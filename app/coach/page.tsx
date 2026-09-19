@@ -188,7 +188,7 @@ export default function CoachDashboard() {
 
   return (
     <div className="hub">
-      <Nav active="coach" user={coach} />
+      <Nav active="home" user={coach} />
 
       <div className="page">
         <div className="page-head">

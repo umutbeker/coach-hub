@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Vod, VodSource } from '../../lib/hub';
 import { youtubeId } from '../../lib/vod';
-import Nav from '../components/Nav';
+import Nav, { SectionTabs } from '../components/Nav';
 import Icon from '../components/Icon';
 import { useUser } from '../components/useUser';
 
@@ -51,6 +51,7 @@ export default function ReviewLibrary() {
     <div className="hub">
       <Nav active="review" user={user} />
       <div className="page">
+        <SectionTabs items={[{ label: 'VODs', href: '/review', on: true }, { label: 'Feedback', href: '/feedback', on: false }]} />
         <div className="page-head">
           <div>
             <div className="h" style={{ fontSize: 32 }}>VOD review</div>

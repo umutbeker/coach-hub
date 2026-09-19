@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TEAM_NAME, TEAM_LP_NAME } from '../../lib/team';
 import { champImg } from '../../lib/champions';
-import Nav from '../components/Nav';
+import Nav, { SectionTabs } from '../components/Nav';
 import Icon from '../components/Icon';
 
 const LP_CACHE_KEY = 'matches_lp_v4';
@@ -157,9 +157,10 @@ export default function MatchesPage() {
 
   return (
     <div className="hub">
-      <Nav active="matches" user={user} />
+      <Nav active="games" user={user} />
 
       <div className="page">
+        <SectionTabs items={[{ label: 'Scrims', href: '/scrims', on: false }, { label: 'Official matches', href: '/matches', on: true }]} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
           <div>
             <div className="h" style={{ fontSize: 32 }}>Match history</div>

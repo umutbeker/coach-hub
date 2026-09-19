@@ -161,7 +161,7 @@ function Form() {
 
   return (
     <div className="hub">
-      <Nav active="scrims" user={user} />
+      <Nav active="games" user={user} />
       <div className="page" style={{ maxWidth: 1100 }}>
         <div className="page-head">
           <div>

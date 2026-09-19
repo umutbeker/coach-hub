@@ -282,10 +282,38 @@ body {
 .hub .nl.on { color: var(--text); background: var(--surface-2); }
 
 .hub .nav-links { display: flex; gap: 2px; flex-wrap: wrap; min-width: 0; }
-.hub .nav-links .nl { padding: 0 12px; }
-/* Ten destinations don't fit with icons below ~1600px; keep the labels. */
-@media (max-width: 1600px) { .hub .nav-links .ic { display: none; } }
-@media (max-width: 1250px) { .hub .nav { height: auto; min-height: var(--nav-h); flex-wrap: wrap; padding-block: 10px; gap: 12px; } }
+.hub .nav-links .nl { padding: 0 12px; position: relative; }
+.hub .nl-ic { position: relative; display: inline-flex; }
+.hub .badge {
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--accent); color: var(--accent-ink);
+  font-size: 12px; font-weight: 600; line-height: 18px; text-align: center;
+}
+/* The phone tab bar has no room for a count; a dot on the icon says "new". */
+.hub .dot-sm { display: none; position: absolute; top: -2px; right: -4px; width: 8px; height: 8px; border-radius: 4px; background: var(--accent); }
+@media (max-width: 1350px) { .hub .nav-links .ic { display: none; } }
+@media (max-width: 1100px) and (min-width: 701px) { .hub .nav { height: auto; min-height: var(--nav-h); flex-wrap: wrap; padding-block: 10px; gap: 12px; } }
+
+/* Phones: links become a bottom tab bar, the top bar keeps brand + account. */
+@media (max-width: 700px) {
+  .hub { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .hub .hide-sm { display: none; }
+  .hub .nav { gap: 8px; padding: 0 12px; }
+  .hub .nav-links {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 4px 2px calc(4px + env(safe-area-inset-bottom, 0px));
+  }
+  .hub .nav-links .nl {
+    flex-direction: column; gap: 3px; height: 54px; padding: 0 2px; border-radius: 8px; justify-content: center;
+  }
+  .hub .nav-links .nl .ic { display: inline-flex; width: 20px; height: 20px; }
+  .hub .nav-links .nl-label { font-size: 12px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .hub .nav-links .nl.on { background: transparent; color: var(--accent); }
+  .hub .nav-links .badge { display: none; }
+  .hub .nav-links .dot-sm { display: block; }
+}
 
 .hub .page { padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 24px; }
 .hub .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }

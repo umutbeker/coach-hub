@@ -1,95 +1,131 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TEAM_NAME } from '../../lib/team';
 import Icon, { type IconName } from './Icon';
 
-export type NavKey =
-  | 'coach' | 'player' | 'feedback' | 'calendar' | 'scrims' | 'review' | 'prep'
-  | 'matches' | 'draft' | 'pro';
+// Seven destinations. Related pages share one entry and switch with
+// SectionTabs underneath: Games = Scrims + Official, Review = VODs + Feedback.
+// Their URLs stayed the same so links in notes and the calendar still work.
+export type NavKey = 'home' | 'calendar' | 'games' | 'review' | 'prep' | 'draft' | 'pro';
 
 type User = { name?: string; role?: string; image?: string } | null;
 
-// who: 'coach' = coaches only, 'player' = players only, undefined = everyone.
-const LINKS: { key: NavKey; href: string; label: string; icon: IconName; who?: 'coach' | 'player' }[] = [
-  { key: 'coach', href: '/coach', label: 'Coach', icon: 'users', who: 'coach' },
-  { key: 'player', href: '/player', label: 'My stats', icon: 'users', who: 'player' },
-  { key: 'feedback', href: '/feedback', label: 'Feedback', icon: 'message' },
-  { key: 'calendar', href: '/calendar', label: 'Calendar', icon: 'calendar' },
-  { key: 'scrims', href: '/scrims', label: 'Scrims', icon: 'target' },
-  { key: 'review', href: '/review', label: 'Review', icon: 'video' },
-  { key: 'prep', href: '/prep', label: 'Prep', icon: 'book' },
-  { key: 'matches', href: '/matches', label: 'Matches', icon: 'list' },
-  { key: 'draft', href: '/draft', label: 'Draft', icon: 'clipboard' },
-  { key: 'pro', href: '/pro', label: 'Pro Drafts', icon: 'play' },
+const LINKS: { key: NavKey; label: string; icon: IconName; href: (coach: boolean) => string }[] = [
+  { key: 'home', label: 'Home', icon: 'grid', href: c => (c ? '/coach' : '/player') },
+  { key: 'calendar', label: 'Calendar', icon: 'calendar', href: () => '/calendar' },
+  { key: 'games', label: 'Games', icon: 'target', href: () => '/scrims' },
+  // A player's first stop in Review is the feedback about them.
+  { key: 'review', label: 'Review', icon: 'video', href: c => (c ? '/review' : '/feedback') },
+  { key: 'prep', label: 'Prep', icon: 'book', href: () => '/prep' },
+  { key: 'draft', label: 'Draft', icon: 'clipboard', href: () => '/draft' },
+  { key: 'pro', label: 'Pro', icon: 'play', href: () => '/pro' },
 ];
+
+// "New" badges: when a section was last opened is kept per viewer in the
+// browser; the server only counts what is newer. Refreshed at most once a
+// minute across page changes.
+const SEEN = (user: string, k: string) => `seen_${k}_${user}`;
+const BADGE_CACHE = 'nav_badges';
+
+function readSeen(user: string, k: 'review' | 'games') {
+  try {
+    const v = Number(localStorage.getItem(SEEN(user, k)));
+    if (v) return v;
+    // First visit: start counting from now instead of showing everything.
+    localStorage.setItem(SEEN(user, k), String(Date.now()));
+  } catch { /* storage unavailable */ }
+  return Date.now();
+}
 
 function initials(name?: string) {
   if (!name) return '?';
   const parts = name.trim().split(/\s+/);
-  const letters = parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2);
-  return letters.toUpperCase();
+  return (parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2)).toUpperCase();
 }
 
 /**
- * Top bar for every signed-in screen.
- *
- * `user` is null on the public page, where the nav shows the wordmark and a way
- * back but no identity and no links into the signed-in app.
+ * Top bar for every signed-in screen; a bottom tab bar on phones.
+ * `user` is null on the public page: wordmark and a way in, no links.
  */
 export default function Nav({ active, user }: { active: NavKey | null; user: User }) {
   const router = useRouter();
   const isCoach = user?.role === 'coach';
+  const [badges, setBadges] = useState<{ review: number; games: number }>({ review: 0, games: 0 });
+
+  useEffect(() => {
+    if (!user?.name) return;
+    const name = user.name;
+    // Opening a section clears its badge.
+    if (active === 'review' || active === 'games') {
+      try { localStorage.setItem(SEEN(name, active), String(Date.now())); sessionStorage.removeItem(BADGE_CACHE); } catch { /* ignore */ }
+    }
+    try {
+      const c = JSON.parse(sessionStorage.getItem(BADGE_CACHE) || 'null');
+      if (c && c.user === name && Date.now() - c.at < 60_000) { setBadges(c.b); return; }
+    } catch { /* ignore */ }
+    const q = new URLSearchParams({
+      me: name,
+      review: String(readSeen(name, 'review')),
+      games: String(readSeen(name, 'games')),
+      ...(isCoach ? { coach: '1' } : { player: name }),
+    });
+    let live = true;
+    fetch(`/api/badges?${q}`).then(r => r.json()).then(b => {
+      if (!live) return;
+      const next = { review: b.review ?? 0, games: b.games ?? 0 };
+      setBadges(next);
+      try { sessionStorage.setItem(BADGE_CACHE, JSON.stringify({ user: name, at: Date.now(), b: next })); } catch { /* ignore */ }
+    }).catch(() => {});
+    return () => { live = false; };
+  }, [user?.name, isCoach, active]);
 
   const signOut = () => {
     try {
       localStorage.removeItem('currentUser');
       sessionStorage.removeItem('viewingPlayer');
+      sessionStorage.removeItem(BADGE_CACHE);
     } catch { /* storage can be unavailable; navigating away is the point */ }
     router.push('/');
   };
 
+  const badgeFor = (k: NavKey) => (k === 'review' ? badges.review : k === 'games' ? badges.games : 0);
+
   return (
     <nav className="nav">
-      <button
-        className="nl"
-        style={{ padding: '0 8px', gap: 10 }}
-        onClick={() => router.push(user ? (isCoach ? '/coach' : '/player') : '/')}
-      >
+      <button className="nl brand" style={{ padding: '0 8px', gap: 10 }}
+        onClick={() => router.push(user ? (isCoach ? '/coach' : '/player') : '/')}>
         <Icon name="mark" size={24} />
-        <span className="h" style={{ fontSize: 17, letterSpacing: '0.06em', color: 'var(--text)' }}>
-          {TEAM_NAME.toUpperCase()}
-        </span>
-        <span className="t3" style={{ fontSize: 12, letterSpacing: '0.14em', fontWeight: 500 }}>HUB</span>
+        <span className="h" style={{ fontSize: 17, letterSpacing: '0.06em', color: 'var(--text)' }}>{TEAM_NAME.toUpperCase()}</span>
+        <span className="t3 hide-sm" style={{ fontSize: 12, letterSpacing: '0.14em', fontWeight: 500 }}>HUB</span>
       </button>
 
       {user ? (
         <div className="nav-links">
-          {LINKS.filter(l => !l.who || (l.who === 'coach') === isCoach).map(l => (
-            <button
-              key={l.key}
-              className={active === l.key ? 'nl on' : 'nl'}
-              onClick={() => router.push(l.href)}
-            >
-              <Icon name={l.icon} />
-              {l.label}
-            </button>
-          ))}
+          {LINKS.map(l => {
+            const n = badgeFor(l.key);
+            return (
+              <button key={l.key} className={active === l.key ? 'nl on' : 'nl'} onClick={() => router.push(l.href(isCoach))}>
+                <span className="nl-ic"><Icon name={l.icon} />{n ? <span className="dot-sm" /> : null}</span>
+                <span className="nl-label">{l.label}</span>
+                {n ? <span className="badge">{n > 99 ? '99+' : n}</span> : null}
+              </button>
+            );
+          })}
         </div>
       ) : null}
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
         {user ? (
           <>
             <span className="avatar">
-              {user.image && user.image !== '/logo.png'
-                ? <img src={user.image} alt="" />
-                : initials(user.name)}
+              {user.image && user.image !== '/logo.png' ? <img src={user.image} alt="" /> : initials(user.name)}
             </span>
-            <span style={{ fontWeight: 500 }}>{user.name}</span>
-            <button className="btn ghost sm" onClick={signOut}>
+            <span className="hide-sm" style={{ fontWeight: 500 }}>{user.name}</span>
+            <button className="btn ghost sm" onClick={signOut} aria-label="Sign out">
               <Icon name="signout" />
-              Sign out
+              <span className="hide-sm">Sign out</span>
             </button>
           </>
         ) : (
@@ -97,5 +133,20 @@ export default function Nav({ active, user }: { active: NavKey | null; user: Use
         )}
       </div>
     </nav>
+  );
+}
+
+/** Second-level tabs for sections that span two pages (Games, Review). */
+export function SectionTabs({ items }: { items: { label: string; href: string; on: boolean; count?: number }[] }) {
+  const router = useRouter();
+  return (
+    <div className="tabs">
+      {items.map(i => (
+        <button key={i.href} className={i.on ? 'tab on' : 'tab'} onClick={() => { if (!i.on) router.push(i.href); }}>
+          {i.label}
+          {i.count ? <span className="t3" style={{ fontWeight: 400, marginLeft: 6 }}>{i.count}</span> : null}
+        </button>
+      ))}
+    </div>
   );
 }
