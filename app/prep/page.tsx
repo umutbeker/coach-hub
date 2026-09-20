@@ -420,6 +420,7 @@ function Prep() {
       if (!res.ok) { setErr(d.error ?? 'Could not build the report'); setBuilding(false); return; }
       setReport(d.report);
       if (d.stale) setErr('Leaguepedia is rate-limiting; showing the last saved report.');
+      else if (d.report?.partial) setErr('Player pools could not be fetched this time — rebuild in a minute to complete the report.');
     } catch {
       setErr('Could not reach the server.');
     }

@@ -39,6 +39,12 @@ export async function GET(request: Request) {
     }, { status: res.reason === 'ratelimited' ? 503 : 404 });
   }
 
+  // A partial build (the player query was refused) must not replace a full
+  // saved report — the coach would lose the pools they already had.
+  if (res.partial && saved?.players?.length) {
+    return NextResponse.json({ report: saved, fromCache: true, stale: true, reason: 'partial' });
+  }
+
   // Keep a brief written for the previous build of the same opponent.
   const report: Report = { ...res.report, brief: saved?.brief, savedAt: Date.now() };
   await put(KEYS.reports, key, report);

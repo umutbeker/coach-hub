@@ -29,6 +29,8 @@ export type Report = {
   recent: RecentGame[];
   brief?: { headline: string; points: { kind: string; text: string }[]; sampleWarning?: string };
   savedAt?: number;
+  /** The player query was refused (rate limit), so `players` is empty. */
+  partial?: boolean;
 };
 
 const five = (m: LpRow, p: string) => [1, 2, 3, 4, 5].map(i => m[`${p}${i}`]).filter(Boolean);
@@ -45,7 +47,7 @@ export function tally(names: string[], wins?: boolean[]): Count[] {
 }
 
 export type BuildResult =
-  | { ok: true; report: Report }
+  | { ok: true; report: Report; partial: boolean }
   | { ok: false; reason: 'ratelimited' | 'empty' };
 
 /**
@@ -73,13 +75,16 @@ export async function buildReport(team: string, deadline: number): Promise<Build
   if (games === null) return { ok: false, reason: 'ratelimited' };
   if (!games.length) return { ok: false, reason: 'empty' };
 
-  const rows = await lpQuery(cargo({
+  // A refused player query must not pass as "this team has no players": the
+  // report is marked partial instead, so it is never saved over a full one.
+  const rowsOrNull = await lpQuery(cargo({
     tables: 'ScoreboardPlayers',
     fields: 'Name,Role,Champion,PlayerWin,DateTime_UTC',
     where: `Team="${t}"`,
     order_by: 'DateTime_UTC DESC',
     limit: '150',
-  }), `report/players/${t}`, deadline) ?? [];
+  }), `report/players/${t}`, deadline);
+  const rows = rowsOrNull ?? [];
 
   const recent: RecentGame[] = games.map(g => {
     const blue = g.Team1 === t;
@@ -124,7 +129,9 @@ export async function buildReport(team: string, deadline: number): Promise<Build
 
   return {
     ok: true,
+    partial: rowsOrNull === null,
     report: {
+      partial: rowsOrNull === null,
       opponent: team,
       builtAt: Date.now(),
       games: recent.length,
