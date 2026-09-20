@@ -38,7 +38,10 @@ export function parseVod(raw: string | null | undefined): Vod | null {
   const host = u.hostname.replace(/^www\./, '');
 
   if (host === 'youtu.be' || host.endsWith('youtube.com')) {
-    const id = host === 'youtu.be' ? u.pathname.slice(1) : u.searchParams.get('v');
+    // `?v=` is only one of the forms. Leaguepedia's VodPB/VodGameStart links
+    // are `/live/<id>?t=…` on every ERL checked, and reading only `v` returned
+    // null for all of them — so the draft VOD button silently never appeared.
+    const id = youtubeId(url);
     const start = parseStart(u.searchParams.get('t') || u.searchParams.get('start'));
     if (!id) return { url, embed: null, kind: 'youtube', start };
     const q = start ? `?start=${start}` : '';

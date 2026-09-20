@@ -395,3 +395,66 @@ body {
   .hub .tmatch > :nth-child(4) { grid-area: b; }
   .hub .tmatch > :nth-child(5) { grid-area: act; justify-content: flex-start; }
 }
+
+/* ── Draft scouting board (/prep) ──────────────────────────────────────────
+   The opponent report's draft section. Role colours are only ever used here
+   and in the slot legend, so they are not promoted to :root tokens. */
+.hub .rolebar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--border); }
+.hub .rolebar > span { display: block; min-width: 2px; }
+.hub .r-Top { background: #F0913D; }
+.hub .r-Jungle { background: #34D399; }
+.hub .r-Mid { background: #60A5FA; }
+.hub .r-Bot { background: #F87171; }
+.hub .r-Support { background: #C084FC; }
+.hub .r-Unknown { background: var(--text-3); }
+
+/* The board itself: blue left, red right, bans between them — the draft's own
+   arrangement, so the eye lands where it already looks during a draft. */
+.hub .dboard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 1180px) { .hub .dboard { grid-template-columns: 1fr; } }
+
+.hub .sidehead { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.hub .sidehead.blue { background: rgba(96, 165, 250, 0.07); }
+.hub .sidehead.red { background: rgba(248, 113, 113, 0.07); }
+
+/* Rows, not cards — a card per pick slot was the thing that made this
+   unreadable at a glance. */
+.hub .dslot { display: flex; flex-direction: column; gap: 8px; padding: 11px 14px; border-top: 1px solid var(--border); }
+.hub .dslot:first-of-type { border-top: 0; }
+
+/* champion tile + its count */
+.hub .cu { display: flex; align-items: center; gap: 5px; }
+
+/* Two up wherever a card has a natural counterpart (won/lost, best/worst). */
+.hub .duo { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; align-items: start; }
+
+/* open → picked. Two columns, because eight tall rows in the middle column
+   left the two side columns short and the board lopsided. */
+.hub .priogrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px 22px; }
+.hub .prio { display: grid; grid-template-columns: 30px 1fr 46px 56px; gap: 9px; align-items: center; }
+.hub .prio .track { height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.hub .prio .track > span { display: block; height: 100%; background: var(--accent); }
+@media (max-width: 560px) {
+  .hub .prio { grid-template-columns: 30px 1fr 46px; }
+  .hub .prio .track { display: none; }
+}
+
+/* A BO3/BO5 is one row; its games sit under it. */
+.hub .srow { display: grid; grid-template-columns: 56px 1fr 64px 92px 1fr 56px 24px; gap: 12px; align-items: center; padding: 12px 16px; }
+/* A game is both drafts, one team per line — the shape of a draft screen.
+   Picks and bans each say which they are: two unlabelled strips of portraits
+   read as one list. */
+.hub .grow { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 9px 16px 9px 22px; border-top: 1px solid var(--border); }
+.hub .gteam { display: grid; grid-template-columns: 116px auto auto; gap: 12px; align-items: center; padding: 2px 0; }
+.hub .gteam > .who { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hub .gset { display: flex; align-items: center; gap: 8px; }
+.hub .gset > .k { font-size: 11px; color: var(--text-3); width: 30px; flex: none; }
+@media (max-width: 760px) {
+  .hub .gteam { grid-template-columns: 1fr; gap: 4px; }
+}
+@media (max-width: 900px) {
+  .hub .srow { grid-template-columns: 56px 1fr 64px 24px; }
+  .hub .srow > .s-hide { display: none; }
+  .hub .grow { grid-template-columns: 28px 46px 1fr; }
+  .hub .grow > .g-hide { display: none; }
+}

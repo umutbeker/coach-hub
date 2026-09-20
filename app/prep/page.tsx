@@ -3,8 +3,8 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { champImg } from '../../lib/champions';
-import { tally, type Count, type Report } from '../../lib/report';
-import { ROLES, ROLE_LABEL, newId, toRole, type DraftPlan, type DraftPlanSide, type PoolMatrix, type Role, type ScrimGame } from '../../lib/hub';
+import { type Count, type RecentGame, type RecentSeries, type Report } from '../../lib/report';
+import { newId, type DraftPlan, type DraftPlanSide, type ScrimGame } from '../../lib/hub';
 import { USERS } from '../../lib/users';
 import Nav from '../components/Nav';
 import Icon from '../components/Icon';
@@ -39,116 +39,418 @@ function CountList({ title, hint, items, showWr }: { title: string; hint: string
   );
 }
 
-// ── Lane by lane ────────────────────────────────────────────────────────────
-const LANE_NAME: Record<Role, string> = { top: 'top', jungle: 'jungle', mid: 'mid', adc: 'bot lane', support: 'support' };
+// ── Draft board ─────────────────────────────────────────────────────────────
+// The part of the report a coach reads with the draft screen open. Everything
+// here is scoped to the current patch by the server: a pick priority from
+// three patches ago is not their priority.
 
-type Lane = {
-  role: Role;
-  ours: { name: string; ready: string[]; practice: string[]; scrim: { name: string; n: number; w: number }[] } | null;
-  theirs: Report['players'][number] | null;
-  contested: string[];
-};
+const ROLE_ORDER = ['Top', 'Jungle', 'Mid', 'Bot', 'Support', 'Unknown'];
 
-function buildLanes(r: Report, pool: PoolMatrix, scrims: ScrimGame[]): Lane[] {
-  return ROLES.map(role => {
-    const me = USERS.find(u => u.role === 'player' && u.lane === role);
-    const tiers = me ? pool[me.name] ?? {} : {};
-    const ready = Object.keys(tiers).filter(c => tiers[c] === 'ready');
-    const practice = Object.keys(tiers).filter(c => tiers[c] === 'practice');
-    const scrim = tally(scrims.map(g => g.ourPicks?.[role] ?? ''), scrims.map(g => g.result === 'W'))
-      .slice(0, 4).map(c => ({ name: c.name, n: c.n, w: c.w ?? 0 }));
-    const theirs = r.players.filter(p => toRole(p.role) === role).sort((a, b) => b.games - a.games)[0] ?? null;
-    // A champion both sides play is contested: a pick to deny or a ban to spend.
-    const oursAll = new Set([...ready, ...practice, ...scrim.map(c => c.name)]);
-    return {
-      role,
-      ours: me ? { name: me.name, ready, practice, scrim } : null,
-      theirs,
-      contested: (theirs?.champs ?? []).map(c => c.name).filter(c => oursAll.has(c)),
-    };
-  });
-}
-
-function Mini({ names, dim, title }: { names: string[]; dim?: boolean; title?: (n: string) => string }) {
+/** Role split of a pick slot — "their first pick is a jungler" at a glance. */
+function RoleBar({ roles }: { roles: Count[] }) {
+  const total = roles.reduce((a, r) => a + r.n, 0);
+  if (!total) return null;
+  const sorted = [...roles].sort((a, b) => ROLE_ORDER.indexOf(a.name) - ROLE_ORDER.indexOf(b.name));
   return (
-    <div className="row" style={{ gap: 4 }}>
-      {names.map(c => (
-        <img key={c} src={champImg(c)} alt={c} title={title ? title(c) : c}
-          style={{ width: 28, height: 28, borderRadius: 5, opacity: dim ? 0.5 : 1, border: '1px solid var(--border)' }}
-          onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
-      ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className="rolebar">
+        {sorted.map(r => (
+          <span key={r.name} className={`r-${ROLE_ORDER.includes(r.name) ? r.name : 'Unknown'}`}
+            style={{ width: `${(r.n / total) * 100}%` }} title={`${r.name} ${r.n}/${total}`} />
+        ))}
+      </div>
+      <div className="t3" style={{ fontSize: 12 }}>
+        {sorted.map(r => `${r.name} ${Math.round((r.n / total) * 100)}%`).join(' · ')}
+      </div>
     </div>
   );
 }
 
-function PoolLine({ label, children }: { label: string; children: React.ReactNode }) {
+const img = (e: React.SyntheticEvent<HTMLImageElement>) => { (e.target as HTMLImageElement).src = '/logo.png'; };
+
+/** A champion tile with its count — the unit the whole board is built from. */
+function Chip({ c, ban, sm }: { c: Count; ban?: boolean; sm?: boolean }) {
+  const wr = c.w !== undefined ? pct(c.w, c.n) : null;
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-      <span className="t3" style={{ fontSize: 12, width: 56, flex: 'none' }}>{label}</span>
-      {children}
+    <div className="cu" title={`${c.name} · ${c.n}×${wr !== null ? ` · ${wr}%` : ''}`}>
+      <img src={champImg(c.name)} alt={c.name} className={`champ${ban ? ' ban' : ''}${sm ? ' sm' : ''}`} onError={img} />
+      <span className="mono t2" style={{ fontSize: 11 }}>{c.n}</span>
     </div>
   );
 }
 
-function LaneMatchups({ lanes, opponent }: { lanes: Lane[]; opponent: string }) {
+function ChipRow({ items, ban }: { items: Count[]; ban?: boolean }) {
+  if (!items.length) return <span className="t3" style={{ fontSize: 12 }}>No data</span>;
+  return <div className="row">{items.map(c => <Chip key={c.name} c={c} ban={ban} />)}</div>;
+}
+
+/** One pick slot as a row: what it is, which roles go in it, what they take. */
+function SlotRow({ s }: { s: NonNullable<Report['draft']>['slots'][number] }) {
   return (
-    <div className="card">
-      <div style={{ padding: '14px 18px 10px', display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-        <div className="h" style={{ fontSize: 20 }}>Lane by lane</div>
-        <span className="t3" style={{ fontSize: 13 }}>
-          our pool as rated in Champion pool · their most-played on stage · contested = both sides play it
-        </span>
+    <div className="dslot">
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+        <span className="mono" style={{ fontSize: 13, fontWeight: 600, color: s.side === 'blue' ? 'var(--blue-side)' : 'var(--red-side)' }}>{s.key}</span>
+        <span className="t3" style={{ fontSize: 12 }}>{s.label}</span>
+        <span className="mono t3" style={{ fontSize: 11, marginLeft: 'auto' }}>{s.n}</span>
       </div>
-      <div className="lanes thead" style={{ padding: '0 18px 6px' }}>
-        <span>Lane</span><span>Us</span><span>{opponent}</span><span>Contested</span>
+      <RoleBar roles={s.roles} />
+      <ChipRow items={s.champs} />
+    </div>
+  );
+}
+
+/** One side's whole draft behaviour, in the column it sits in during a draft. */
+function SideColumn({ side, slots, rec }: {
+  side: 'blue' | 'red'; slots: NonNullable<Report['draft']>['slots']; rec: { n: number; w: number };
+}) {
+  const mine = slots.filter(s => s.side === side);
+  return (
+    <div className="card" style={{ overflow: 'hidden' }}>
+      <div className={`sidehead ${side}`}>
+        <span className={side === 'blue' ? 'tag blue' : 'tag red'}>{side === 'blue' ? 'Blue side' : 'Red side'}</span>
+        <span className="mono t2" style={{ fontSize: 12 }}>{rec.n} games · {rec.w}–{rec.n - rec.w}</span>
       </div>
-      {lanes.map(l => (
-        <div key={l.role} className="lanes" style={{ padding: '10px 18px', borderTop: '1px solid var(--border)', alignItems: 'start' }}>
-          <span className="tag neutral" style={{ justifyContent: 'center', width: 70 }}>{ROLE_LABEL[l.role]}</span>
+      {mine.length ? mine.map(s => <SlotRow key={s.key} s={s} />) : <div className="dslot t3" style={{ fontSize: 13 }}>No games on this side.</div>}
+      {/* A thin sample reads as a tendency unless it is called out. */}
+      {rec.n > 0 && rec.n < 5 ? (
+        <div className="dslot" style={{ fontSize: 12, color: 'var(--warn)' }}>
+          Only {rec.n} games on this side this patch — read lightly.
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-            <span style={{ fontWeight: 600 }}>{l.ours?.name ?? '—'}</span>
-            {l.ours?.ready.length ? <PoolLine label="Ready"><Mini names={l.ours.ready} /></PoolLine> : null}
-            {l.ours?.practice.length ? <PoolLine label="Practice"><Mini names={l.ours.practice} dim /></PoolLine> : null}
-            {l.ours?.scrim.length ? (
-              <PoolLine label="Scrims">
-                <Mini names={l.ours.scrim.map(c => c.name)}
-                  title={c => { const x = l.ours!.scrim.find(y => y.name === c)!; return `${c} · ${x.n} games · ${pct(x.w, x.n)}%`; }} />
-              </PoolLine>
-            ) : null}
-            {l.ours && !l.ours.ready.length && !l.ours.practice.length && !l.ours.scrim.length
-              ? <span className="t3" style={{ fontSize: 13 }}>No pool rated and no scrims yet</span> : null}
+/**
+ * "What do they never let through." The denominator is the point: a champion
+ * taken 4 times out of 4 games where nobody banned it is a completely
+ * different read from one taken 4 times in 20.
+ */
+function Priority({ items }: { items: NonNullable<Report['draft']>['priority'] }) {
+  if (!items.length) return null;
+  return (
+    <div className="card" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+      <div>
+        <div className="sec sm">Never let through</div>
+        <div className="t3" style={{ fontSize: 11 }}>taken / games where nobody banned it</div>
+      </div>
+      <div className="priogrid">
+        {items.slice(0, 10).map(p => (
+          <div key={p.name} className="prio" title={`Picked ${p.picked} of ${p.open} games it was open${p.conceded ? ` · opponents took it ${p.conceded}x` : ''}`}>
+            <img src={champImg(p.name)} alt="" className="champ" onError={img} />
+            <span style={{ fontSize: 13 }}>{p.name}</span>
+            <span className="mono" style={{ fontSize: 12, textAlign: 'right', color: p.rate >= 35 ? 'var(--warn)' : 'var(--text)' }}>{p.rate}%</span>
+            <div className="track"><span style={{ width: `${p.rate}%` }} /></div>
           </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-            {l.theirs ? (
-              <>
-                <span>
-                  <span style={{ fontWeight: 600 }}>{l.theirs.name}</span>{' '}
-                  <span className="mono t2" style={{ fontSize: 13 }}>· {l.theirs.games} games · <span style={{ color: wrColor(l.theirs.wr) }}>{l.theirs.wr}%</span></span>
-                </span>
-                {l.theirs.champs.slice(0, 4).map(c => (
-                  <div key={c.name} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
-                    <img src={champImg(c.name)} alt="" style={{ width: 24, height: 24, borderRadius: 4 }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
-                    <span>{c.name}</span>
-                    <span className="mono t3">{c.n}× <span style={{ color: wrColor(pct(c.w ?? 0, c.n)) }}>{pct(c.w ?? 0, c.n)}%</span></span>
-                  </div>
-                ))}
-              </>
-            ) : <span className="t3" style={{ fontSize: 13 }}>No {LANE_NAME[l.role]} player found</span>}
+/**
+ * Their record on a champion, best or worst first.
+ *
+ * A scouting report that only lists comfort picks is half a report: what a
+ * team keeps losing on is as actionable as what they are good at, and it is
+ * the same column of data read from the other end.
+ */
+function RecordList({ items, worst }: { items: Count[]; worst?: boolean }) {
+  const sorted = worst ? [...items].reverse() : items;
+  const shown = sorted.filter(c => {
+    const wr = pct(c.w ?? 0, c.n);
+    return worst ? wr <= 50 : wr >= 50;
+  }).slice(0, 6);
+  return (
+    <div className="card" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+      <div>
+        <div className="sec sm">{worst ? 'They lose with' : 'They win with'}</div>
+        <div className="t3" style={{ fontSize: 11 }}>their record when they pick it · 2+ games</div>
+      </div>
+      {!shown.length ? <span className="t3" style={{ fontSize: 12 }}>Not enough repeats this patch</span> : shown.map(c => {
+        const w = c.w ?? 0;
+        return (
+          <div key={c.name} style={{ display: 'grid', gridTemplateColumns: '30px 1fr auto', gap: 9, alignItems: 'center' }}>
+            <img src={champImg(c.name)} alt="" className="champ" onError={img} />
+            <span style={{ fontSize: 13 }}>{c.name}</span>
+            <span className="mono" style={{ fontSize: 13, fontWeight: 600, color: wrColor(pct(w, c.n)) }}>{w}–{c.n - w}</span>
           </div>
+        );
+      })}
+    </div>
+  );
+}
 
-          <div>{l.contested.length ? <Mini names={l.contested} /> : <span className="t3" style={{ fontSize: 13 }}>—</span>}</div>
+/** Whole drafts, so a composition reads as one thing rather than five picks. */
+function Comps({ items, won }: { items: NonNullable<Report['draft']>['comps']['won']; won?: boolean }) {
+  return (
+    <div className="card" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+      <div>
+        <div className="sec sm">{won ? `Drafts they won (${items.length})` : `Drafts they lost (${items.length})`}</div>
+        <div className="t3" style={{ fontSize: 11 }}>in draft order, this patch</div>
+      </div>
+      {!items.length ? <span className="t3" style={{ fontSize: 12 }}>None this patch</span> : items.map(c => (
+        <div key={c.gameId} style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+          <span className={c.side === 'blue' ? 'tag blue' : 'tag red'} style={{ height: 20, fontSize: 11 }}>
+            {c.side === 'blue' ? 'B' : 'R'}
+          </span>
+          <div className="row" style={{ gap: 5 }}>
+            {c.picks.map((p, i) => (
+              <img key={i} src={champImg(p)} className="champ sm" alt={p}
+                title={`${p}${c.roles[i] ? ` · ${c.roles[i]}` : ''}`} onError={img} />
+            ))}
+          </div>
+          <span className="t3" style={{ fontSize: 11, marginLeft: 'auto' }}>vs {c.vs}</span>
         </div>
       ))}
     </div>
   );
 }
 
+/** Bans 1-3 go down blind; 4-5 answer what is already picked. Different reads. */
+function Bans({ title, hint, first, second, flag }: {
+  title: string; hint: string; first: Count[]; second: Count[]; flag?: string;
+}) {
+  return (
+    <div className="card" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+      <div><div className="sec sm">{title}</div><div className="t3" style={{ fontSize: 11 }}>{hint}</div></div>
+      <div className="t3" style={{ fontSize: 11 }}>first rotation · blind</div>
+      <ChipRow items={first} ban />
+      <div className="t3" style={{ fontSize: 11 }}>second rotation · reactive</div>
+      <ChipRow items={second} ban />
+      {flag ? <div style={{ fontSize: 12, color: 'var(--warn)' }}>{flag}</div> : null}
+    </div>
+  );
+}
+
+/**
+ * "Banned in every game" is the strongest single line a scouting report has,
+ * so it is stated in words rather than left for the reader to spot.
+ */
+function alwaysBanned(items: Count[], games: number): string | undefined {
+  const top = items[0];
+  if (!top || !games || top.n < Math.max(3, Math.ceil(games * 0.8))) return undefined;
+  return top.n >= games
+    ? `${top.name} banned in all ${games} games.`
+    : `${top.name} banned in ${top.n} of ${games}.`;
+}
+
+/**
+ * The whole draft read on one screen, laid out the way a draft is: their blue
+ * behaviour on the left, red on the right, the bans between them. Rows rather
+ * than cards — a card per pick slot is what made this unreadable at a glance.
+ */
+function DraftBoard({ d, patchCounts }: { d: NonNullable<Report['draft']>; patchCounts: Report['patchCounts'] }) {
+  const [wide, setWide] = useState(false);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div className="h" style={{ fontSize: 22 }}>Draft</div>
+        <span className="tag accent">Patch {d.patches.join(' + ')}</span>
+        <span className="t3" style={{ fontSize: 13 }}>{d.games} games · {d.wins}–{d.games - d.wins}</span>
+        {d.widened ? (
+          <span className="tag warn" title="The newest patch alone had too few games to read">
+            widened to {d.patches.length} patches
+          </span>
+        ) : null}
+        {patchCounts?.length ? (
+          <button className="btn ghost sm" style={{ marginLeft: 'auto' }} onClick={() => setWide(v => !v)}>
+            <Icon name={wide ? 'chevron-up' : 'chevron-down'} />Patches
+          </button>
+        ) : null}
+      </div>
+
+      {wide && patchCounts?.length ? (
+        <div className="card" style={{ padding: '10px 14px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {patchCounts.map(p => (
+            <span key={p.patch} className={d.patches.includes(p.patch) ? 'tag accent' : 'tag neutral'}>{p.patch} · {p.n}</span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="dboard">
+        <SideColumn side="blue" slots={d.slots} rec={d.side.blue} />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+          <Bans title="They ban" hint="their own bans" first={d.bans.first} second={d.bans.second} />
+          <Bans title="Banned against them" hint="the pool other teams respect"
+            first={d.bannedAgainst.first} second={d.bannedAgainst.second}
+            flag={alwaysBanned(d.bannedAgainst.first, d.games)} />
+        </div>
+
+        <SideColumn side="red" slots={d.slots} rec={d.side.red} />
+      </div>
+
+      {/* What they win and lose with, side by side — a report that lists only
+          comfort picks answers half the question a coach came with. */}
+      <div className="duo">
+        <RecordList items={d.record} />
+        <RecordList items={d.record} worst />
+      </div>
+
+      <div className="duo">
+        <Comps items={d.comps.won} won />
+        <Comps items={d.comps.lost} />
+      </div>
+
+      {/* Full width now: eight tall rows in the middle column left the two side
+          columns short and the whole board lopsided. */}
+      <Priority items={d.priority} />
+
+      {/* Pools last: the slots above already say when each role gets picked. */}
+      <div className="card" style={{ padding: '12px 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 16 }}>
+        {d.byRole.map(r => (
+          <div key={r.role} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className={`r-${ROLE_ORDER.includes(r.role) ? r.role : 'Unknown'}`}
+                style={{ width: 8, height: 8, borderRadius: 2, display: 'block' }} />
+              <span className="sec sm">{r.role}</span>
+            </div>
+            <ChipRow items={r.champs} />
+          </div>
+        ))}
+        {d.flex.length ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span className="sec sm" title="Played in more than one role — the draft cannot pin them down">Flex</span>
+            <div className="row">
+              {d.flex.map(f => (
+                <img key={f.name} src={champImg(f.name)} alt={f.name} className="champ" onError={img}
+                  title={`${f.name} · ${f.roles.map(r => `${r.name} ${r.n}x`).join(', ')}`} />
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 const KIND_TAG: Record<string, string> = { ban: 'tag loss', watch: 'tag warn', exploit: 'tag win', draft: 'tag accent', player: 'tag blue' };
 
-function ReportView({ r, lanes, onBrief, briefing, briefErr }: { r: Report; lanes: Lane[]; onBrief: () => void; briefing: boolean; briefErr: string }) {
-  const [vod, setVod] = useState<string | null>(null);
+/** One team’s half of a game: who they are, what they picked, what they banned. */
+function GameTeam({ who, side, picks, roles, bans }: {
+  who: string; side: 'blue' | 'red'; picks: string[]; roles: string[]; bans: string[];
+}) {
+  return (
+    <div className="gteam">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+        <span style={{ width: 6, height: 6, borderRadius: 2, flex: 'none', background: side === 'blue' ? 'var(--blue-side)' : 'var(--red-side)' }} />
+        <span className="who t2" title={who}>{who}</span>
+      </div>
+      <div className="gset">
+        <span className="k">picks</span>
+        <div className="row" style={{ gap: 6 }}>
+          {picks.map((c, j) => (
+            <img key={j} src={champImg(c)} className="champ sm" alt={c} title={`${c}${roles[j] ? ` · ${roles[j]}` : ''}`} onError={img} />
+          ))}
+        </div>
+      </div>
+      <div className="gset">
+        <span className="k">bans</span>
+        <div className="row" style={{ gap: 6 }}>
+          {bans.map((c, j) => (
+            <img key={j} src={champImg(c)} className="champ sm ban" alt={c} title={`banned ${c}`} onError={img} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+/**
+ * Recent games as SERIES, not games. A BO3/BO5 is one row that opens into its
+ * games — listing five games of one BO5 as five separate results made a single
+ * match look like a week of play.
+ */
+function SeriesList({ series, recent, opponent }: { series?: RecentSeries[]; recent: RecentGame[]; opponent: string }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const [vod, setVod] = useState<{ id: string; kind: 'draft' | 'game' } | null>(null);
+
+  // A report saved before series grouping existed only has the flat list.
+  const rows: RecentSeries[] = series ?? recent.map(g => ({
+    matchId: g.gameId, date: g.date, tournament: g.tournament, vs: g.vs,
+    us: g.won ? 1 : 0, them: g.won ? 0 : 1, won: g.won, patch: g.patch, games: [g],
+  }));
+  if (!rows.length) return null;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+        <div className="h" style={{ fontSize: 22 }}>Recent series</div>
+        <span className="t3" style={{ fontSize: 13 }}>
+          {rows.length} series · {rows.reduce((a, s) => a + s.games.length, 0)} games
+        </span>
+        {/* Which VOD fields Leaguepedia fills is per-league, and some fill none
+            at all — say so rather than leaving a row that looks broken. */}
+        {rows.every(s => s.games.every(g => !g.vod && !g.vodGame)) ? (
+          <span className="t3" style={{ fontSize: 12 }}>· Leaguepedia has no VODs for this league</span>
+        ) : null}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {rows.map(s => {
+          const on = open === s.matchId;
+          return (
+            <div key={s.matchId} className="card" style={on ? { borderColor: 'var(--border-strong)' } : undefined}>
+              <button className="srow" style={{ width: '100%', background: 'none', border: 0, color: 'inherit', textAlign: 'left', font: 'inherit', cursor: 'pointer' }}
+                onClick={() => setOpen(on ? null : s.matchId)} aria-expanded={on}>
+                <span className={s.won ? 'tag win' : 'tag loss'}>{s.won ? 'Won' : 'Lost'}</span>
+                <span style={{ fontWeight: 500 }}>vs {s.vs}</span>
+                <span className="mono" style={{ fontSize: 19, fontWeight: 600 }}>
+                  <span style={{ color: s.won ? 'var(--win)' : 'var(--loss)' }}>{s.us}</span>
+                  <span className="t3">–</span>{s.them}
+                </span>
+                {/* gamesPlayed is not the format: a BO5 ending 3-1 has four. */}
+                <span className="t3 s-hide" style={{ fontSize: 12 }}>{s.games.length} game{s.games.length > 1 ? 's' : ''}</span>
+                <span className="t3 s-hide" style={{ fontSize: 12 }}>{s.date} · {s.tournament}</span>
+                <span className="tag neutral mono s-hide">{s.patch || '—'}</span>
+                <Icon name={on ? 'chevron-up' : 'chevron-down'} />
+              </button>
+
+              {on ? s.games.map((g, i) => {
+                const open = vod?.id === g.gameId ? vod : null;
+                return (
+                <div key={g.gameId}>
+                  <div className="grow">
+                    <span className="mono t3" style={{ fontSize: 12 }}>G{g.gameNo || i + 1}</span>
+                    <div>
+                      <GameTeam who={opponent} side={g.side} picks={g.theirPicks} roles={g.theirRoles} bans={g.theirBans} />
+                      {/* The other side matters as much: their picks are what
+                          this draft was answering. */}
+                      <GameTeam who={g.vs} side={g.side === 'blue' ? 'red' : 'blue'} picks={g.oppPicks} roles={g.oppRoles} bans={g.oppBans} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
+                      <span className="mono" style={{ fontSize: 12, color: g.won ? 'var(--win)' : 'var(--loss)' }}>{g.won ? 'Win' : 'Loss'}</span>
+                      {/* Both links are the same broadcast at different offsets:
+                          VodPB lands on the draft, VodGameStart on the game. */}
+                      {g.vod ? (
+                        <button className="btn ghost sm" onClick={() => setVod(open?.kind === 'draft' ? null : { id: g.gameId, kind: 'draft' })}>
+                          <Icon name={open?.kind === 'draft' ? 'chevron-up' : 'play'} />Draft
+                        </button>
+                      ) : null}
+                      {g.vodGame ? (
+                        <button className="btn ghost sm" onClick={() => setVod(open?.kind === 'game' ? null : { id: g.gameId, kind: 'game' })}>
+                          <Icon name={open?.kind === 'game' ? 'chevron-up' : 'play'} />Game
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                  {open ? (
+                    <iframe src={(open.kind === 'draft' ? g.vod : g.vodGame) ?? ''} title={`${open.kind} vs ${g.vs}`}
+                      allow="encrypted-media; picture-in-picture" allowFullScreen
+                      style={{ display: 'block', width: 'calc(100% - 44px)', margin: '4px 22px 12px', aspectRatio: '16 / 9', border: 0, borderRadius: 6 }} />
+                  ) : null}
+                </div>
+                );
+              }) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+function ReportView({ r, onBrief, briefing, briefErr }: { r: Report; onBrief: () => void; briefing: boolean; briefErr: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
@@ -184,14 +486,18 @@ function ReportView({ r, lanes, onBrief, briefing, briefErr }: { r: Report; lane
         ) : !briefErr ? <div className="t3" style={{ fontSize: 14 }}>No brief yet.</div> : null}
       </div>
 
-      <LaneMatchups lanes={lanes} opponent={r.opponent} />
+      {/* The draft board replaces the four flat count lists that used to sit
+          here: it says the same things per pick slot and per patch instead of
+          averaging every game we fetched. */}
+      {r.draft ? <DraftBoard d={r.draft} patchCounts={r.patchCounts} /> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12 }}>
+          <CountList title="First pick on blue" hint="what they take B1" items={r.firstPicks} />
+          <CountList title="They ban" hint="their own bans" items={r.theirBans} />
+          <CountList title="Banned against them" hint="what opponents respect" items={r.bannedAgainst} />
+          <CountList title="They pick" hint="most picked · win rate" items={r.picks} showWr />
+        </div>
+      )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12 }}>
-        <CountList title="First pick on blue" hint="what they take B1" items={r.firstPicks} />
-        <CountList title="They ban" hint="their own bans" items={r.theirBans} />
-        <CountList title="Banned against them" hint="what opponents respect" items={r.bannedAgainst} />
-        <CountList title="They pick" hint="most picked · win rate" items={r.picks} showWr />
-      </div>
 
       <div>
         <div className="h" style={{ fontSize: 22, marginBottom: 12 }}>Players</div>
@@ -204,40 +510,31 @@ function ReportView({ r, lanes, onBrief, briefing, briefErr }: { r: Report; lane
               </div>
               {p.champs.map(c => (
                 <div key={c.name} style={{ display: 'grid', gridTemplateColumns: '28px 1fr auto', gap: 8, alignItems: 'center' }}>
-                  <img src={champImg(c.name)} alt="" style={{ width: 28, height: 28, borderRadius: 5 }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+                  <img src={champImg(c.name)} alt="" style={{ width: 28, height: 28, borderRadius: 5 }} onError={img} />
                   <span style={{ fontSize: 14 }}>{c.name}</span>
                   <span className="mono t2" style={{ fontSize: 13 }}>{c.n}× <span style={{ color: wrColor(pct(c.w ?? 0, c.n)) }}>{pct(c.w ?? 0, c.n)}%</span></span>
                 </div>
               ))}
+              {/* The other end of the same tally: a top-5 by games played hides
+                  whatever they keep losing on. */}
+              {p.weak?.length ? (
+                <>
+                  <div className="sec sm" style={{ marginTop: 2 }}>Struggles on</div>
+                  {p.weak.map(c => (
+                    <div key={c.name} style={{ display: 'grid', gridTemplateColumns: '28px 1fr auto', gap: 8, alignItems: 'center' }}>
+                      <img src={champImg(c.name)} alt="" style={{ width: 28, height: 28, borderRadius: 5, opacity: 0.75 }} onError={img} />
+                      <span style={{ fontSize: 14 }}>{c.name}</span>
+                      <span className="mono" style={{ fontSize: 13, color: 'var(--loss)' }}>{c.w ?? 0}–{c.n - (c.w ?? 0)}</span>
+                    </div>
+                  ))}
+                </>
+              ) : null}
             </div>
           ))}
         </div>
       </div>
 
-      <div>
-        <div className="h" style={{ fontSize: 22, marginBottom: 12 }}>Recent drafts</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {r.recent.map(g => (
-            <div key={g.gameId} className="card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', flexWrap: 'wrap' }}>
-                <span className={g.won ? 'tag win' : 'tag loss'}>{g.won ? 'Win' : 'Loss'}</span>
-                <span style={{ fontWeight: 500 }}>vs {g.vs}</span>
-                <span className={g.side === 'blue' ? 'tag blue' : 'tag red'}>{g.side === 'blue' ? 'Blue' : 'Red'}</span>
-                <span className="t3" style={{ fontSize: 13 }}>{g.tournament} · {g.date}{g.minutes ? ` · ${Math.round(g.minutes)}m` : ''}</span>
-                {g.vod ? <button className="btn sm" style={{ marginLeft: 'auto' }} onClick={() => setVod(vod === g.gameId ? null : g.gameId)}><Icon name={vod === g.gameId ? 'chevron-up' : 'play'} />{vod === g.gameId ? 'Hide' : 'Watch draft'}</button> : null}
-              </div>
-              {vod === g.gameId && g.vod ? (
-                <iframe src={g.vod} title="draft" allow="encrypted-media; picture-in-picture" allowFullScreen style={{ display: 'block', width: 'calc(100% - 32px)', margin: '0 16px 12px', aspectRatio: '16 / 9', border: 0, borderRadius: 6 }} />
-              ) : null}
-              <div className="pdr">
-                <span className="t3" style={{ fontSize: 12 }}>Their picks</span><div className="row">{g.theirPicks.map((c, i) => <img key={i} src={champImg(c)} className="champ" alt={c} title={c} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />)}</div>
-                <span className="t3" style={{ fontSize: 12 }}>Their bans</span><div className="row">{g.theirBans.map((c, i) => <img key={i} src={champImg(c)} className="champ ban" alt={c} title={c} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />)}</div>
-                <span className="t3" style={{ fontSize: 12 }}>{g.vs}</span><div className="row">{g.oppPicks.map((c, i) => <img key={i} src={champImg(c)} className="champ" alt={c} title={c} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />)}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <SeriesList series={r.series} recent={r.recent} opponent={r.opponent} />
     </div>
   );
 }
@@ -463,8 +760,6 @@ function Prep() {
   // The opponent the draft room scouts. Set here, stored on the shared draft
   // state (SET_OPPONENT), so it reaches the draft room over Pusher.
   const [nextOpp, setNextOpp] = useState<string | null>(null);
-  const [pool, setPool] = useState<PoolMatrix>({});
-  const [scrims, setScrims] = useState<ScrimGame[]>([]);
 
   // Who could we be preparing for: next fixture, the coach's manual pick,
   // teams we've scrimmed, and teams we already have a plan for.
@@ -481,10 +776,8 @@ function Prep() {
       }),
       fetch('/api/prep').then(r => r.json()).then(d => (d.plans ?? []).forEach((p: DraftPlan) => { if (!add.has(p.opponent)) add.set(p.opponent, 'has a plan'); })),
       fetch('/api/scrims').then(r => r.json()).then(d => {
-        setScrims(d.games ?? []);
         (d.games ?? []).slice(0, 40).forEach((g: ScrimGame) => { if (!add.has(g.opponent)) add.set(g.opponent, 'scrimmed'); });
       }),
-      fetch('/api/pool').then(r => r.json()).then(d => setPool(d.matrix ?? {})),
     ]).then(() => setSuggest([...add.entries()].slice(0, 10).map(([name, why]) => ({ name, why }))));
   }, []);
 
@@ -570,7 +863,6 @@ function Prep() {
   };
   const isNext = !!nextOpp && !!opponent && nextOpp.toLowerCase() === opponent.toLowerCase();
 
-  const lanes = useMemo(() => (report ? buildLanes(report, pool, scrims) : []), [report, pool, scrims]);
 
   const age = report?.savedAt ?? report?.builtAt;
   const stale = useMemo(() => (age ? Date.now() - age > 3 * 86400000 : false), [age]);
@@ -634,7 +926,7 @@ function Prep() {
                   </button>
                 </div>
                 {err ? <div className="card" style={{ padding: 16, color: 'var(--loss)', borderColor: 'rgba(248,113,113,0.4)' }}>{err}</div> : null}
-                {report ? <ReportView r={report} lanes={lanes} onBrief={brief} briefing={briefing} briefErr={briefErr} /> : !building && !err ? (
+                {report ? <ReportView r={report} onBrief={brief} briefing={briefing} briefErr={briefErr} /> : !building && !err ? (
                   <div className="card empty">No report for {opponent} yet. Build it once and the whole team can open it.</div>
                 ) : null}
               </>
@@ -644,9 +936,6 @@ function Prep() {
           </>
         )}
       </div>
-      <style>{`.hub .lanes{display:grid;grid-template-columns:80px minmax(0,1.2fr) minmax(0,1fr) minmax(0,0.7fr);gap:14px;align-items:center;}
-        @media(max-width:900px){.hub .lanes{grid-template-columns:1fr;}}
-        .hub .pdr{display:grid;grid-template-columns:110px 1fr;gap:8px 12px;align-items:center;padding:0 16px 14px;}`}</style>
     </div>
   );
 }
