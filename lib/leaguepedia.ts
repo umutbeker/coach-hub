@@ -11,7 +11,69 @@ export type LpRow = Record<string, string>;
 
 export const LP_ENDPOINT = 'https://lol.fandom.com/api.php';
 
+// Fandom asks API clients to identify themselves.
+const UA = 'PyramidHub/1.0 (team coaching tool; +https://github.com/umutbeker/coach-hub)';
+
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+/**
+ * Optional Leaguepedia sign-in.
+ *
+ * Anonymous requests are rate limited per IP, and that limit is tight enough
+ * that a handful of queries locks a whole network out for minutes — a home
+ * connection and a serverless region alike. A logged-in account gets a far
+ * higher limit, so when LEAGUEPEDIA_USER and LEAGUEPEDIA_BOT_PASSWORD are
+ * set (Special:BotPasswords on lol.fandom.com), queries use that session.
+ * Without them everything still works, anonymously, exactly as before.
+ *
+ * The session is per server instance and logged in lazily; a failed login is
+ * remembered so it is not retried on every query.
+ */
+let session: Promise<string | null> | null = null;
+
+async function login(): Promise<string | null> {
+  const user = process.env.LEAGUEPEDIA_USER;
+  const pass = process.env.LEAGUEPEDIA_BOT_PASSWORD;
+  if (!user || !pass) return null;
+
+  const jar: string[] = [];
+  const cookie = () => jar.join('; ');
+  const take = (res: Response) => {
+    // Keep only name=value; the attributes don't matter for sending it back.
+    for (const c of res.headers.getSetCookie?.() ?? []) jar.push(c.split(';')[0]);
+  };
+
+  try {
+    const tokRes = await fetch(`${LP_ENDPOINT}?action=query&meta=tokens&type=login&format=json`, {
+      headers: { 'User-Agent': UA },
+    });
+    take(tokRes);
+    const token = (await tokRes.json())?.query?.tokens?.logintoken;
+    if (!token) return null;
+
+    const body = new URLSearchParams({ action: 'login', format: 'json', lgname: user, lgpassword: pass, lgtoken: token });
+    const logRes = await fetch(LP_ENDPOINT, {
+      method: 'POST',
+      headers: { 'User-Agent': UA, 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookie() },
+      body,
+    });
+    take(logRes);
+    const result = (await logRes.json())?.login?.result;
+    if (result !== 'Success') {
+      console.error('[lp] login failed:', result);
+      return null;
+    }
+    return cookie();
+  } catch (e) {
+    console.error('[lp] login error:', e);
+    return null;
+  }
+}
+
+function authCookie(): Promise<string | null> {
+  session ??= login();
+  return session;
+}
 
 // Sezon yılı çalışma anında türetiliyor — 'LEC 2025' gibi sabit bir string
 // yeni yıla girince sessizce 0 satır döner. Yeni sezonun henüz maçı yoksa
@@ -34,7 +96,10 @@ export async function lpQuery(
 ): Promise<LpRow[] | null> {
   for (let attempt = 0; ; attempt++) {
     try {
-      const res = await fetch(`${LP_ENDPOINT}?${params}`);
+      const cookie = await authCookie();
+      const res = await fetch(`${LP_ENDPOINT}?${params}`, {
+        headers: cookie ? { 'User-Agent': UA, Cookie: cookie } : { 'User-Agent': UA },
+      });
       if (res.ok) {
         const data = await res.json();
         if (data?.error?.code !== 'ratelimited') {
