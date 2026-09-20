@@ -342,6 +342,105 @@ function PlanEditor({ plan, onChange, onSave, saving, savedAt }: {
   );
 }
 
+// ── Opponent input ──────────────────────────────────────────────────────────
+
+type TeamHit = { name: string; short: string; region: string; disbanded: boolean };
+
+/**
+ * The opponent is picked from a list rather than typed from memory: the name
+ * has to match Leaguepedia exactly, and a wrong spelling comes back as zero
+ * rows rather than an error, so a typo looks like "this team has no games".
+ *
+ * /api/teams answers from a weekly cache keyed by the first two letters; the
+ * debounce is what keeps a fast typist from spending Leaguepedia's rate limit
+ * while that cache is still filling.
+ */
+function OpponentInput({ value, onChange, onChoose }: {
+  value: string;
+  onChange: (v: string) => void;
+  onChoose: (name: string) => void;
+}) {
+  // Results carry the search they answer, so a half-typed name never shows
+  // the previous search's list while the next one is in flight.
+  const [res, setRes] = useState<{ q: string; list: TeamHit[] }>({ q: '', list: [] });
+  const [open, setOpen] = useState(false);
+  const [cursor, setCursor] = useState(-1);
+  const q = value.trim();
+  const hits = open && res.q === q && q ? res.list : [];
+
+  useEffect(() => {
+    const term = value.trim();
+    if (!open || !term) return;
+    let live = true;
+    const t = setTimeout(() => {
+      fetch(`/api/teams?q=${encodeURIComponent(term)}`)
+        .then(r => r.json())
+        .then(d => { if (live) { setRes({ q: term, list: d.teams ?? [] }); setCursor(-1); } })
+        .catch(() => { if (live) setRes({ q: term, list: [] }); });
+    }, 250);
+    return () => { live = false; clearTimeout(t); };
+  }, [value, open]);
+
+  const pick = (name: string) => { setOpen(false); onChoose(name); };
+
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!hits.length) return;
+      setCursor(c => e.key === 'ArrowDown'
+        ? (c + 1 >= hits.length ? 0 : c + 1)
+        : (c - 1 < 0 ? hits.length - 1 : c - 1));
+    } else if (e.key === 'Enter') {
+      pick(cursor >= 0 && hits[cursor] ? hits[cursor].name : value);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div style={{ flex: 1, minWidth: 240, position: 'relative' }}>
+      <input
+        className="input" style={{ width: '100%' }} autoComplete="off"
+        placeholder="Opponent — start typing a team name"
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        // A click on an option fires after blur, so the list stays up long
+        // enough for that click to land.
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={onKey}
+      />
+      {open && hits.length ? (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 20,
+          background: 'var(--surface-2)', border: '1px solid var(--border-strong)',
+          borderRadius: 'var(--r-ctl)', overflow: 'hidden', maxHeight: 320, overflowY: 'auto',
+        }}>
+          {hits.map((t, i) => (
+            <button
+              key={t.name} type="button"
+              onMouseDown={e => e.preventDefault()}
+              onMouseEnter={() => setCursor(i)}
+              onClick={() => pick(t.name)}
+              style={{
+                display: 'flex', width: '100%', alignItems: 'baseline', gap: 8, textAlign: 'left',
+                padding: '8px 10px', border: 0, cursor: 'pointer', font: 'inherit',
+                color: t.disbanded ? 'var(--text-2)' : 'var(--text)',
+                background: i === cursor ? 'var(--surface)' : 'transparent',
+              }}>
+              <span style={{ fontWeight: 500 }}>{t.name}</span>
+              {t.short ? <span className="mono t3" style={{ fontSize: 12 }}>{t.short}</span> : null}
+              <span className="t3" style={{ fontSize: 12, marginLeft: 'auto' }}>
+                {t.disbanded ? 'disbanded' : t.region}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 // ── Page ────────────────────────────────────────────────────────────────────
 
 function Prep() {
@@ -491,8 +590,7 @@ function Prep() {
 
         <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <input className="input" style={{ flex: 1, minWidth: 240 }} placeholder="Opponent — team name as written on Leaguepedia" value={input}
-              onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') choose(input); }} />
+            <OpponentInput value={input} onChange={setInput} onChoose={choose} />
             <button className="btn primary" onClick={() => choose(input)}>Open</button>
           </div>
           {suggest.length ? (
