@@ -111,17 +111,13 @@ export default function MatchesPage() {
         const rr = await fetch('/api/data?type=matches'); const rd = await rr.json();
         if (rd.data?.cargoquery?.length > 0) { const p = parseCargoData(rd.data); saveCache(LP_CACHE_KEY, p); setSeries(p); setLoading(false); return; }
       } catch { /* fall through to Leaguepedia */ }
+      // Redis boşsa: sorgu yine sunucuda, giriş yapılmış oturumla çalışır ve
+      // sonucu Redis'e yazar (tarayıcıdan sorgulamak anonim limite takılıyordu).
       try {
-        const p = new URLSearchParams({
-          action: 'cargoquery', tables: 'ScoreboardPlayers=SP,PicksAndBansS7=PB',
-          fields: ['SP.PlayerWin', 'SP.DateTime_UTC', 'SP.Tournament', 'SP.Team', 'SP.TeamVs', 'SP.Side', 'SP.GameId', 'PB.Team1Ban1', 'PB.Team1Ban2', 'PB.Team1Ban3', 'PB.Team1Ban4', 'PB.Team1Ban5', 'PB.Team2Ban1', 'PB.Team2Ban2', 'PB.Team2Ban3', 'PB.Team2Ban4', 'PB.Team2Ban5', 'PB.Team1Pick1', 'PB.Team1Pick2', 'PB.Team1Pick3', 'PB.Team1Pick4', 'PB.Team1Pick5', 'PB.Team2Pick1', 'PB.Team2Pick2', 'PB.Team2Pick3', 'PB.Team2Pick4', 'PB.Team2Pick5'].join(','),
-          join_on: 'SP.GameId=PB.GameId',
-          where: `SP.Team='${TEAM_LP_NAME}' OR SP.TeamVs='${TEAM_LP_NAME}'`,
-          order_by: 'SP.DateTime_UTC DESC', limit: '500', format: 'json', origin: '*',
-        });
-        const res = await fetch(`https://lol.fandom.com/api.php?${p}`); const data = await res.json();
-        if (!data.cargoquery?.length) throw new Error('empty');
-        const parsed = parseCargoData(data); saveCache(LP_CACHE_KEY, parsed); setSeries(parsed);
+        const res = await fetch('/api/lp?type=matches');
+        const d = await res.json();
+        if (!d.data?.cargoquery?.length) throw new Error('empty');
+        const parsed = parseCargoData(d.data); saveCache(LP_CACHE_KEY, parsed); setSeries(parsed);
       } catch { /* leave the empty state */ }
       setLoading(false);
     };

@@ -8,6 +8,8 @@
 
 import { lpQuery, cargo, type LpRow } from './leaguepedia';
 import { parseVod } from './vod';
+import { KEYS, get, put } from './store';
+import { slug } from './hub';
 
 export type Count = { name: string; n: number; w?: number };
 
@@ -33,6 +35,11 @@ export type Report = {
   partial?: boolean;
 };
 
+const LP_TEAM_ALIAS: Record<string, string> = {
+  BIG: 'Berlin International Gaming',
+  'The Otter Side': 'Otter Side',
+};
+
 const five = (m: LpRow, p: string) => [1, 2, 3, 4, 5].map(i => m[`${p}${i}`]).filter(Boolean);
 const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
 const avg = (xs: (number | null)[]) => {
@@ -56,7 +63,9 @@ export type BuildResult =
  * serverless timeout.
  */
 export async function buildReport(team: string, deadline: number): Promise<BuildResult> {
-  const t = team.replace(/"/g, '');
+  // Providers spell some teams differently from Leaguepedia; the draft room
+  // used to patch these names before querying, so the map lives here now.
+  const t = (LP_TEAM_ALIAS[team] ?? team).replace(/"/g, '');
 
   const games = await lpQuery(cargo({
     tables: 'ScoreboardGames=SG,PicksAndBansS7=PB,MatchScheduleGame=MSG',
@@ -153,4 +162,49 @@ export async function buildReport(team: string, deadline: number): Promise<Build
       recent: recent.slice(0, 8),
     },
   };
+}
+
+const FRESH_MS = 3 * 24 * 60 * 60 * 1000;
+const BUDGET_MS = 45_000;
+
+export type ReportLookup = {
+  report: Report | null;
+  fromCache: boolean;
+  stale?: boolean;
+  reason?: 'ratelimited' | 'empty' | 'partial';
+};
+
+/**
+ * The saved report, rebuilt from Leaguepedia only when it is missing, older
+ * than three days, or explicitly refreshed. Every caller goes through this —
+ * the Prep page, the draft room's scout panel and the daily cron — so an
+ * opponent is fetched once and everyone reads the same copy.
+ */
+export async function getOrBuildReport(opponent: string, refresh = false): Promise<ReportLookup> {
+  const key = slug(opponent);
+  const saved = await get<Report>(KEYS.reports, key);
+  const age = saved?.savedAt ?? saved?.builtAt ?? 0;
+
+  if (saved && !refresh && Date.now() - age < FRESH_MS) {
+    return { report: saved, fromCache: true };
+  }
+
+  const res = await buildReport(opponent, Date.now() + BUDGET_MS);
+
+  if (!res.ok) {
+    // A stale report beats no report; the caller says how old it is.
+    if (saved) return { report: saved, fromCache: true, stale: true, reason: res.reason };
+    return { report: null, fromCache: false, reason: res.reason };
+  }
+
+  // A partial build (the player query was refused) must not replace a full
+  // saved report — the coach would lose the pools they already had.
+  if (res.partial && saved?.players?.length) {
+    return { report: saved, fromCache: true, stale: true, reason: 'partial' };
+  }
+
+  // Keep a brief written for an earlier build of the same opponent.
+  const report: Report = { ...res.report, brief: saved?.brief, savedAt: Date.now() };
+  await put(KEYS.reports, key, report);
+  return { report, fromCache: false };
 }

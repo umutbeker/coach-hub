@@ -41,11 +41,6 @@ const ALL_CHAMPIONS = [
   'Yunara','Yuumi','Zac','Zed','Zeri','Ziggs','Zilean','Zoe','Zyra','Zaahen','Mel',
 ].sort();
 
-const TEAM_NAME_MAP: Record<string, string> = {
-  'BIG': 'Berlin International Gaming',
-  'The Otter Side': 'Otter Side',
-};
-
 type SelectionState =
   | { mode: 'slot'; side: 'blue'|'red'; type: 'pick'|'ban'; index: number }
   | { mode: 'champ'; champion: string }
@@ -194,20 +189,15 @@ export default function DraftPage() {
       if (redisData.data?.opponent === opp && redisData.data?.players?.length > 0) { localStorage.setItem(cacheKey, JSON.stringify(redisData.data)); setScoutData(redisData.data); setScoutLoading(false); return; }
     } catch {}
     try {
-      const lpName = TEAM_NAME_MAP[opp] ?? opp;
-      const p1 = new URLSearchParams({ action: 'cargoquery', tables: 'ScoreboardPlayers', fields: 'Champion,PlayerWin,DateTime_UTC,Tournament,Team,Name', where: `Team="${lpName}"`, order_by: 'DateTime_UTC DESC', limit: '75', format: 'json', origin: '*' });
-      const r1 = await fetch(`https://lol.fandom.com/api.php?${p1}`); const d1 = await r1.json();
-      const p2 = new URLSearchParams({ action: 'cargoquery', tables: 'ScoreboardPlayers=SP,PicksAndBansS7=PB',
-        fields: ['SP.PlayerWin','SP.DateTime_UTC','SP.Tournament','SP.Team','SP.TeamVs','SP.Side','SP.GameId','PB.Team1Ban1','PB.Team1Ban2','PB.Team1Ban3','PB.Team1Ban4','PB.Team1Ban5','PB.Team2Ban1','PB.Team2Ban2','PB.Team2Ban3','PB.Team2Ban4','PB.Team2Ban5','PB.Team1Pick1','PB.Team1Pick2','PB.Team1Pick3','PB.Team1Pick4','PB.Team1Pick5','PB.Team2Pick1','PB.Team2Pick2','PB.Team2Pick3','PB.Team2Pick4','PB.Team2Pick5'].join(','),
-        join_on: 'SP.GameId=PB.GameId', where: `SP.Team="${lpName}"`, order_by: 'SP.DateTime_UTC DESC', limit: '50', format: 'json', origin: '*' });
-      const r2 = await fetch(`https://lol.fandom.com/api.php?${p2}`); const d2 = await r2.json();
-      const playerMap: Record<string, any> = {};
-      if (d1.cargoquery?.length > 0) { d1.cargoquery.forEach((item: any) => { const m = item.title; const name = m.Name || 'Bilinmiyor'; if (!playerMap[name]) playerMap[name] = { name, champs: {}, games: 0, wins: 0 }; playerMap[name].games++; if (m.PlayerWin === 'Yes') playerMap[name].wins++; if (m.Champion) { if (!playerMap[name].champs[m.Champion]) playerMap[name].champs[m.Champion] = { games: 0, wins: 0 }; playerMap[name].champs[m.Champion].games++; if (m.PlayerWin === 'Yes') playerMap[name].champs[m.Champion].wins++; } }); }
-      const players = Object.values(playerMap).map((p: any) => ({ name: p.name, games: p.games, winRate: Math.round((p.wins / p.games) * 100), topChamps: Object.entries(p.champs).map(([c, s]: any) => ({ name: c, games: s.games, winRate: Math.round((s.wins / s.games) * 100) })).sort((a, b) => b.games - a.games).slice(0, 5) })).sort((a, b) => b.games - a.games);
-      let recentMatches: any[] = [];
-      if (d2.cargoquery?.length > 0) { const gameMap: Record<string, any> = {}; d2.cargoquery.forEach((item: any) => { const m = item.title; const rawDate = (m['DateTime UTC'] ?? m['DateTime_UTC'] ?? '').split(' ')[0]; const gid = m.GameId || `${m.TeamVs}_${rawDate}`; if (!gameMap[gid]) { const isBlueSide = m.Side === '1' || m.Side?.toLowerCase() === 'blue'; gameMap[gid] = { id: gid, date: rawDate, tournament: m.Tournament || '', opponent: m.TeamVs || '?', result: m.PlayerWin === 'Yes' ? 'W' : 'L', teamIsBlue: isBlueSide, blueBans: [m.Team1Ban1,m.Team1Ban2,m.Team1Ban3,m.Team1Ban4,m.Team1Ban5].filter(Boolean), redBans: [m.Team2Ban1,m.Team2Ban2,m.Team2Ban3,m.Team2Ban4,m.Team2Ban5].filter(Boolean), bluePicks: [m.Team1Pick1,m.Team1Pick2,m.Team1Pick3,m.Team1Pick4,m.Team1Pick5].filter(Boolean), redPicks: [m.Team2Pick1,m.Team2Pick2,m.Team2Pick3,m.Team2Pick4,m.Team2Pick5].filter(Boolean) }; } }); recentMatches = Object.values(gameMap).sort((a: any, b: any) => b.date.localeCompare(a.date)).slice(0, 5); }
-      const result = { opponent: opp, players, recentMatches, fetchedAt: Date.now() };
-      localStorage.setItem(cacheKey, JSON.stringify(result)); setScoutData(result);
+      // Sunucudan: Leaguepedia sorguları /api/scout içinde, giriş yapılmış
+      // oturumla çalışıyor. Tarayıcıdan sorgulamak anonim IP limitine takılıyordu.
+      const res = await fetch(`/api/scout?opponent=${encodeURIComponent(opp)}`);
+      const data = await res.json();
+      if (data.scout?.players) {
+        const result = { ...data.scout, opponent: opp, fetchedAt: Date.now() };
+        localStorage.setItem(cacheKey, JSON.stringify(result));
+        setScoutData(result);
+      }
     } catch (e) { console.error('Scout hata:', e); }
     setScoutLoading(false);
   };

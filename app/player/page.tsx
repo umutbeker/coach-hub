@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { TEAM_LP_NAME } from '../../lib/team';
 import { champImg } from '../../lib/champions';
 import Nav from '../components/Nav';
 import Icon from '../components/Icon';
@@ -129,15 +128,11 @@ export default function PlayerDashboard() {
           const r = await fetch(`/api/data?type=lp&player=${parsedUser.name}`); const d = await r.json();
           if (d.data?.cargoquery?.length > 0) { lpData = d.data; saveCache(lpKey, lpData); } else throw new Error('empty');
         } catch {
+          // Redis boşsa: sorgu sunucuda, giriş yapılmış oturumla.
           try {
-            const q = new URLSearchParams({
-              action: 'cargoquery', tables: 'ScoreboardPlayers',
-              fields: 'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side',
-              where: `Name='${parsedUser.lpName ?? parsedUser.name}' AND Team='${TEAM_LP_NAME}'`,
-              order_by: 'DateTime_UTC DESC', limit: '50', format: 'json', origin: '*',
-            });
-            const res = await fetch(`https://lol.fandom.com/api.php?${q}`); lpData = await res.json();
-            if (lpData.cargoquery?.length > 0) saveCache(lpKey, lpData);
+            const res = await fetch(`/api/lp?type=player&name=${encodeURIComponent(parsedUser.name)}`);
+            const d = await res.json();
+            if (d.data?.cargoquery?.length > 0) { lpData = d.data; saveCache(lpKey, lpData); }
           } catch { lpData = loadCache(lpKey); }
         }
       }
