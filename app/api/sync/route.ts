@@ -232,7 +232,7 @@ export async function GET(request: Request) {
         action: 'cargoquery', tables: 'ScoreboardPlayers',
         fields: 'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side,Name',
         where: `Name='${player.lpName}' AND Team='${TEAM_LP_NAME}'`,
-        order_by: 'DateTime_UTC DESC', limit: '50', format: 'json', origin: '*',
+        order_by: 'DateTime_UTC DESC', limit: '50', format: 'json',
       });
       const lpRes = await fetch(`https://lol.fandom.com/api.php?${lpParams.toString()}`);
       const lpData = await lpRes.json();
@@ -264,7 +264,7 @@ export async function GET(request: Request) {
         ].join(','),
         join_on: 'SP.GameId=PB.GameId',
         where: `SP.Team='${TEAM_LP_NAME}' OR SP.TeamVs='${TEAM_LP_NAME}'`,
-        order_by: 'SP.DateTime_UTC DESC', limit: '200', format: 'json', origin: '*',
+        order_by: 'SP.DateTime_UTC DESC', limit: '200', format: 'json',
       });
       const matchesRes = await fetch(`https://lol.fandom.com/api.php?${matchesParams.toString()}`);
       const matchesData = await matchesRes.json();

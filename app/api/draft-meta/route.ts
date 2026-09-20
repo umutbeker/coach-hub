@@ -33,7 +33,6 @@ async function fetchDraftData(tournamentQuery: string, deadline: number) {
       order_by: 'SG.DateTime_UTC DESC',
       limit: '30',
       format: 'json',
-      origin: '*',
     });
   return lpQuery(params, `draft/${tournamentQuery}`, deadline);
 }
@@ -49,7 +48,6 @@ async function fetchChampionRoles(tournamentQuery: string, deadline: number) {
       order_by: 'SG.DateTime_UTC DESC',
       limit: '300',
       format: 'json',
-      origin: '*',
     });
   return lpQuery(params, `roles/${tournamentQuery}`, deadline);
 }

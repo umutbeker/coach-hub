@@ -121,5 +121,9 @@ export async function lpQuery(
 // Sorgular SIRAYLA atılmalı — Promise.all ile paralel atmak limiti tek
 // seferde tetikliyor.
 export function cargo(fields: Record<string, string>): URLSearchParams {
-  return new URLSearchParams({ action: 'cargoquery', format: 'json', origin: '*', ...fields });
+  // No `origin=*` here: MediaWiki treats a request carrying it as an anonymous
+  // CORS request and ignores the session, which would drop us back to the
+  // anonymous rate limit even when signed in. Browser callers still need it;
+  // these queries run on the server.
+  return new URLSearchParams({ action: 'cargoquery', format: 'json', ...fields });
 }
