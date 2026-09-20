@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import { TEAM_NAME } from '../../lib/team';
 import Icon, { type IconName } from './Icon';
 
-// Seven destinations. Related pages share one entry and switch with
+// Eight destinations. Related pages share one entry and switch with
 // SectionTabs underneath: Games = Scrims + Official, Review = VODs + Feedback.
 // Their URLs stayed the same so links in notes and the calendar still work.
-export type NavKey = 'home' | 'calendar' | 'games' | 'review' | 'prep' | 'draft' | 'pro';
+export type NavKey = 'home' | 'calendar' | 'games' | 'review' | 'prep' | 'draft' | 'tournaments' | 'pro';
 
 type User = { name?: string; role?: string; image?: string } | null;
 
@@ -20,6 +20,7 @@ const LINKS: { key: NavKey; label: string; icon: IconName; href: (coach: boolean
   { key: 'review', label: 'Review', icon: 'video', href: c => (c ? '/review' : '/feedback') },
   { key: 'prep', label: 'Prep', icon: 'book', href: () => '/prep' },
   { key: 'draft', label: 'Draft', icon: 'clipboard', href: () => '/draft' },
+  { key: 'tournaments', label: 'Tournaments', icon: 'trophy', href: () => '/tournaments' },
   { key: 'pro', label: 'Pro', icon: 'play', href: () => '/pro' },
 ];
 

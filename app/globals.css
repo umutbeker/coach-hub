@@ -301,7 +301,7 @@ body {
   .hub .nav { gap: 8px; padding: 0 12px; }
   .hub .nav-links {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-    display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0;
+    display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0;
     background: var(--surface); border-top: 1px solid var(--border);
     padding: 4px 2px calc(4px + env(safe-area-inset-bottom, 0px));
   }
@@ -362,3 +362,36 @@ body {
 .hub .hubc:hover .hubgo { color: var(--accent); }
 @media (max-width: 1300px) { .hub .hubg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .hub .hubg { grid-template-columns: 1fr; } }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Tournaments. The match row is one grid so the score stays in the same
+   column down the whole day; below 620px the two teams stack around it
+   instead of shrinking to nothing.
+   ────────────────────────────────────────────────────────────────────────── */
+.hub .tgrid { display: grid; gap: 16px; align-items: start; grid-template-columns: minmax(0, 1fr); }
+.hub .tgrid.has-side { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); }
+
+.hub .tmatch {
+  display: grid;
+  grid-template-columns: minmax(64px, 76px) minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 860px) {
+  .hub .tgrid.has-side { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .hub .tmatch {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-areas: "time a score" "time b score" "time act act";
+    row-gap: 6px;
+  }
+  .hub .tmatch > :nth-child(1) { grid-area: time; }
+  .hub .tmatch > :nth-child(2) { grid-area: a; flex-direction: row; }
+  .hub .tmatch > :nth-child(3) { grid-area: score; }
+  .hub .tmatch > :nth-child(4) { grid-area: b; }
+  .hub .tmatch > :nth-child(5) { grid-area: act; justify-content: flex-start; }
+}

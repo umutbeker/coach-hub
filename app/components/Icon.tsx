@@ -7,7 +7,8 @@ export type IconName =
   | 'mark' | 'users' | 'list' | 'clipboard' | 'play' | 'signout' | 'refresh'
   | 'search' | 'chevron-down' | 'chevron-up' | 'chevron-right' | 'arrow-left'
   | 'external' | 'warning' | 'trend' | 'calendar' | 'x'
-  | 'video' | 'message' | 'target' | 'book' | 'plus' | 'trash' | 'check' | 'grid';
+  | 'video' | 'message' | 'target' | 'book' | 'plus' | 'trash' | 'check' | 'grid'
+  | 'trophy' | 'live';
 
 const P: Record<IconName, React.ReactNode> = {
   // Placeholder brand mark — a pyramid. Swap for the real logo when it lands.
@@ -36,6 +37,9 @@ const P: Record<IconName, React.ReactNode> = {
   trash: <><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></>,
   check: <path d="M20 6 9 17l-5-5" />,
   grid: <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></>,
+  trophy: <><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" /><path d="M12 14v4M9 21h6M10 18h4" /></>,
+  // Broadcast: a dot with two arcs, for "a stream is running".
+  live: <><circle cx="12" cy="12" r="2.5" /><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9" /><path d="M4.6 4.6a10.5 10.5 0 0 0 0 14.8M19.4 4.6a10.5 10.5 0 0 1 0 14.8" /></>,
 };
 
 // 'play' and 'mark' read better filled/heavier than the 1.75 stroke default.

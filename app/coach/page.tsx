@@ -9,6 +9,7 @@ import type { EventType } from '../../lib/hub';
 import Nav from '../components/Nav';
 import Icon from '../components/Icon';
 import HubCard, { Big, Line, Muted } from '../components/HubCard';
+import { DEFAULT_LEAGUE, type LeagueSchedule, type TMatch } from '../../lib/tournaments';
 import PoolMatrix from '../components/PoolMatrix';
 import { useUser } from '../components/useUser';
 
@@ -69,6 +70,7 @@ export default function CoachDashboard() {
   const [loadingPlayerName, setLoadingPlayerName] = useState('');
   const [ov, setOv] = useState<Overview | null>(null);
   const [nextOfficial, setNextOfficial] = useState<NextOfficial>(null);
+  const [sched, setSched] = useState<LeagueSchedule | null>(null);
 
   const fetchTeamData = async () => {
     setLoading(true);
@@ -106,6 +108,10 @@ export default function CoachDashboard() {
     if (!coach) return;
     fetchTeamData();
     fetch('/api/overview').then(r => r.json()).then(setOv).catch(() => {});
+    // Our own league's schedule. A Redis read in the usual case; when the
+    // cached copy has aged out this is also what warms it for the page.
+    fetch(`/api/tournaments?league=${DEFAULT_LEAGUE}`).then(r => r.json())
+      .then((d: LeagueSchedule & { error?: string }) => { if (!d.error) setSched(d); }).catch(() => {});
     fetch('/api/fixture').then(r => r.json()).then(d => {
       const up = (d.tournaments ?? []).flatMap((t: { league: string; matches: { opponent: string; date: string; scheduledAt: string; isPast: boolean }[] }) =>
         t.matches.filter(m => !m.isPast && m.scheduledAt).map(m => ({ opponent: m.opponent, date: m.date, scheduledAt: m.scheduledAt, league: t.league })))
@@ -115,6 +121,14 @@ export default function CoachDashboard() {
     // Runs once per signed-in coach; fetchTeamData is intentionally not a dep.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, coach?.username]);
+
+  // Our next game in our own league — live one first, then the soonest.
+  const tourNext = useMemo<TMatch | null>(() => {
+    const mine = (sched?.stages ?? []).flatMap(st => st.matches).filter(m => m.ours && m.status !== 'finished');
+    return mine.find(m => m.status === 'live')
+      ?? mine.filter(m => m.scheduledAt).sort((a, b) => a.scheduledAt!.localeCompare(b.scheduledAt!))[0]
+      ?? null;
+  }, [sched]);
 
   const soloq = useMemo(() => {
     const withStats = teamStats.filter((p): p is RosterEntry & { stats: SoloStats } => !!p.stats && !p.stats.error && !!p.stats.tier);
@@ -303,6 +317,32 @@ export default function CoachDashboard() {
                     </Line>
                   ) : <Line key={l}><span className="tag neutral" style={{ width: 44, justifyContent: 'center' }}>{l.toUpperCase()}</span><span className="t3">no data yet</span></Line>;
                 })}
+              </HubCard>
+
+              <HubCard title="Tournaments" icon="trophy" href="/tournaments" cta="Schedule">
+                {!sched ? <Muted>Loading…</Muted> : (
+                  <>
+                    <div className="t3" style={{ fontSize: 13 }}>{sched.league}{sched.serie ? ` · ${sched.serie}` : ''}</div>
+                    {tourNext ? (
+                      <>
+                        <Line>
+                          {tourNext.status === 'live' ? <span className="tag loss">LIVE</span> : null}
+                          <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {tourNext.teamA?.name ?? 'TBA'} vs {tourNext.teamB?.name ?? 'TBA'}
+                          </span>
+                          <span className="t3" style={{ marginLeft: 'auto', fontSize: 13, whiteSpace: 'nowrap' }}>BO{tourNext.bestOf}</span>
+                        </Line>
+                        <Muted>
+                          {tourNext.scheduledAt
+                            ? new Date(tourNext.scheduledAt).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                            : 'Kickoff to be announced'}
+                        </Muted>
+                      </>
+                    ) : (
+                      <Muted>No match of ours scheduled yet — the page fills in as the organiser announces them.</Muted>
+                    )}
+                  </>
+                )}
               </HubCard>
             </div>
 

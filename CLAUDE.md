@@ -57,6 +57,7 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `pool:v1` (hash, field = player) | `/api/pool` | `/api/pool` |
 | `prep:v1` / `oppreport:v1` (hash, field = opponent slug) | `/api/prep` | `/api/prep` |
 | `calendar:v1` (hash) | `/api/calendar` | `/api/calendar` |
+| `tour:v1:<league>` | `/api/tournaments` (no TTL, carries `updatedAt`) | `/api/tournaments`, `/tournaments`, `/coach` |
 
 The coaching-tool collections are Redis **hashes**, one field per record, accessed through [lib/store.ts](lib/store.ts); their types are in [lib/hub.ts](lib/hub.ts). A collection is one `hgetall`, a write touches one field. Don't fold a collection into a single JSON value — a season of scrims would outgrow Upstash's per-value limit. These keys hold hand-entered team data with no other copy, unlike the synced keys above, which can be rebuilt.
 
@@ -65,6 +66,8 @@ The coaching-tool collections are Redis **hashes**, one field per record, access
 `data/players.json` is a stale snapshot of `player:*` values, not a live source — nothing imports it.
 
 ### Write path is a cron, read path is instant
+
+Two exceptions to the rule below, both deliberate: `/api/tournaments` and `/api/fixture` refresh themselves from a read, because a schedule changes when an organiser says so, not on a daily boundary. See **Tournaments**.
 
 `/api/sync` is the only thing that talks to Riot and fetches heavily; it is slow (rate-limited, ~120ms between Riot calls) and never called from the UI. `vercel.json` runs `/api/sync-all` daily at 06:00 UTC, which loops the five players sequentially by calling `/api/sync?player=<Name>` over HTTP against `VERCEL_URL`. All UI reads go to `/api/data`, which only does Redis gets. When adding a stat, compute and store it in `/api/sync`; do not add Riot calls to a read path.
 
@@ -98,12 +101,28 @@ Three things were duplicated across call sites and are now single-source; adding
 - **Leaguepedia** (`lol.fandom.com/api.php`, `action=cargoquery`) — all pro/competitive data: scoreboards, picks and bans. **Every Leaguepedia query now runs on the server** ([lib/leaguepedia.ts](lib/leaguepedia.ts)), signed in, and results are shared through Redis; no page queries it from the browser. Keep it that way — a browser query spends the viewer's own IP limit, and the draft room, the heaviest user, was the worst place for that. Team names differ between providers; `TEAM_NAME_MAP` in `/api/sync` patches known opponent mismatches. **Its rate limit is strict, per-IP, and slow to clear** — measured, not guessed: a handful of anonymous queries locks an IP out for minutes, and it applies to a Vercel region the same as a home connection. Setting `LEAGUEPEDIA_USER` and `LEAGUEPEDIA_BOT_PASSWORD` (Special:BotPasswords) makes [lib/leaguepedia.ts](lib/leaguepedia.ts) log in and count against the wider logged-in bucket instead of the IP one; without them it stays anonymous. Ticking the bot password's "High API limits" grant does **nothing** on its own — a grant only permits rights the account already holds, and `meta=userinfo` confirms this account has groups `*, user, emailconfirmed` and neither `noratelimit` nor `apihighlimits` (those belong to the `bot` group, which a Leaguepedia admin would have to add). So signing in widens the limit; it does not remove it, and caching is still what keeps us under it. The User-Agent makes no difference (tested), and `origin=*` is worse than useless once signed in: it makes MediaWiki treat the request as an anonymous CORS call and ignore the session, which is why the login looked like it had no effect at first. Even signed in the limit is real — typing-rate queries still get refused — so results are cached in Redis and any given query runs about once a day. Do not loop over this API from a script or shell.
 
   `/api/teams` is the one search driven by typing (the opponent box on `/prep`). It never queries per keystroke: it fetches every team whose name or tag starts with the **first two letters**, caches that slice in `teams:v2` for a week, and filters longer searches from it in memory — so "gen.g" costs the same one query as "ge". Keep that shape if you add another as-you-type search.
-- **PandaScore** — upcoming fixtures and pro player stats.
+- **PandaScore** — upcoming fixtures, pro player stats, and the whole Tournaments section. Two quirks worth knowing: the standings endpoint is `/tournaments/<id>/standings` with **no `lol/` prefix** (the prefixed path 404s), and a successful call answers with an array while an error answers with an object — `/api/tournaments` checks `Array.isArray` rather than the status alone. Bracket stages return standings with every row 0–0; those are dropped rather than drawn as an empty table.
 - **Gemini** (`/api/draft-ai`) — the draft coach. Its Turkish system prompt encodes the team's actual drafting doctrine (pick count and presence outrank win rate); treat it as product logic, not boilerplate. Note `@anthropic-ai/sdk` is a dependency but is unused.
 
 ### Live draft room
 
 [app/draft/page.tsx](app/draft/page.tsx) is a shared, multi-user board. Clients never mutate state locally as the source of truth: every change POSTs an action to `/api/draft` (`SET_PICK`, `SET_BAN`, `SET_NOTE`, `SET_TEAM_NAME`, `SET_AI_RESULT`, `SET_SOLOQ`, `SET_STRATEGY`, `RESET`), which applies it to `draft:current` in Redis and then broadcasts the whole new draft over Pusher on `draft-channel` / `draft-updated`. Every client, including the sender, re-renders from that broadcast. New draft state must go through a new action case, or it will not propagate.
+
+### Tournaments
+
+`/tournaments` is the schedule of the competitions we play in: the whole league's fixtures, not only ours, with the broadcast links and the standings beside them.
+
+Which competitions is single-source in [lib/tournaments.ts](lib/tournaments.ts) — a PandaScore **league id** each, because ids are stable while names and splits are not. The *serie* (Summer 2026, Winter 2027 …) is deliberately not listed: `/api/tournaments` picks the current one from the matches themselves, so a new split needs no code change. Today that is Arabian League (4962, ours) and EMEA Masters (4996).
+
+**Unannounced matches are drawn, not hidden.** PandaScore publishes a playoff bracket as dated `TBD vs TBD` rows with the stream already attached, weeks before the names are known. That is the shape of the week and the page renders it as dashed TBA slots that fill in by themselves; a league with nothing published at all still gets a placeholder skeleton so the page reads the same either way.
+
+**It is near-live without a per-minute cron.** `/api/tournaments` serves Redis and refreshes itself only when the copy it is about to return has aged out. The window is set by `ttlMs()` in [lib/tournaments.ts](lib/tournaments.ts) and tightens as a match approaches — 45s while one is being played, 60s inside the half hour before kickoff, 5 min for later today, 30 min otherwise — so scores move in near real time while a quiet week costs two PandaScore calls an hour no matter how many tabs are open. Three things make that work and should stay:
+
+- The cached value carries `updatedAt` instead of using a Redis TTL, because an expired key cannot be served. When PandaScore fails, the older copy goes out with `stale: true` — the same choice the opponent report makes.
+- A short `tour:lock:<league>` key means one refresh at a time; tabs that miss the lock serve the old copy for a moment rather than all calling PandaScore in the same second.
+- The refresh broadcasts on Pusher `tournaments-channel` / `tournaments-updated`, so a score one viewer's poll pulled in lands on every other open page at once instead of up to a poll interval later. The page also polls, but only while its tab is visible.
+
+Our own team is spotted with `isOurTeam()`, the same name-substring / acronym test `/api/fixture` uses.
 
 ### The public page
 
@@ -132,7 +151,7 @@ The Redis keys carry a `v2` segment because the response shape changed from a fl
 
 ### Navigation
 
-Seven entries: Home, Calendar, Games, Review, Prep, Draft, Pro. Games covers `/scrims` + `/matches`, Review covers `/review` + `/feedback`, switched with `SectionTabs`; URLs were kept so links from notes and the calendar still resolve. Review and Games show a count of what is new since the viewer last opened them — the timestamps live in the viewer's localStorage and `/api/badges` only counts. Below 700px the links become a bottom tab bar.
+Eight entries: Home, Calendar, Games, Review, Prep, Draft, Tournaments, Pro. Games covers `/scrims` + `/matches`, Review covers `/review` + `/feedback`, switched with `SectionTabs`; URLs were kept so links from notes and the calendar still resolve. Review and Games show a count of what is new since the viewer last opened them — the timestamps live in the viewer's localStorage and `/api/badges` only counts. Below 700px the links become a bottom tab bar.
 
 ### Auth
 
