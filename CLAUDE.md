@@ -47,7 +47,6 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `matches:lp` | `/api/sync?player=matches` | `/api/data?type=matches` |
 | `scout:next` | `/api/sync?player=matches` | `/api/data?type=scout` |
 | `draft:current` | `/api/draft` | `/api/draft`, draft page |
-| `draft:meta` | `/api/draft-meta` (12h TTL) | `/api/draft-ai` |
 | `fixture:cache` | `/api/fixture` (30m TTL) | `/api/fixture` |
 | `vods:v2:lec` / `vods:v2:lck` | `/api/pro-vods` (12h TTL) | `/api/pro-vods`, `/pro` |
 | `sync:updatedAt` | `/api/sync` | `/api/data` |
@@ -57,6 +56,7 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `pool:v1` (hash, field = player) | `/api/pool` | `/api/pool` |
 | `prep:v1` / `oppreport:v1` (hash, field = opponent slug) | `/api/prep` | `/api/prep` |
 | `calendar:v1` (hash) | `/api/calendar` | `/api/calendar` |
+| `drafts:saved:v1` (hash, max 10) | `/api/draft-saves` | `/api/draft-saves`, draft page |
 | `tour:v1:<league>` | `/api/tournaments` (no TTL, carries `updatedAt`) | `/api/tournaments`, `/tournaments`, `/coach` |
 
 The coaching-tool collections are Redis **hashes**, one field per record, accessed through [lib/store.ts](lib/store.ts); their types are in [lib/hub.ts](lib/hub.ts). A collection is one `hgetall`, a write touches one field. Don't fold a collection into a single JSON value — a season of scrims would outgrow Upstash's per-value limit. These keys hold hand-entered team data with no other copy, unlike the synced keys above, which can be rebuilt.
@@ -102,11 +102,17 @@ Three things were duplicated across call sites and are now single-source; adding
 
   `/api/teams` is the one search driven by typing (the opponent box on `/prep`). It never queries per keystroke: it fetches every team whose name or tag starts with the **first two letters**, caches that slice in `teams:v2` for a week, and filters longer searches from it in memory — so "gen.g" costs the same one query as "ge". Keep that shape if you add another as-you-type search.
 - **PandaScore** — upcoming fixtures, pro player stats, and the whole Tournaments section. Two quirks worth knowing: the standings endpoint is `/tournaments/<id>/standings` with **no `lol/` prefix** (the prefixed path 404s), and a successful call answers with an array while an error answers with an object — `/api/tournaments` checks `Array.isArray` rather than the status alone. Bracket stages return standings with every row 0–0; those are dropped rather than drawn as an empty table.
-- **Gemini** (`/api/draft-ai`) — the draft coach. Its Turkish system prompt encodes the team's actual drafting doctrine (pick count and presence outrank win rate); treat it as product logic, not boilerplate. Note `@anthropic-ai/sdk` is a dependency but is unused.
+- **Gemini** (`/api/opponent-ai`) — writes the Prep brief from the computed opponent numbers. The draft room's Gemini assistant was removed in favour of saved drafts with notes, so `/api/draft-ai` and `/api/draft-meta` are gone. Note `@anthropic-ai/sdk` is a dependency but is unused.
 
 ### Live draft room
 
-[app/draft/page.tsx](app/draft/page.tsx) is a shared, multi-user board. Clients never mutate state locally as the source of truth: every change POSTs an action to `/api/draft` (`SET_PICK`, `SET_BAN`, `SET_NOTE`, `SET_TEAM_NAME`, `SET_AI_RESULT`, `SET_SOLOQ`, `SET_STRATEGY`, `RESET`), which applies it to `draft:current` in Redis and then broadcasts the whole new draft over Pusher on `draft-channel` / `draft-updated`. Every client, including the sender, re-renders from that broadcast. New draft state must go through a new action case, or it will not propagate.
+[app/draft/page.tsx](app/draft/page.tsx) is a shared, multi-user board. Clients never mutate state locally as the source of truth: every change POSTs an action to `/api/draft` (`SET_PICK`, `SET_BAN`, `SET_NOTE`, `SET_TEAM_NAME`, `SET_SOLOQ`, `SET_STRATEGY`, `SET_OPPONENT`, `LOAD_SAVED`, `RESET`), which applies it to `draft:current` in Redis and then broadcasts the whole new draft over Pusher on `draft-channel` / `draft-updated`. Every client, including the sender, re-renders from that broadcast. New draft state must go through a new action case, or it will not propagate.
+
+The centre panel has three tabs: opponent scout, strategy map, and **saved drafts**.
+
+**Saved boards are a capped shelf, not an archive.** Up to `MAX_SAVED_DRAFTS` (10) snapshots live in the Redis hash `drafts:saved:v1`, one field per save, written through `/api/draft-saves`. They are deliberately *not* folded into `draft:current`: that key is re-read and rewritten on every single pick, and carrying ten snapshots in it would rewrite all of them on every click. Each save carries its own **note** — the tab replaced the Gemini draft assistant, which is gone along with `/api/draft-ai`, `/api/draft-meta` and the `draft:meta` cache the daily cron used to warm.
+
+Writes to the shelf broadcast on the same `draft-channel` under their own `saves-updated` event, so a save by one coach appears on every open board — the same guarantee the live board has. Loading a save goes through the `LOAD_SAVED` action rather than setting local state, so the whole room switches to it, not just the tab that clicked. A full shelf answers **409 with the current list** rather than evicting the oldest: silently dropping a board someone saved is worse than being told to delete one. The per-save note textarea is uncontrolled (`defaultValue` + `onBlur`) so an incoming Pusher update cannot overwrite what someone is mid-sentence on.
 
 ### Tournaments
 

@@ -18,6 +18,7 @@ export const KEYS = {
   prep: 'prep:v1',
   reports: 'oppreport:v1',
   calendar: 'calendar:v1',
+  draftSaves: 'drafts:saved:v1',
 } as const;
 
 export async function all<T>(key: string): Promise<T[]> {

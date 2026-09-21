@@ -85,6 +85,29 @@ export type DraftPlan = {
   updatedAt: number;
 };
 
+/**
+ * A snapshot of the draft room's board, kept so a coach can put a board aside
+ * and come back to it. Distinct from `DraftPlan`, which is what we *intend* to
+ * do against an opponent; this is a board that actually existed.
+ *
+ * Capped at MAX_SAVED_DRAFTS: the point is a small shelf you can scan, not an
+ * archive, and a capped hash never grows past what one read can return.
+ */
+export type SavedDraft = {
+  id: string;
+  /** Free text; defaults to the matchup and time when left blank. */
+  name: string;
+  note: string;
+  savedAt: number;
+  savedBy: string;
+  picks: { blue: string[]; red: string[] };
+  bans: { blue: string[]; red: string[] };
+  teamNames: { blue: string; red: string };
+  opponent: string | null;
+};
+
+export const MAX_SAVED_DRAFTS = 10;
+
 export type EventType = 'scrim' | 'official' | 'review' | 'other';
 export type CalendarEvent = {
   id: string;

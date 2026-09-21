@@ -1,13 +1,12 @@
-// /app/draft/page.tsx — GÜNCELLENMIŞ (AI Asistan tab eklendi)
-// 
-// DEĞİŞİKLİKLER:
-// 1. import AIDraftAssistant eklendi (satır 5)
-// 2. centerTab type'ına 'ai' eklendi (satır 48)
-// 3. center-tabs bölümüne 3. tab eklendi (satır ~285)
-// 4. AI tab content bölümü eklendi (satır ~340)
-// 5. placeChampion fonksiyonu AIDraftAssistant'a prop olarak geçildi
+// /app/draft/page.tsx
 //
-// Geri kalan tüm kod AYNI — sadece bu 5 değişiklik yapıldı.
+// The shared, live draft board. Its styling is deliberately its own — see
+// CLAUDE.md: this page was left out of the redesign and keeps an inline
+// <style> block and short class names, which is why globals.css scopes
+// everything under .hub.
+//
+// The centre panel has three tabs: opponent scout, strategy map, and the
+// shelf of saved boards (up to MAX_SAVED_DRAFTS), each with a note.
 
 'use client';
 
@@ -15,9 +14,9 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { TEAM_NAME } from '../../lib/team';
 import { champImg, champSplash } from '../../lib/champions';
+import { MAX_SAVED_DRAFTS, type SavedDraft } from '../../lib/hub';
 import Pusher from 'pusher-js';
 import StrategyMap from './StrategyMap';
-import AIDraftAssistant from './AIDraftAssistant';  // ← YENİ IMPORT
 
 
 
@@ -61,8 +60,15 @@ export default function DraftPage() {
   const [soloqInputs, setSoloqInputs] = useState<Record<string, string>>({});
   const [soloqData, setSoloqData] = useState<Record<string, any>>({});
   const [soloqLoading, setSoloqLoading] = useState<Record<string, boolean>>({});
-  const [centerTab, setCenterTab] = useState<'scout'|'strategy'|'ai'>('scout');  // ← 'ai' EKLENDİ
+    const [centerTab, setCenterTab] = useState<'scout'|'strategy'|'saves'>('scout');
   const [strategyData, setStrategyData] = useState<any>(null);
+  // The shelf of saved boards, shared through Redis and Pusher like the
+  // live draft itself.
+  const [saves, setSaves] = useState<SavedDraft[]>([]);
+  const [saveName, setSaveName] = useState('');
+  const [saveNote, setSaveNote] = useState('');
+  const [saveErr, setSaveErr] = useState('');
+  const [saving, setSaving] = useState(false);
   const lastLocalChange = useRef(0);
   const pusherRef = useRef<any>(null);
 
@@ -86,6 +92,46 @@ export default function DraftPage() {
     if (data.strategy) setStrategyData(data.strategy);
   };
 
+  const loadSaves = async () => {
+    try {
+      const d = await (await fetch('/api/draft-saves')).json();
+      setSaves(d.saves ?? []);
+    } catch { /* the shelf is not worth failing the board over */ }
+  };
+
+  const saveCurrent = async () => {
+    if (!draft) return;
+    setSaving(true); setSaveErr('');
+    try {
+      const res = await fetch('/api/draft-saves', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ op: 'save', name: saveName, note: saveNote, draft, userName: user?.name }),
+      });
+      const d = await res.json();
+      // A full shelf answers 409 with the current list, so the counter stays right.
+      if (!res.ok) { setSaveErr(d.error ?? 'Kaydedilemedi'); if (d.saves) setSaves(d.saves); }
+      else { setSaves(d.saves ?? []); setSaveName(''); setSaveNote(''); }
+    } catch { setSaveErr('Sunucuya ulaşılamadı'); }
+    setSaving(false);
+  };
+
+  const patchSave = async (op: 'note'|'delete'|'rename', id: string, value?: string) => {
+    try {
+      const res = await fetch('/api/draft-saves', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ op, id, note: value, name: value, userName: user?.name }),
+      });
+      const d = await res.json();
+      if (d.saves) setSaves(d.saves);
+    } catch { /* Pusher will bring the next write's list anyway */ }
+  };
+
+  const applySave = (s: SavedDraft) => {
+    if (!confirm('Mevcut board bu kayıtla değişecek. Devam?')) return;
+    updateDraft('LOAD_SAVED', { picks: s.picks, bans: s.bans, teamNames: s.teamNames });
+    setSelection(null);
+  };
+
   const updateDraft = async (action: string, payload: any) => {
     const userName = user?.name || 'Bilinmiyor';
     lastLocalChange.current = Date.now();
@@ -95,6 +141,10 @@ export default function DraftPage() {
       if (action === 'SET_PICK') next.picks[payload.side][payload.index] = payload.champion;
       if (action === 'SET_BAN') next.bans[payload.side][payload.index] = payload.champion;
       if (action === 'SET_TEAM_NAME') next.teamNames[payload.side] = payload.name;
+      if (action === 'LOAD_SAVED') {
+        next.picks = payload.picks; next.bans = payload.bans;
+        if (payload.teamNames) next.teamNames = payload.teamNames;
+      }
       if (action === 'RESET') return getEmptyDraft();
       return next;
     });
@@ -207,6 +257,7 @@ export default function DraftPage() {
     if (!loggedInUser) { router.push('/'); return; }
     setUser(JSON.parse(loggedInUser));
     loadDraft();
+    loadSaves();
     fetchNextOpponent().then(opp => { if (opp) fetchScout(opp); });
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, { cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER! });
     pusherRef.current = pusher;
@@ -218,6 +269,9 @@ export default function DraftPage() {
       if (data.draft?.soloq) setSoloqData(data.draft.soloq);
       if (data.draft?.strategy) setStrategyData(data.draft.strategy);
     });
+    // Its own event on the same channel: a save by one coach lands on every
+    // open board, the same guarantee the live draft has.
+    channel.bind('saves-updated', (data: any) => { if (data?.saves) setSaves(data.saves); });
     return () => { channel.unbind_all(); pusher.unsubscribe('draft-channel'); pusher.disconnect(); };
   }, [router]);
 
@@ -442,8 +496,28 @@ export default function DraftPage() {
         /* Strategy tab fills center */
         .strategy-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;}
 
-        /* AI tab fills center */
-        .ai-tab-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;height:0;}
+        /* Saved drafts tab */
+        .sv-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;height:0;}
+        .sv-top{padding:10px 12px;border-bottom:1px solid #1E2328;background:#091428;flex-shrink:0;display:flex;flex-direction:column;gap:7px;}
+        .sv-row{display:flex;gap:7px;align-items:center;}
+        .sv-in,.sv-ta{background:#010A13;border:1px solid #1E2328;color:#F0E6D2;font-family:'Barlow',sans-serif;font-size:11px;padding:5px 7px;border-radius:2px;outline:none;box-sizing:border-box;}
+        .sv-in{flex:1;min-width:0;}
+        .sv-ta{width:100%;min-height:38px;resize:vertical;line-height:1.4;}
+        .sv-in:focus,.sv-ta:focus{border-color:#C89B3C;}
+        .sv-cnt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;color:#5B5A56;flex:none;}
+        .sv-err{font-size:10px;color:#C8433C;line-height:1.3;}
+        .sv-body{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px;}
+        .sv-card{background:#0A1428;border:1px solid #1E2328;border-radius:3px;padding:8px 9px;display:flex;flex-direction:column;gap:6px;}
+        .sv-hd{display:flex;align-items:baseline;gap:7px;}
+        .sv-nm{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.04em;color:#F0E6D2;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .sv-meta{font-size:9px;color:#5B5A56;white-space:nowrap;}
+        .sv-comp{display:flex;align-items:center;gap:10px;}
+        .sv-side{display:flex;gap:2px;}
+        .sv-ch{width:22px;height:22px;border-radius:2px;border:1px solid #1E2328;display:block;flex:none;}
+        .sv-ch.e{background:#010A13;}
+        .sv-ch.ban{filter:grayscale(1);opacity:0.45;}
+        .sv-acts{display:flex;gap:5px;}
+        .sv-empty{text-align:center;padding:26px 12px;color:#3C3C41;font-size:11px;line-height:1.6;}
       `}</style>
 
       <div className="root">
@@ -475,7 +549,7 @@ export default function DraftPage() {
             <div className="center-tabs">
               <button className={`center-tab ${centerTab==='scout'?'on':''}`} onClick={()=>setCenterTab('scout')}>🔍 Rakip Scout</button>
               <button className={`center-tab ${centerTab==='strategy'?'on':''}`} onClick={()=>setCenterTab('strategy')}>🗺 Strateji</button>
-              <button className={`center-tab ${centerTab==='ai'?'on':''}`} onClick={()=>setCenterTab('ai')}>🤖 AI Asistan</button>
+              <button className={`center-tab ${centerTab==='saves'?'on':''}`} onClick={()=>setCenterTab('saves')}>💾 Draftlar{saves.length?` ${saves.length}`:''}</button>
             </div>
 
             {centerTab === 'scout' ? (
@@ -571,15 +645,58 @@ export default function DraftPage() {
                 />
               </div>
             ) : (
-              /* ─── AI DRAFT ASSISTANT TAB ─── */
-              <div className="ai-tab-wrap">
-                <AIDraftAssistant
-                  draft={draft}
-                  scoutData={scoutData}
-                  soloqData={soloqData}
-                  onPlaceChampion={placeChampion}
-                  userName={user?.name}
-                />
+              /* ─── SAVED DRAFTS TAB ─── */
+              <div className="sv-wrap">
+                <div className="sv-top">
+                  <div className="sv-row">
+                    <input className="sv-in" placeholder="Draft adı (boş bırakılabilir)" maxLength={60}
+                      value={saveName} onChange={e=>setSaveName(e.target.value)} />
+                    <span className="sv-cnt">{saves.length}/{MAX_SAVED_DRAFTS}</span>
+                  </div>
+                  <textarea className="sv-ta" placeholder="Not — bu draft neden işe yaradı / yaramadı?" maxLength={1000}
+                    value={saveNote} onChange={e=>setSaveNote(e.target.value)} />
+                  <button className="btn" onClick={saveCurrent} disabled={saving || saves.length>=MAX_SAVED_DRAFTS}>
+                    {saving ? 'KAYDEDİLİYOR…' : saves.length>=MAX_SAVED_DRAFTS ? 'RAF DOLU' : '+ MEVCUT DRAFTI KAYDET'}
+                  </button>
+                  {saveErr && <div className="sv-err">{saveErr}</div>}
+                </div>
+                <div className="sv-body">
+                  {!saves.length ? (
+                    <div className="sv-empty">Kayıtlı draft yok.<br/>Board&apos;u kurup yukarıdan kaydet.</div>
+                  ) : saves.map(s => (
+                    <div key={s.id} className="sv-card">
+                      <div className="sv-hd">
+                        <div className="sv-nm">{s.name || `${s.teamNames?.blue || 'Mavi'} vs ${s.teamNames?.red || 'Kırmızı'}`}</div>
+                        <div className="sv-meta">{new Date(s.savedAt).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+                      </div>
+                      <div className="sv-meta">{s.savedBy}{s.opponent ? ` · ${s.opponent}` : ''}</div>
+                      <div className="sv-comp">
+                        <div className="sv-side">{s.picks.blue.map((c,i)=>c
+                          ? <img key={i} className="sv-ch" src={champImg(c)} alt={c} title={c}/>
+                          : <span key={i} className="sv-ch e"/>)}</div>
+                        <div className="sv-side">{s.picks.red.map((c,i)=>c
+                          ? <img key={i} className="sv-ch" src={champImg(c)} alt={c} title={c}/>
+                          : <span key={i} className="sv-ch e"/>)}</div>
+                      </div>
+                      <div className="sv-comp">
+                        <div className="sv-side">{s.bans.blue.map((c,i)=>c
+                          ? <img key={i} className="sv-ch ban" src={champImg(c)} alt={c} title={`ban ${c}`}/>
+                          : <span key={i} className="sv-ch e"/>)}</div>
+                        <div className="sv-side">{s.bans.red.map((c,i)=>c
+                          ? <img key={i} className="sv-ch ban" src={champImg(c)} alt={c} title={`ban ${c}`}/>
+                          : <span key={i} className="sv-ch e"/>)}</div>
+                      </div>
+                      {/* Uncontrolled on purpose: a Pusher update mid-sentence
+                          must not overwrite what someone is typing. */}
+                      <textarea className="sv-ta" defaultValue={s.note} placeholder="Not ekle…" maxLength={1000}
+                        onBlur={e=>{ if (e.target.value !== s.note) patchSave('note', s.id, e.target.value); }} />
+                      <div className="sv-acts">
+                        <button className="btn" style={{flex:1}} onClick={()=>applySave(s)}>YÜKLE</button>
+                        <button className="btn btn-d" onClick={()=>{ if(confirm('Bu kayıt silinsin mi?')) patchSave('delete', s.id); }}>SİL</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

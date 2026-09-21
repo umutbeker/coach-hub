@@ -46,9 +46,6 @@ export async function POST(request: Request) {
       case 'SET_NOTE':
         draft.notes[payload.side] = payload.text;
         break;
-      case 'SET_AI_RESULT':
-        draft.aiResult = payload;
-        break;
       case 'SET_TEAM_NAME':
         draft.teamNames[payload.side] = payload.name;
         break;
@@ -58,6 +55,14 @@ export async function POST(request: Request) {
       case 'SET_SOLOQ':
         if (!draft.soloq) draft.soloq = {};
         draft.soloq[payload.playerName] = payload.data;
+        break;
+      // Load a board off the shelf. Goes through an action like every other
+      // change, so the whole room switches to it rather than just the tab
+      // that clicked Load.
+      case 'LOAD_SAVED':
+        draft.picks = payload.picks;
+        draft.bans = payload.bans;
+        if (payload.teamNames) draft.teamNames = payload.teamNames;
         break;
       case 'SET_STRATEGY':
         draft.strategy = payload;
@@ -94,7 +99,6 @@ function getEmptyDraft() {
     opponent: null,
     soloq: {},
     strategy: null,
-    aiResult: null,
     lastUpdatedBy: null,
     lastUpdatedAt: null,
   };
