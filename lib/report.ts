@@ -100,7 +100,20 @@ export type DraftComp = {
   roles: string[];
 };
 
+/**
+ * Bump whenever `DraftAnalysis` gains or changes a field.
+ *
+ * Saved reports outlive the shape that produced them. Checking only that
+ * `draft` exists let a report built before `comps` was added pass the
+ * freshness test and reach a page that reads `d.comps.won` — a client-side
+ * crash, not a missing section. The version makes an out-of-date shape
+ * rebuild the same way `/pro` bumps its cache key.
+ */
+export const ANALYSIS_VERSION = 2;
+
 export type DraftAnalysis = {
+  /** `ANALYSIS_VERSION` at the time it was built. */
+  v: number;
   /** Patches included, newest first. Usually one. */
   patches: string[];
   /** True when the newest patch alone had too few games and we widened. */
@@ -350,6 +363,7 @@ export function analyseDraft(all: RecentGame[]): DraftAnalysis | undefined {
   });
 
   return {
+    v: ANALYSIS_VERSION,
     patches, widened: patches.length > 1,
     games: games.length, wins: games.filter(g => g.won).length,
     side: { blue: side('blue'), red: side('red') },
@@ -549,14 +563,17 @@ export async function getOrBuildReport(opponent: string, refresh = false): Promi
   /*
    * A saved report is only reusable if it is also *correct*. Two ways it is
    * not, both of which outlive their three days otherwise:
-   *  - no `draft` field: saved before the draft analysis existed, and waiting
-   *    will never add one.
+   *  - an analysis built to an older shape. `draft` existing is not enough:
+   *    one built before `comps` was added still passed that test and reached
+   *    a page that reads `d.comps.won`, which is a client-side crash rather
+   *    than a missing section.
    *  - a game whose opponent is the team itself: the signature of the
    *    case-sensitivity bug above, which wrote whole reports off the wrong
    *    side of every game. Those are wrong, not stale.
    */
+  const current = saved?.draft?.v === ANALYSIS_VERSION;
   const selfPlayed = !!saved?.recent?.some(g => g.vs === saved.opponent);
-  if (saved?.draft && !selfPlayed && !refresh && Date.now() - age < FRESH_MS) {
+  if (current && !selfPlayed && !refresh && Date.now() - age < FRESH_MS) {
     return { report: saved, fromCache: true };
   }
 

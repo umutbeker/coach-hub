@@ -282,16 +282,24 @@ function DraftBoard({ d, patchCounts }: { d: NonNullable<Report['draft']>; patch
       </div>
 
       {/* What they win and lose with, side by side — a report that lists only
-          comfort picks answers half the question a coach came with. */}
-      <div className="duo">
-        <RecordList items={d.record} />
-        <RecordList items={d.record} worst />
-      </div>
+          comfort picks answers half the question a coach came with.
 
-      <div className="duo">
-        <Comps items={d.comps.won} won />
-        <Comps items={d.comps.lost} />
-      </div>
+          Optional throughout: ANALYSIS_VERSION makes an older-shaped saved
+          report rebuild, but a section that is missing should go missing, not
+          take the page down with it. */}
+      {d.record?.length ? (
+        <div className="duo">
+          <RecordList items={d.record} />
+          <RecordList items={d.record} worst />
+        </div>
+      ) : null}
+
+      {d.comps ? (
+        <div className="duo">
+          <Comps items={d.comps.won ?? []} won />
+          <Comps items={d.comps.lost ?? []} />
+        </div>
+      ) : null}
 
       {/* Full width now: eight tall rows in the middle column left the two side
           columns short and the whole board lopsided. */}
