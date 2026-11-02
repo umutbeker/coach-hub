@@ -40,6 +40,13 @@ export const TRACKED: TrackedLeague[] = [
     blurb: 'Where the EMEA regional leagues meet',
     ours: false,
   },
+  {
+    slug: 'worlds',
+    name: 'Worlds',
+    pandascoreId: 297,
+    blurb: 'The World Championship',
+    ours: false,
+  },
 ];
 
 export const DEFAULT_LEAGUE = TRACKED[0].slug;

@@ -19,7 +19,15 @@ const BUDGET_MS = 45_000;
 // Maç (oyun) sayısı, seri değil — 50 maç kabaca 15 seriye denk geliyor.
 const GAMES_PER_LEAGUE = 50;
 
-export const LEAGUES = ['LEC', 'LCK'] as const;
+/*
+ * Order is the order the page shows them in — the biggest event first.
+ *
+ * `fetchLeague` filters on `Tournament LIKE "%<league> <year>%"`, and
+ * Leaguepedia calls the event "Worlds 2026 Main Event", so "Worlds" matches
+ * with no special case. Checked on live rows: 20/20 of its games carry
+ * VodPB, VodGameStart and full pick/ban data.
+ */
+export const LEAGUES = ['Worlds', 'LEC', 'LCK'] as const;
 type League = (typeof LEAGUES)[number];
 
 // Sürümlü anahtar: yanıt şekli değiştiğinde eski cache servis edilmesin.

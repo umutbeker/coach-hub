@@ -182,8 +182,10 @@ export default function ProPage() {
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
           <div>
             <div className="h" style={{ fontSize: 24 }}>Pro drafts</div>
+            {/* Named from the data, not hardcoded — the subtitle said "LEC and
+                LCK" for a while after Worlds was added to the list. */}
             <div className="t2" style={{ marginTop: 4 }}>
-              Recent LEC and LCK series with every draft and the moment it happened on the broadcast
+              Recent {leagues.length ? leagues.map(l => l.league).join(', ') : 'pro'} series with every draft and the moment it happened on the broadcast
             </div>
           </div>
           <div className="t3" style={{ fontSize: 13 }}>Updated daily · from Leaguepedia</div>
