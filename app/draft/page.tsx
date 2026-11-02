@@ -13,14 +13,17 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { TEAM_NAME } from '../../lib/team';
-import { champImg, champSplash } from '../../lib/champions';
+import { champImg, champSplash, loadChampionList } from '../../lib/champions';
 import { MAX_SAVED_DRAFTS, type SavedDraft } from '../../lib/hub';
 import Pusher from 'pusher-js';
 import StrategyMap from './StrategyMap';
 
 
 
-const ALL_CHAMPIONS = [
+// Offline fallback only. The live list comes from Data Dragon below — a
+// hardcoded roster drifts, and this one had silently been missing Kennen,
+// Kled, Locke, Milio and Veigar, so they could not be picked at all.
+const FALLBACK_CHAMPIONS = [
   'Aatrox','Ahri','Akali','Akshan','Alistar','Ambessa','Amumu','Anivia','Annie','Aphelios',
   'Ashe','Aurelion Sol','Aurora','Azir','Bard',"Bel'Veth",'Blitzcrank','Brand','Braum','Briar',
   'Caitlyn','Camille','Cassiopeia',"Cho'Gath",'Corki','Darius','Diana','Dr. Mundo','Draven','Ekko',
@@ -38,6 +41,7 @@ const ALL_CHAMPIONS = [
   'Twisted Fate','Twitch','Udyr','Urgot','Varus','Vayne',"Vel'Koz",'Vex','Vi','Viego','Viktor',
   'Vladimir','Volibear','Warwick','Wukong','Xayah','Xerath','Xin Zhao','Yasuo','Yone','Yorick',
   'Yunara','Yuumi','Zac','Zed','Zeri','Ziggs','Zilean','Zoe','Zyra','Zaahen','Mel',
+  'Kennen','Kled','Locke','Milio','Veigar',
 ].sort();
 
 type SelectionState =
@@ -72,7 +76,11 @@ export default function DraftPage() {
   const lastLocalChange = useRef(0);
   const pusherRef = useRef<any>(null);
 
-  const filteredChamps = ALL_CHAMPIONS.filter(c =>
+  // Data Dragon is the source of truth; the constant above is what shows if
+  // it cannot be reached. loadChampionList caches per version in localStorage,
+  // so this is one request per patch, not per visit.
+  const [allChamps, setAllChamps] = useState<string[]>(FALLBACK_CHAMPIONS);
+  const filteredChamps = allChamps.filter(c =>
     c.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -258,6 +266,11 @@ export default function DraftPage() {
     setUser(JSON.parse(loggedInUser));
     loadDraft();
     loadSaves();
+    // A champion released since the last version bump would otherwise be
+    // unpickable here with nothing to indicate why.
+    loadChampionList()
+      .then(l => { if (l.length) setAllChamps(l.map(c => c.name)); })
+      .catch(() => { /* keep the fallback list */ });
     fetchNextOpponent().then(opp => { if (opp) fetchScout(opp); });
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, { cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER! });
     pusherRef.current = pusher;

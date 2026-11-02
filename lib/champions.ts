@@ -8,7 +8,9 @@
 // Data Dragon birikimli: yeni sürüm eski şampiyonları da içeriyor, bu yüzden
 // güncel tutmak güvenli. Eski sürümde yeni şampiyonlar 403 veriyor
 // (16.5.1'de 'Locke' yoktu).
-export const DDRAGON_VERSION = '16.18.1';
+// Data Dragon is cumulative, so a current version is always safe and a stale
+// one 403s on champions released since. Bump it when a patch lands.
+export const DDRAGON_VERSION = '16.21.1';
 
 const CHAMP_MAP: Record<string, string> = {
   "Ambessa": "Ambessa",
