@@ -58,6 +58,7 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `calendar:v1` (hash) | `/api/calendar` | `/api/calendar` |
 | `drafts:saved:v1` (hash, max 10) | `/api/draft-saves` | `/api/draft-saves`, draft page |
 | `tour:v1:<league>` | `/api/tournaments` (no TTL, carries `updatedAt`) | `/api/tournaments`, `/tournaments`, `/coach` |
+| `patch:index:v1` (6h) / `patch:body:v1:<slug>` (30d) | `/api/patch-notes` | `/api/patch-notes`, `/patch` |
 
 ### Back up before anything else
 
@@ -122,6 +123,18 @@ The centre panel has three tabs: opponent scout, strategy map, and **saved draft
 
 Writes to the shelf broadcast on the same `draft-channel` under their own `saves-updated` event, so a save by one coach appears on every open board — the same guarantee the live board has. Loading a save goes through the `LOAD_SAVED` action rather than setting local state, so the whole room switches to it, not just the tab that clicked. A full shelf answers **409 with the current list** rather than evicting the oldest: silently dropping a board someone saved is worse than being told to delete one. The per-save note textarea is uncontrolled (`defaultValue` + `onBlur`) so an incoming Pusher update cannot overwrite what someone is mid-sentence on.
 
+### Patch notes
+
+`/patch` is Riot's patch notes, read in the hub instead of on their site, behind the login like everything but `/pro`.
+
+**There is no official API for them.** The developer API has no patch-notes endpoint and Data Dragon carries the data, not the prose. What exists is leagueoflegends.com, a Next.js site that ships its content as JSON in a `__NEXT_DATA__` script tag: the article index on the news page, and each article's whole body on its own page. [lib/patchnotes.ts](lib/patchnotes.ts) reads both.
+
+So this is scraping, and it is written as such. The parsers are **shape-agnostic** — they walk the JSON for the first array that looks like news items and the longest string that looks like a body, rather than keying off `page.blades[2].items`, which would break the first time Riot reorders a blade. Every step fails soft and the page keeps a link to the original, so the worst case is "read it on Riot's site" rather than a blank reader. Expect it to break eventually; that is the deal when there is no API.
+
+**The article HTML is sanitised before it is stored**, not when it is rendered. `sanitize()` rebuilds every tag from an allowlist and keeps no attribute it was not asked for — no `class` (Riot's CSS does not exist here anyway), no `style`, no `on*`; `img` keeps only an `http(s)` `src`, and `a` is forced to `target="_blank" rel="noopener noreferrer"`. The sample checked carried nothing dangerous — no script, iframe, inline handler or `javascript:` URL — but "the one patch I looked at was clean" is not a guarantee about every future one, and this reaches our DOM through `dangerouslySetInnerHTML`. The allowlist decides, not the source.
+
+Cached in Redis under `patch:index:v1` (6h, because a new patch can land any day) and `patch:body:v1:<slug>` (30d, because a published article is settled). `.hub .patchbody` styles the bare elements, the classes having been stripped by then.
+
 ### Tournaments
 
 `/tournaments` is the schedule of the competitions we play in: the whole league's fixtures, not only ours, with the broadcast links and the standings beside them.
@@ -182,7 +195,7 @@ The Redis keys carry a `v2` segment because the response shape changed from a fl
 
 ### Navigation
 
-Eight entries: Home, Calendar, Games, Review, Prep, Draft, Tournaments, Pro. Games covers `/scrims` + `/matches`, Review covers `/review` + `/feedback`, switched with `SectionTabs`; URLs were kept so links from notes and the calendar still resolve. Review and Games show a count of what is new since the viewer last opened them — the timestamps live in the viewer's localStorage and `/api/badges` only counts. Below 700px the links become a bottom tab bar.
+Nine entries: Home, Calendar, Games, Review, Prep, Draft, Tournaments, Patch, Pro. Games covers `/scrims` + `/matches`, Review covers `/review` + `/feedback`, switched with `SectionTabs`; URLs were kept so links from notes and the calendar still resolve. Review and Games show a count of what is new since the viewer last opened them — the timestamps live in the viewer's localStorage and `/api/badges` only counts. Below 700px the links become a bottom tab bar.
 
 ### Auth
 
