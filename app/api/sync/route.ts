@@ -3,8 +3,24 @@ import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
 import { USERS } from '../../../lib/users';
 import { TEAM_LP_NAME, TEAM_PANDASCORE_NAME, TEAM_ACRONYM } from '../../../lib/team';
+import { lpQuery, cargo, type LpRow } from '../../../lib/leaguepedia';
 
 const redis = Redis.fromEnv();
+
+/*
+ * Every Leaguepedia query here goes through lpQuery: signed in, aware that a
+ * rate-limited reply arrives as HTTP 200 with error.code='ratelimited', and
+ * able to tell "could not fetch" (null) from "genuinely empty" ([]).
+ *
+ * All four used to be raw fetches, two of them with origin=* and two fired in
+ * parallel — anonymous, undetected when refused, and no retry. The daily cron
+ * had therefore been failing silently, reporting "No matches found" for what
+ * was really a refusal.
+ */
+const LP_BUDGET_MS = 40_000;
+
+/** The { cargoquery: [{ title }] } envelope every reader of these keys expects. */
+const envelope = (rows: LpRow[]) => ({ cargoquery: rows.map(title => ({ title })) });
 
 const PLAYERS = USERS
   .filter(u => u.role === 'player' && u.riotId)
@@ -228,17 +244,14 @@ export async function GET(request: Request) {
     // LP
     try {
       console.log(`[sync] ${player.name} LP...`);
-      const lpParams = new URLSearchParams({
-        action: 'cargoquery', tables: 'ScoreboardPlayers',
+      const lpRows = await lpQuery(cargo({
+        tables: 'ScoreboardPlayers',
         fields: 'Champion,Kills,Deaths,Assists,PlayerWin,DateTime_UTC,Tournament,Team,TeamVs,CS,Gold,Side,Name',
         where: `Name='${player.lpName}' AND Team='${TEAM_LP_NAME}'`,
-        order_by: 'DateTime_UTC DESC', limit: '50', format: 'json',
-      });
-      const lpRes = await fetch(`https://lol.fandom.com/api.php?${lpParams.toString()}`);
-      const lpData = await lpRes.json();
-      if (lpData.cargoquery?.length > 0) {
-        await redis.set(`lp:${player.name}`, JSON.stringify(lpData));
-      }
+        order_by: 'DateTime_UTC DESC', limit: '50',
+      }), `sync/player/${player.name}`, Date.now() + LP_BUDGET_MS);
+      if (lpRows === null) errors.push('LP: rate limited');
+      else if (lpRows.length) await redis.set(`lp:${player.name}`, JSON.stringify(envelope(lpRows)));
     } catch (e: any) {
       errors.push(`LP: ${e.message}`);
     }
@@ -251,8 +264,7 @@ export async function GET(request: Request) {
   if (playerParam === 'matches') {
     try {
       console.log('[sync] matches LP...');
-      const matchesParams = new URLSearchParams({
-        action: 'cargoquery',
+      const matchesParams = cargo({
         tables: 'ScoreboardPlayers=SP,PicksAndBansS7=PB',
         fields: [
           'SP.Name','SP.Champion','SP.Kills','SP.Deaths','SP.Assists','SP.PlayerWin',
@@ -264,11 +276,16 @@ export async function GET(request: Request) {
         ].join(','),
         join_on: 'SP.GameId=PB.GameId',
         where: `SP.Team='${TEAM_LP_NAME}' OR SP.TeamVs='${TEAM_LP_NAME}'`,
-        order_by: 'SP.DateTime_UTC DESC', limit: '200', format: 'json',
+        order_by: 'SP.DateTime_UTC DESC', limit: '200',
       });
-      const matchesRes = await fetch(`https://lol.fandom.com/api.php?${matchesParams.toString()}`);
-      const matchesData = await matchesRes.json();
-      if (matchesData.cargoquery?.length > 0) {
+      const matchesRows = await lpQuery(matchesParams, 'sync/matches', Date.now() + LP_BUDGET_MS);
+      // null is a refusal, not an empty league — saying "no matches found" for
+      // it is what hid this failure for weeks.
+      if (matchesRows === null) {
+        return NextResponse.json({ success: false, error: 'Leaguepedia rate-limited the match query — retry shortly', rateLimited: true });
+      }
+      const matchesData = envelope(matchesRows);
+      if (matchesData.cargoquery.length > 0) {
         await redis.set('matches:lp', JSON.stringify(matchesData));
         await redis.set('sync:updatedAt', new Date().toISOString());
 
@@ -299,14 +316,14 @@ export async function GET(request: Request) {
               };
               const lpName = TEAM_NAME_MAP[oppTeam] ?? oppTeam;
 
-              const p1 = new URLSearchParams({
-                action:'cargoquery', tables:'ScoreboardPlayers',
+              const p1 = cargo({
+                tables:'ScoreboardPlayers',
                 fields:'Champion,PlayerWin,DateTime_UTC,Tournament,Team,Name',
                 where:`Team="${lpName}"`,
-                order_by:'DateTime_UTC DESC', limit:'75', format:'json', origin:'*',
+                order_by:'DateTime_UTC DESC', limit:'75',
               });
-              const p2 = new URLSearchParams({
-                action:'cargoquery', tables:'ScoreboardPlayers=SP,PicksAndBansS7=PB',
+              const p2 = cargo({
+                tables:'ScoreboardPlayers=SP,PicksAndBansS7=PB',
                 fields:['SP.PlayerWin','SP.DateTime_UTC','SP.Tournament','SP.Team','SP.TeamVs','SP.Side','SP.GameId',
                   'PB.Team1Ban1','PB.Team1Ban2','PB.Team1Ban3','PB.Team1Ban4','PB.Team1Ban5',
                   'PB.Team2Ban1','PB.Team2Ban2','PB.Team2Ban3','PB.Team2Ban4','PB.Team2Ban5',
@@ -315,13 +332,15 @@ export async function GET(request: Request) {
                 ].join(','),
                 join_on:'SP.GameId=PB.GameId',
                 where:`SP.Team="${lpName}"`,
-                order_by:'SP.DateTime_UTC DESC', limit:'50', format:'json', origin:'*',
+                order_by:'SP.DateTime_UTC DESC', limit:'50',
               });
 
-              const [r1, r2] = await Promise.all([
-                fetch(`https://lol.fandom.com/api.php?${p1}`).then(r=>r.json()),
-                fetch(`https://lol.fandom.com/api.php?${p2}`).then(r=>r.json()),
-              ]);
+              // Sequential on purpose: two at once is enough to trip the limit.
+              const scoutDeadline = Date.now() + LP_BUDGET_MS;
+              const rows1 = await lpQuery(p1, `sync/scout/players/${lpName}`, scoutDeadline);
+              const rows2 = await lpQuery(p2, `sync/scout/games/${lpName}`, scoutDeadline);
+              const r1 = envelope(rows1 ?? []);
+              const r2 = envelope(rows2 ?? []);
 
               const playerMap: Record<string,any> = {};
               (r1.cargoquery||[]).forEach((item: any) => {
