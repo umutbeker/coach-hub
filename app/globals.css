@@ -458,3 +458,11 @@ body {
   .hub .grow { grid-template-columns: 28px 46px 1fr; }
   .hub .grow > .g-hide { display: none; }
 }
+
+/* ── Patch meta strip (/pro) ────────────────────────────────────────────────
+   Five ranked lists side by side above the series. Names are new: .meta* did
+   not exist in this file before (checked). */
+.hub .metagrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); gap: 12px; }
+.hub .metacol { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hub .metarow { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center; }
+.hub .metarow > .nm { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -23,7 +23,66 @@ type Series = {
   teamA: string; teamB: string; scoreA: number; scoreB: number;
   winner: string | null; gamesPlayed: number; games: Game[];
 };
-type League = { league: string; tournament: string; updatedAt: string; series: Series[] };
+type Ranked = { name: string; n: number; pct?: number };
+type PatchMeta = {
+  patches: string[]; widened: boolean; games: number;
+  picked: Ranked[]; banned: Ranked[]; firstPick: Ranked[]; lastPick: Ranked[]; presence: Ranked[];
+};
+type League = {
+  league: string; tournament: string; updatedAt: string;
+  meta?: PatchMeta | null;
+  series: Series[];
+};
+
+/**
+ * What the patch currently looks like in this league, built from the same
+ * games the series below are, so it costs no extra Leaguepedia query.
+ *
+ * Per league on purpose: the regions are rarely on the same patch — Worlds was
+ * on 26.20 while LEC sat on 26.17 — and averaging across them would describe a
+ * meta nobody actually played.
+ */
+function MetaStrip({ meta }: { meta: PatchMeta }) {
+  const cols: { title: string; hint: string; items: Ranked[]; ban?: boolean }[] = [
+    { title: 'Most picked', hint: 'games picked', items: meta.picked },
+    { title: 'Most banned', hint: 'games banned', items: meta.banned, ban: true },
+    { title: 'First pick', hint: 'blue B1, taken blind', items: meta.firstPick },
+    { title: 'Last pick', hint: 'red R5, sees the whole draft', items: meta.lastPick },
+    { title: 'Presence', hint: 'picked or banned', items: meta.presence },
+  ];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <div className="h" style={{ fontSize: 18 }}>Patch {meta.patches.join(' + ')}</div>
+        <span className="t3" style={{ fontSize: 13 }}>{meta.games} games</span>
+        {meta.widened ? (
+          <span className="tag warn" title="The newest patch alone had too few games to read">
+            widened to {meta.patches.length} patches
+          </span>
+        ) : null}
+      </div>
+      <div className="metagrid">
+        {cols.map(c => (
+          <div key={c.title} className="card metacol">
+            <div>
+              <div className="sec sm">{c.title}</div>
+              <div className="t3" style={{ fontSize: 11 }}>{c.hint}</div>
+            </div>
+            {!c.items.length ? <span className="t3" style={{ fontSize: 12 }}>No data</span> : c.items.slice(0, 7).map(x => (
+              <div key={x.name} className="metarow" title={`${x.name} — ${x.n} games`}>
+                <img src={champImg(x.name)} alt="" className={c.ban ? 'champ sm ban' : 'champ sm'}
+                  style={{ width: 26, height: 26 }}
+                  onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+                <span className="nm">{x.name}</span>
+                <span className="mono t2" style={{ fontSize: 12 }}>{x.pct !== undefined ? `${x.pct}%` : x.n}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const fmtDate = (s: string) => {
   const d = new Date(s.replace(' ', 'T') + 'Z');
@@ -201,6 +260,11 @@ export default function ProPage() {
             ))}
           </div>
         ) : null}
+
+        {/* Above the series, because it is the thing a coach scans first —
+            and only when the league actually has it, so a cached payload from
+            before this existed degrades to the plain list. */}
+        {!loading && !error && lg?.meta ? <MetaStrip meta={lg.meta} /> : null}
 
         {loading ? (
           <div className="t3" style={{ textAlign: 'center', padding: '50px 20px' }}>Loading…</div>

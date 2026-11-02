@@ -31,7 +31,7 @@ export const LEAGUES = ['Worlds', 'LEC', 'LCK'] as const;
 type League = (typeof LEAGUES)[number];
 
 // Sürümlü anahtar: yanıt şekli değiştiğinde eski cache servis edilmesin.
-const cacheKey = (l: string) => `vods:v2:${l.toLowerCase()}`;
+const cacheKey = (l: string) => `vods:v3:${l.toLowerCase()}`;
 
 const pick = (r: LpRow, prefix: string, kind: 'Ban' | 'Pick') =>
   [1, 2, 3, 4, 5].map(i => r[`${prefix}${kind}${i}`]).filter(Boolean);
@@ -39,7 +39,7 @@ const pick = (r: LpRow, prefix: string, kind: 'Ban' | 'Pick') =>
 type Game = {
   gameId: string; matchId: string; date: string; tournament: string;
   gameInMatch: number | null; blueTeam: string; redTeam: string;
-  winner: string | null; blueWon: boolean;
+  winner: string | null; blueWon: boolean; patch: string;
 };
 
 /**
@@ -84,6 +84,83 @@ function groupIntoSeries<T extends Game>(games: T[], fallbackTournament: string)
   }).sort((a, b) => b.date.localeCompare(a.date));
 }
 
+// ── Patch meta ──────────────────────────────────────────────────────────────
+// The headline numbers for a league on the patch being played now. Computed
+// here, from games already fetched for the VODs, so the page costs no extra
+// Leaguepedia query — it reads one Redis key like everything else on /pro.
+
+/** "26.20" sorts after "26.9"; a string compare gets that backwards. */
+function patchRank(p: string): number {
+  const [a, b] = p.split('.').map(Number);
+  return (Number.isFinite(a) ? a : 0) * 1000 + (Number.isFinite(b) ? b : 0);
+}
+
+/** Below this, one patch is a coincidence rather than a read. */
+const MIN_META_GAMES = 6;
+
+type MetaGame = { patch: string; draft: { blueBans: string[]; redBans: string[]; bluePicks: string[]; redPicks: string[] } };
+
+export type PatchMeta = {
+  patches: string[];
+  /** True when the newest patch alone was too thin and older ones were folded in. */
+  widened: boolean;
+  games: number;
+  picked: { name: string; n: number }[];
+  banned: { name: string; n: number }[];
+  /** Blue's 1st pick — the first pick of the draft. */
+  firstPick: { name: string; n: number }[];
+  /** Red's 5th pick — the last pick of the draft, taken knowing everything. */
+  lastPick: { name: string; n: number }[];
+  /** Picked or banned, as a share of games. The number the team drafts by. */
+  presence: { name: string; n: number; pct: number }[];
+};
+
+function count(names: (string | undefined)[], top = 10) {
+  const t = new Map<string, number>();
+  for (const n of names) if (n) t.set(n, (t.get(n) ?? 0) + 1);
+  return [...t.entries()]
+    .map(([name, n]) => ({ name, n }))
+    .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name))
+    .slice(0, top);
+}
+
+function buildMeta(games: MetaGame[]): PatchMeta | null {
+  const dated = games.filter(g => g.patch);
+  if (!dated.length) return null;
+
+  // Newest patch first, widening only until the sample is readable.
+  const order = [...new Set(dated.map(g => g.patch))].sort((a, b) => patchRank(b) - patchRank(a));
+  const patches: string[] = [];
+  let scoped: MetaGame[] = [];
+  for (const p of order) {
+    patches.push(p);
+    scoped = dated.filter(g => patches.includes(g.patch));
+    if (scoped.length >= MIN_META_GAMES) break;
+  }
+
+  const picks = scoped.flatMap(g => [...g.draft.bluePicks, ...g.draft.redPicks]);
+  const bans = scoped.flatMap(g => [...g.draft.blueBans, ...g.draft.redBans]);
+
+  const presence = new Map<string, number>();
+  for (const n of [...picks, ...bans]) if (n) presence.set(n, (presence.get(n) ?? 0) + 1);
+
+  return {
+    patches,
+    widened: patches.length > 1,
+    games: scoped.length,
+    picked: count(picks),
+    banned: count(bans),
+    // Draft order, not role order: bluePicks[0] is the very first pick of the
+    // game and redPicks[4] is the very last.
+    firstPick: count(scoped.map(g => g.draft.bluePicks[0])),
+    lastPick: count(scoped.map(g => g.draft.redPicks[4])),
+    presence: [...presence.entries()]
+      .map(([name, n]) => ({ name, n, pct: Math.round((n / scoped.length) * 100) }))
+      .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name))
+      .slice(0, 10),
+  };
+}
+
 async function fetchLeague(league: League, deadline: number) {
   for (const year of seasonCandidates()) {
     const tournament = `${league} ${year}`;
@@ -92,7 +169,7 @@ async function fetchLeague(league: League, deadline: number) {
       join_on: 'MSG.GameId=SG.GameId,SG.GameId=PB.GameId',
       fields: [
         'MSG.GameId', 'MSG.MatchId', 'MSG.Vod', 'MSG.VodPB', 'MSG.VodHighlights', 'MSG.N_GameInMatch',
-        'SG.Team1', 'SG.Team2', 'SG.Winner', 'SG.DateTime_UTC', 'SG.Tournament',
+        'SG.Team1', 'SG.Team2', 'SG.Winner', 'SG.DateTime_UTC', 'SG.Tournament', 'SG.Patch',
         'PB.Team1Ban1', 'PB.Team1Ban2', 'PB.Team1Ban3', 'PB.Team1Ban4', 'PB.Team1Ban5',
         'PB.Team2Ban1', 'PB.Team2Ban2', 'PB.Team2Ban3', 'PB.Team2Ban4', 'PB.Team2Ban5',
         'PB.Team1Pick1', 'PB.Team1Pick2', 'PB.Team1Pick3', 'PB.Team1Pick4', 'PB.Team1Pick5',
@@ -118,6 +195,7 @@ async function fetchLeague(league: League, deadline: number) {
         matchId: r.MatchId || r.GameId?.replace(/_\d+$/, '') || r.GameId,
         date,
         tournament: r.Tournament || tournament,
+        patch: r.Patch ?? '',
         gameInMatch: Number(r['N GameInMatch'] ?? r.N_GameInMatch ?? 0) || null,
         blueTeam: r.Team1,
         redTeam: r.Team2,
@@ -135,9 +213,11 @@ async function fetchLeague(league: League, deadline: number) {
       };
     });
 
-    return { rows: groupIntoSeries(games, tournament), tournament };
+    // Meta is built from the flat game list, before it is grouped into
+    // series — a champion count is per game, not per series.
+    return { rows: groupIntoSeries(games, tournament), tournament, meta: buildMeta(games) };
   }
-  return { rows: [], tournament: `${league} ${seasonCandidates()[0]}` };
+  return { rows: [], tournament: `${league} ${seasonCandidates()[0]}`, meta: null };
 }
 
 export async function GET(request: Request) {
@@ -163,10 +243,10 @@ export async function GET(request: Request) {
 
   // Sıralı — paralel sorgu limiti tetikliyor.
   for (const league of missing) {
-    const { rows, tournament } = await fetchLeague(league, deadline);
+    const { rows, tournament, meta } = await fetchLeague(league, deadline);
     if (rows === null) { rateLimited = true; continue; }
 
-    const payload = { league, tournament, updatedAt: new Date().toISOString(), series: rows };
+    const payload = { league, tournament, updatedAt: new Date().toISOString(), meta, series: rows };
     const at = leagues.findIndex((l: { league: string }) => l.league === league);
     if (at >= 0) leagues[at] = payload; else leagues.push(payload);
     await redis.set(cacheKey(league), JSON.stringify(payload), { ex: CACHE_TTL });
