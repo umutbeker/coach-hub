@@ -24,9 +24,16 @@ const PART_1 = PLAYERS.slice(0, 3);
 const PART_2 = PLAYERS.slice(3);
 
 export async function GET(request: Request) {
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000';
+  /*
+   * The stable production domain, not VERCEL_URL.
+   *
+   * VERCEL_URL is the deployment-specific host, which sits behind Deployment
+   * Protection: every sub-request to it came back as Vercel's HTML login page,
+   * so each step failed with "Unexpected token '<'" and the cron did nothing
+   * at all. VERCEL_PROJECT_PRODUCTION_URL is the public alias.
+   */
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+  const baseUrl = host ? `https://${host}` : 'http://localhost:3000';
 
   const part = new URL(request.url).searchParams.get('part');
   const players = part === '1' ? PART_1 : part === '2' ? PART_2 : PLAYERS;
@@ -40,7 +47,11 @@ export async function GET(request: Request) {
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(timeout) });
       const data = await res.json();
-      results.push({ player: label, success: data.success ?? res.ok, error: data.error, errors: data.errors });
+      // /api/sync answers success:true even when a Riot call inside it failed,
+      // reporting the failure in `errors`. A step that logged an error is not
+      // a step that worked.
+      const ok = (data.success ?? res.ok) && !(data.errors?.length);
+      results.push({ player: label, success: ok, error: data.error, errors: data.errors });
     } catch (e) {
       results.push({ player: label, success: false, error: e instanceof Error ? e.message : 'failed' });
     }
@@ -69,6 +80,7 @@ export async function GET(request: Request) {
 
   const failed = results.filter(r => !r.success);
   return NextResponse.json({
+    baseUrl,
     // Don't claim success when half the steps failed — that is what made a
     // partial sync invisible.
     success: failed.length === 0,
