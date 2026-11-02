@@ -6,7 +6,7 @@ import { USERS } from '../lib/users';
 import { TEAM_NAME } from '../lib/team';
 import Icon from './components/Icon';
 
-type Role = 'player' | 'coach';
+type Role = 'player' | 'coach' | 'owner';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,7 +25,8 @@ export default function LoginPage() {
       return;
     }
     localStorage.setItem('currentUser', JSON.stringify(user));
-    router.push(user.role === 'coach' ? '/coach' : '/player');
+    // Each role lands on the screen built for it.
+    router.push(user.role === 'owner' ? '/owner' : user.role === 'coach' ? '/coach' : '/player');
   };
 
   const switchRole = (next: Role) => {
@@ -55,6 +56,7 @@ export default function LoginPage() {
           <div className="seg">
             <button type="button" className={role === 'player' ? 'on' : ''} onClick={() => switchRole('player')}>Player</button>
             <button type="button" className={role === 'coach' ? 'on' : ''} onClick={() => switchRole('coach')}>Coach</button>
+            <button type="button" className={role === 'owner' ? 'on' : ''} onClick={() => switchRole('owner')}>Owner</button>
           </div>
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

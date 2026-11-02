@@ -193,6 +193,14 @@ The Redis keys carry a `v2` segment because the response shape changed from a fl
 - **The player home leads with coaching, not solo queue:** feedback about them (each note opens the VOD at its timestamp), up next, their lane opponent from the saved Prep report, and the pool the coach rated for them plus their scrims. Solo queue collapses behind "Solo queue details"; Pro stage stays open. Coaches see the same page when they open a player.
 - **Lane matchups** (player home) join the opponent's Leaguepedia players to our roster by role. Prep used to show the same table and no longer does — it read as filler next to the draft board, which answers the pre-draft question directly. Leaguepedia's role is free text, so it goes through `toRole()` in [lib/hub.ts](lib/hub.ts) — never compare role strings directly.
 
+### The owner screen
+
+`/owner` is where the `owner` role lands — the login carries three roles now (Player, Coach, Owner) and each routes to its own screen; `homeFor()` in [Nav.tsx](app/components/Nav.tsx) is the single place that mapping lives.
+
+It is deliberately flatter than `/coach`: read-only, no tabs, no editors. A coach needs tools, an owner needs to know where the team stands without learning the hub. Every figure carries its denominator and the data age, because a number without one raises more questions than it answers — the official record is the last ~20 games held in `matches:lp`, not the season, and it says so.
+
+[/api/owner](app/api/owner/route.ts) is small on purpose: only the season record, solo-queue ranks and pool coverage. The page reads it alongside the existing `/api/overview`, `/api/fixture` and `/api/tournaments` rather than a second copy of the overview aggregation. A player the sync could not reach is called out by name, because a dead Riot key and a player who stopped playing look identical in the numbers otherwise.
+
 ### Navigation
 
 Nine entries: Home, Calendar, Games, Review, Prep, Draft, Tournaments, Patch, Pro. Games covers `/scrims` + `/matches`, Review covers `/review` + `/feedback`, switched with `SectionTabs`; URLs were kept so links from notes and the calendar still resolve. Review and Games show a count of what is new since the viewer last opened them — the timestamps live in the viewer's localStorage and `/api/badges` only counts. Below 700px the links become a bottom tab bar.

@@ -13,5 +13,6 @@ export const USERS = [
   { username: 'jalleba',    password: 'jalleba123',    role: 'player', lane: 'adc',     riotId: 'Thomas Jalbi#XD3',   name: 'Jalleba',    lpName: 'Jalleba',    image: '/logo.png' },
   { username: 'mahonix',    password: 'mahonix123',    role: 'player', lane: 'support', riotId: 'RVL Mahonix#BROCK',  name: 'Mahonix',    lpName: 'Mahonix',    image: '/logo.png' },
   { username: 'zetsu',      password: 'arsdf33',       role: 'coach',  lane: null,      riotId: null,                 name: 'Baş Koç',    lpName: null,         image: '/logo.png' },
+  { username: 'owner',      password: 'p4owner2026',   role: 'owner',  lane: null,      riotId: null,                 name: 'Takım Sahibi', lpName: null,       image: '/logo.png' },
   { username: 'waves',      password: 'k7xx6w9s5p6',   role: 'coach',  lane: null,      riotId: null,                 name: 'Baş Koç',    lpName: null,         image: '/logo.png' },
 ];

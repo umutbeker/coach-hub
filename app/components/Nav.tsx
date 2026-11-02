@@ -12,8 +12,12 @@ export type NavKey = 'home' | 'calendar' | 'games' | 'review' | 'prep' | 'draft'
 
 type User = { name?: string; role?: string; image?: string } | null;
 
-const LINKS: { key: NavKey; label: string; icon: IconName; href: (coach: boolean) => string }[] = [
-  { key: 'home', label: 'Home', icon: 'grid', href: c => (c ? '/coach' : '/player') },
+/** Each role has its own landing screen. */
+const homeFor = (role?: string) =>
+  role === 'owner' ? '/owner' : role === 'coach' ? '/coach' : '/player';
+
+const LINKS: { key: NavKey; label: string; icon: IconName; href: (coach: boolean, role?: string) => string }[] = [
+  { key: 'home', label: 'Home', icon: 'grid', href: (_c, role) => homeFor(role) },
   { key: 'calendar', label: 'Calendar', icon: 'calendar', href: () => '/calendar' },
   { key: 'games', label: 'Games', icon: 'target', href: () => '/scrims' },
   // A player's first stop in Review is the feedback about them.
@@ -100,7 +104,7 @@ export default function Nav({ active, user }: { active: NavKey | null; user: Use
           {LINKS.map(l => {
             const n = badgeFor(l.key);
             return (
-              <button key={l.key} className={active === l.key ? 'nl on' : 'nl'} onClick={() => router.push(l.href(isCoach))}>
+              <button key={l.key} className={active === l.key ? 'nl on' : 'nl'} onClick={() => router.push(l.href(isCoach, user?.role))}>
                 <span className="nl-ic"><Icon name={l.icon} />{n ? <span className="dot-sm" /> : null}</span>
                 <span className="nl-label">{l.label}</span>
                 {n ? <span className="badge">{n > 99 ? '99+' : n}</span> : null}

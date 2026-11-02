@@ -23,8 +23,8 @@ export async function GET() {
     allMap<{ builtAt?: number; savedAt?: number; brief?: unknown }>(KEYS.reports),
     redis.get('draft:current'),
     redis.get('matches:lp'),
-    redis.get('vods:v2:lec'),
-    redis.get('vods:v2:lck'),
+    redis.get('vods:v3:lec'),
+    redis.get('vods:v3:lck'),
   ]);
   const notes = await allAcross<VodNote>(vods.map(v => KEYS.notes(v.id)));
   const today = new Date().toISOString().slice(0, 10);
