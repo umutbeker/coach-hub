@@ -59,9 +59,17 @@ There is no database and no ORM. Every API route opens `Redis.fromEnv()` (Upstas
 | `drafts:saved:v1` (hash, max 10) | `/api/draft-saves` | `/api/draft-saves`, draft page |
 | `tour:v1:<league>` | `/api/tournaments` (no TTL, carries `updatedAt`) | `/api/tournaments`, `/tournaments`, `/coach` |
 
+### Back up before anything else
+
+**The datastore has been lost once.** On 24 October 2026 the Upstash database behind this project was removed — the Vercel Marketplace integration went to `uninstalled`, the host stopped resolving in DNS, and every Redis-backed route answered `{"error":"fetch failed"}`. A new free Upstash store was provisioned on 2 November and the project reconnected: `vercel install upstash-kv`, then **remove the dead `KV_*` and `REDIS_URL` vars first** — `vercel storage connect` otherwise fails on the name clash — and finally `vercel env pull`. Env changes only reach the site on the next deploy.
+
+The synced keys — `player:*`, `lp:*`, `matches:lp`, `vods:*`, `tour:*`, `fixture:cache` — were rebuilt by re-running the sync. The hand-entered coaching data **could not be**: scrims, VOD notes, champion-pool ratings, the calendar, draft plans and saved boards were gone for good, exactly as the warning below had said they would be.
+
+[scripts/redis-backup.mjs](scripts/redis-backup.mjs) is the half that was missing. It dumps every key to `backups/redis-<date>.json` and restores from one; a restore touches only the irreplaceable keys unless given `--all`, because the synced ones are better rebuilt from source than from a stale snapshot. Round-tripped against real hashes, Turkish text and nested JSON included. Run it before touching storage, env vars or the Vercel integration — and keep a copy off this machine, because a snapshot that only exists beside the thing it protects is not a backup.
+
 The coaching-tool collections are Redis **hashes**, one field per record, accessed through [lib/store.ts](lib/store.ts); their types are in [lib/hub.ts](lib/hub.ts). A collection is one `hgetall`, a write touches one field. Don't fold a collection into a single JSON value — a season of scrims would outgrow Upstash's per-value limit. These keys hold hand-entered team data with no other copy, unlike the synced keys above, which can be rebuilt.
 
-`/api/sync` reports `{"success":false,"error":"No matches found"}` whenever `cargoquery` is absent from the Leaguepedia response — which includes a rate-limited response, not just a genuinely empty result. Treat that message as "no usable reply", and retry before concluding the query is wrong.
+`/api/sync` used to report `{"success":false,"error":"No matches found"}` whenever `cargoquery` was absent from the Leaguepedia response — which includes a rate-limited reply, not just a genuinely empty result. It held the last four raw `fetch` calls to Leaguepedia in the codebase: anonymous, two of them carrying `origin=*`, two fired with `Promise.all`, and none able to see a refusal (which arrives as HTTP 200 with `error.code='ratelimited'`). The daily cron had therefore been failing silently, and the message made it look like missing data rather than a broken query — measured against live rows, the same match query returned 5 rows signed in and `ratelimited` anonymously. All four now go through `lpQuery`/`cargo`, run sequentially, and a refused match query answers `rateLimited: true` instead of claiming the team has never played.
 
 `data/players.json` is a stale snapshot of `player:*` values, not a live source — nothing imports it.
 

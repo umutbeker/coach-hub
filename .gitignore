@@ -42,3 +42,7 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# Redis snapshots from scripts/redis-backup.mjs — team data, not source.
+# Keep at least one copy OFF this machine; that is the whole point.
+/backups
